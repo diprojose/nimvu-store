@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nimvu",
-  description: "Diseño que emociona",
+  title: "Nimvu | Diseño que acompaña tus momentos",
+  description: "Diseño que acompaña tus momentos",
 };
 
 export default function RootLayout({
