@@ -1,4 +1,14 @@
+"use client"
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { sdk } from "./lib/sdk";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./components/ui/carousel";
 
 const category = [
   { nombre: 'Baño', img: '/bano.jpg', slug: 'Baño' },
@@ -8,7 +18,52 @@ const category = [
   { nombre: 'Sala', img: '/sala.jpg', slug: 'Sala' },
 ];
 
+const MOCK_PRODUCTS = [
+  {
+    id: "prod_1",
+    title: "Modern Lamp",
+    thumbnail: "/oficina.jpg"
+  },
+  {
+    id: "prod_2",
+    title: "Comfy Chair",
+    thumbnail: "/sala.jpg"
+  },
+  {
+    id: "prod_3",
+    title: "Kitchen Set",
+    thumbnail: "/cocina.jpg"
+  },
+  {
+    id: "prod_4",
+    title: "Bath Towels",
+    thumbnail: "/bano.jpg"
+  },
+   {
+    id: "prod_5",
+    title: "Bedroom Pillow",
+    thumbnail: "/cuarto.jpg"
+  }
+];
+
 export default function Home() {
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const { products } = await sdk.store.product.list();
+        // If API returns empty, maybe use mock? For now, we assume API returning empty is valid state.
+        // But if connection fails, we catch it below.
+        setProducts(products);
+      } catch (err) {
+        console.error("Failed to fetch products, using mock data", err);
+        setProducts(MOCK_PRODUCTS);
+      }
+    }
+    fetchProducts();
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center font-sans dark:bg-black">
       <main className="flex min-h-screen w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
@@ -30,11 +85,43 @@ export default function Home() {
             ))}
           </div>
         </section>
-        <section className="top-products-section w-full pb-[100px]">
+        <section className="top-products-section w-full pb-[100px] flex flex-col items-center">
           <h2 className="text-center text-4xl font-italiana">Today&apos;s Popular Picks</h2>
           <p className="text-center pb-[50px]">Unmatched design—superior performance and customer satisfaction in one.</p>
-          <div className="carousel-container">
-
+          <div className="carousel-container w-full max-w-5xl">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {products.map((product) => (
+                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 p-2">
+                    <div className="flex flex-col items-center">
+                      <div className="w-full aspect-square relative mb-2">
+                         {product.thumbnail ? (
+                           <Image
+                             src={product.thumbnail}
+                             fill
+                             alt={product.title}
+                             className="object-cover rounded-md"
+                           />
+                         ) : (
+                           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                             No Image
+                           </div>
+                         )}
+                      </div>
+                      <span className="font-medium">{product.title}</span>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         </section>
       </main>
