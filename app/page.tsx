@@ -1,5 +1,6 @@
 "use client"
 import Image from "next/image";
+import Link from 'next/link'
 import { sdk } from "./lib/sdk"
 import { useEffect, useState } from "react"
 import {
@@ -86,21 +87,27 @@ export default function Home() {
                 {products.map((product) => (
                   <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 p-2">
                     <div className="flex flex-col items-center">
-                      <div className="w-full aspect-square relative mb-2">
-                         {product.thumbnail ? (
-                           <Image
-                             src={product.thumbnail}
-                             fill
-                             alt={product.title}
-                             className="object-cover rounded-md"
-                           />
-                         ) : (
-                           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                             No Image
-                           </div>
-                         )}
-                      </div>
-                      <span className="font-medium">{product.title}</span>
+                        <div className="w-full aspect-square relative mb-2">
+                          {product.thumbnail ? (
+                            <Link href={`/products/${product.id}`}>
+                              <Image
+                                src={product.thumbnail}
+                                fill
+                                alt={product.title}
+                                className="object-cover rounded-md"
+                                unoptimized={
+                                  product.thumbnail.startsWith("http://localhost") ||
+                                  product.thumbnail.startsWith("http://127.0.0.1")
+                                }
+                              />
+                            </Link>
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <Link href={`/products/${product.id}`}><span className="font-medium">{product.title}</span></Link>
                     </div>
                   </CarouselItem>
                 ))}
