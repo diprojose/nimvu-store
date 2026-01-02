@@ -107,6 +107,10 @@ export default function Home() {
                              fill
                              alt={product.title}
                              className="object-cover rounded-md"
+                             unoptimized={
+                               product.thumbnail.startsWith("http://localhost") ||
+                               product.thumbnail.startsWith("http://127.0.0.1")
+                             }
                            />
                          ) : (
                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
