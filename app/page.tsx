@@ -1,4 +1,14 @@
+"use client"
 import Image from "next/image";
+import { sdk } from "./lib/sdk"
+import { useEffect, useState } from "react"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 const category = [
   { nombre: 'Baño', img: '/bano.jpg', slug: 'Baño' },
@@ -9,6 +19,29 @@ const category = [
 ];
 
 export default function Home() {
+  const [products, setProducts] = useState<any[]>([])
+    const [error, setError] = useState<string | null>(null)
+    const [loading, setLoading] = useState(true)
+  
+    useEffect(() => {
+      async function fetchProducts() {
+        try {
+          const { products } = await sdk.store.product.list()
+          setProducts(products)
+        } catch (err: any) {
+          let errorMessage = err.message || "An error occurred"
+          if (errorMessage === "Failed to fetch") {
+            errorMessage = "Failed to fetch. Ensure your Medusa backend is running and CORS is configured to allow this origin (e.g., http://localhost:3000)."
+          }
+          setError(errorMessage)
+          console.error(err)
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchProducts()
+    }, [])
+
   return (
     <div className="flex min-h-screen items-center justify-center font-sans dark:bg-black">
       <main className="flex min-h-screen w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
@@ -18,7 +51,7 @@ export default function Home() {
             <button className="bg-black text-white py-2 px-4">Ver más</button>
           </div>
         </section>
-        <section className="collections-section w-full pb-[100px]">
+        {/* <section className="collections-section w-full pb-[100px]">
           <h2 className="text-center text-4xl font-italiana">Top Collections</h2>
           <p className="text-center pb-[50px]">Express your style with our standout collection—fashion meets sophistication.</p>
           <div className="collections-container py-8 flex w-full gap-5">
@@ -29,12 +62,52 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
         <section className="top-products-section w-full pb-[100px]">
           <h2 className="text-center text-4xl font-italiana">Today&apos;s Popular Picks</h2>
           <p className="text-center pb-[50px]">Unmatched design—superior performance and customer satisfaction in one.</p>
           <div className="carousel-container">
+            {loading && <p>Loading...</p>}
 
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  <strong>Error:</strong> {error}
+                </div>
+              )}
+
+              <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {products.map((product) => (
+                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 p-2">
+                    <div className="flex flex-col items-center">
+                      <div className="w-full aspect-square relative mb-2">
+                         {product.thumbnail ? (
+                           <Image
+                             src={product.thumbnail}
+                             fill
+                             alt={product.title}
+                             className="object-cover rounded-md"
+                           />
+                         ) : (
+                           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                             No Image
+                           </div>
+                         )}
+                      </div>
+                      <span className="font-medium">{product.title}</span>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         </section>
       </main>
