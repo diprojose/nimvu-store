@@ -1,0 +1,37 @@
+[
+  {
+    "stars": 5,
+    "name": "Valentina R.",
+    "text": "El diseño del jarrón es espectacular, tiene una textura acanalada que no había visto en otras tiendas. Se ve súper moderno en la mesa de centro y es mucho más ligero de lo que pensaba.",
+    "photo": "/estalla.jpg",
+    "id": 1
+  },
+  {
+    "stars": 5,
+    "name": "Sofía M.",
+    "text": "Compré el set de servilleteros para renovar la decoración del comedor. Tienen un acabado mate precioso y un diseño geométrico que se roba todas las miradas en las cenas.",
+    "photo": "/emma.jpg",
+    "id": 2
+  },
+  {
+    "stars": 5,
+    "name": "Andrés P.",
+    "text": "Buscaba algo minimalista para mi escritorio y estos posavasos fueron la elección perfecta. El diseño es muy limpio, no rayan la mesa y el material se siente duradero.",
+    "photo": "/chicho.jpg",
+    "id": 3
+  },
+  {
+    "stars": 5,
+    "name": "Javier L.",
+    "text": "Fue un regalo para mi esposa y quedó encantada. Es difícil encontrar piezas de decoración que se sientan originales y no lo típico que venden en todos lados. Muy recomendados.",
+    "photo": "/alberto.jpg",
+    "id": 4
+  },
+  {
+    "stars": 4,
+    "name": "Camila G.",
+    "text": "Me encanta el efecto que hacen cuando enciendo las velas, la luz se difumina de una forma muy cálida. El envío fue rápido, aunque me hubiera gustado que la caja fuera un poco más rígida.",
+    "photo": "/zulima.jpg",
+    "id": 5
+  }
+]

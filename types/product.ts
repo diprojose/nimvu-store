@@ -1,0 +1,33 @@
+import { Options } from "./options";
+import { Images } from "./images";
+import { Variants } from "./variants";
+
+export type Product = {
+  id?: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  handle?: string;
+  is_giftcard?: boolean;
+  discountable?: boolean;
+  thumbnail?: string;
+  collection_id?: null;
+  type_id?: null;
+  weight?: string;
+  length?: null;
+  height?: null;
+  width?: null;
+  hs_code?: null;
+  origin_country?: null;
+  mid_code?: null;
+  material?: null;
+  created_at?: string;
+  updated_at?: string;
+  type?: null;
+  collection?: null;
+  options?: Options[];
+  images?: Images[];
+  variants?: Variants[];
+  quantity?: number;
+  price?: number;
+};

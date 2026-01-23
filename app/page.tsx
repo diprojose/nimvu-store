@@ -1,6 +1,4 @@
 "use client"
-import Image from "next/image";
-import Link from 'next/link'
 import { sdk } from "./lib/sdk"
 import { useEffect, useState } from "react"
 import {
@@ -9,66 +7,54 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
-
-const category = [
-  { nombre: 'Baño', img: '/bano.jpg', slug: 'Baño' },
-  { nombre: 'Cocina', img: '/cocina.jpg', slug: 'Cocina' },
-  { nombre: 'Cuarto', img: '/cuarto.jpg', slug: 'Cuarto' },
-  { nombre: 'Oficina', img: '/oficina.jpg', slug: 'Oficina' },
-  { nombre: 'Sala', img: '/sala.jpg', slug: 'Sala' },
-];
+} from "@/components/ui/carousel";
+import ProductItem from "@/components/custom/singleProduct";
+import TestimonialItem from "@/components/custom/testimonialItem";
+import { Product } from "@/types/product";
+import { TestimonialsModel } from "@/types/testimonials";
+import testimonials from "@/data/testimonials.json"
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true);
   
-    useEffect(() => {
-      async function fetchProducts() {
-        try {
-          const { products } = await sdk.store.product.list()
-          setProducts(products)
-        } catch (err: any) {
-          let errorMessage = err.message || "An error occurred"
-          if (errorMessage === "Failed to fetch") {
-            errorMessage = "Failed to fetch. Ensure your Medusa backend is running and CORS is configured to allow this origin (e.g., http://localhost:3000)."
-          }
-          setError(errorMessage)
-          console.error(err)
-        } finally {
-          setLoading(false)
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const { products } = await sdk.store.product.list({
+          region_id: process.env.REGION_ID,
+          fields: "*variants.calculated_price"
+        })
+        setProducts(products)
+      } catch (err: any) {
+        let errorMessage = err.message || "An error occurred"
+        if (errorMessage === "Failed to fetch") {
+          errorMessage = "Failed to fetch. Ensure your Medusa backend is running and CORS is configured to allow this origin (e.g., http://localhost:3000)."
         }
+        setError(errorMessage)
+        console.error(err)
+      } finally {
+        setLoading(false)
       }
-      fetchProducts()
-    }, [])
+    }
+    fetchProducts()
+  }, [])
 
   return (
-    <div className="flex min-h-screen items-center justify-center font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex items-center justify-center font-sans dark:bg-black">
+      <main className="flex max-w-[1400px] w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
-          <div className="call-to-action bg-[url(/banner.jpg)] max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-center">
+          <div className="call-to-action bg-[url(/banner.jpg)] max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-center rounded-md">
             <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
             <button className="bg-black text-white py-2 px-4">Ver más</button>
           </div>
         </section>
-        {/* <section className="collections-section w-full pb-[100px]">
-          <h2 className="text-center text-4xl font-italiana">Top Collections</h2>
-          <p className="text-center pb-[50px]">Express your style with our standout collection—fashion meets sophistication.</p>
-          <div className="collections-container py-8 flex w-full gap-5">
-            {category.map((cat) => (
-              <div key={cat.slug} className="relative collection-item rounded-full pr-6 last:pr-0 flex-1 cursor-pointer">
-                <div className="image-container w-full sm:h-[100px] md:h-[300px] bg-cover bg-center" style={{ backgroundImage: `url(${cat.img})` }}></div>
-                <h3 className="text-center pt-2">{cat.nombre}</h3>
-              </div>
-            ))}
-          </div>
-        </section> */}
         <section className="top-products-section w-full pb-[100px]">
-          <h2 className="text-center text-4xl font-italiana">Today&apos;s Popular Picks</h2>
-          <p className="text-center pb-[50px]">Unmatched design—superior performance and customer satisfaction in one.</p>
+          <h2 className="text-4xl font-italiana">Nuestros productos más populares</h2>
+          <p className="pb-[50px]">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
           <div className="carousel-container">
-            {loading && <p>Loading...</p>}
+            {loading && <p>Cargando...</p>}
 
               {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -76,7 +62,7 @@ export default function Home() {
                 </div>
               )}
 
-              <Carousel
+            <Carousel
               opts={{
                 align: "start",
                 loop: true,
@@ -84,31 +70,40 @@ export default function Home() {
               className="w-full"
             >
               <CarouselContent>
-                {products.map((product) => (
-                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 p-2">
-                    <div className="flex flex-col items-center">
-                        <div className="w-full aspect-square relative mb-2">
-                          {product.thumbnail ? (
-                            <Link href={`/products/${product.id}`}>
-                              <Image
-                                src={product.thumbnail}
-                                fill
-                                alt={product.title}
-                                className="object-cover rounded-md"
-                                unoptimized={
-                                  product.thumbnail.startsWith("http://localhost") ||
-                                  product.thumbnail.startsWith("http://127.0.0.1")
-                                }
-                              />
-                            </Link>
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                              No Image
-                            </div>
-                          )}
-                        </div>
-                        <Link href={`/products/${product.id}`}><span className="font-medium">{product.title}</span></Link>
-                    </div>
+                {products.map((product: Product) => (
+                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4 p-5">
+                    <ProductItem item={product}></ProductItem>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        </section>
+        <section className="testimonials">
+          <h2 className="text-4xl font-italiana">Que dicen nuestros clientes</h2>
+          <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
+          <div className="carousel-container">
+            {loading && <p>Cargando...</p>}
+
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  <strong>Error:</strong> {error}
+                </div>
+              )}
+
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {testimonials.map((user: TestimonialsModel) => (
+                  <CarouselItem key={user.id} className="md:basis-1/2 lg:basis-1/4 p-5">
+                    <TestimonialItem item={user} />
                   </CarouselItem>
                 ))}
               </CarouselContent>

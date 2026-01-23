@@ -5,35 +5,6 @@ import { sdk } from "../../lib/sdk"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
 
-// Mock product data for fallback
-const MOCK_PRODUCT = {
-  id: "prod_mock",
-  title: "Modern Lamp",
-  description: "A beautiful modern lamp that fits perfectly in any room. Crafted with high-quality materials to ensure durability and style.",
-  thumbnail: "/oficina.jpg",
-  images: [
-    { url: "/oficina.jpg", id: "img_1" },
-    { url: "/sala.jpg", id: "img_2" },
-    { url: "/cuarto.jpg", id: "img_3" }
-  ],
-  options: [
-    {
-      id: "opt_color",
-      title: "Color",
-      values: [
-        { value: "White" },
-        { value: "Black" },
-        { value: "Gold" }
-      ]
-    }
-  ],
-  variants: [
-    { id: "var_1", title: "White", options: [{ value: "White" }] },
-    { id: "var_2", title: "Black", options: [{ value: "Black" }] },
-    { id: "var_3", title: "Gold", options: [{ value: "Gold" }] }
-  ]
-}
-
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const [product, setProduct] = useState<any>(null)
@@ -41,6 +12,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [selectedColor, setSelectedColor] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
+
+
 
   useEffect(() => {
     async function fetchProduct() {
@@ -55,10 +28,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           setSelectedColor(colorOption.values[0].value)
         }
       } catch (err) {
-        console.error("Failed to fetch product, using mock data", err)
-        setProduct(MOCK_PRODUCT)
-        setSelectedImage(MOCK_PRODUCT.thumbnail)
-        setSelectedColor(MOCK_PRODUCT.options[0].values[0].value)
+        
       } finally {
         setLoading(false)
       }
@@ -97,7 +67,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
+    <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Left Side: Images */}
         <div className="flex flex-col gap-4">
@@ -143,38 +113,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               {product.description || "No description available."}
             </p>
           </div>
-
-          {/* Color Selection */}
-          {product.options?.map((option: any) => {
-            if (option.title === "Color") {
-              return (
-                <div key={option.id}>
-                  <h3 className="font-medium mb-3">Color: {selectedColor}</h3>
-                  <div className="flex gap-3">
-                    {option.values.map((val: any) => (
-                      <button
-                        key={val.value}
-                        onClick={() => handleColorSelect(val.value)}
-                        className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
-                          selectedColor === val.value
-                            ? "border-black ring-1 ring-black ring-offset-2"
-                            : "border-gray-200"
-                        }`}
-                        style={{ backgroundColor: val.value.toLowerCase() }}
-                        title={val.value}
-                      >
-                         {/* Fallback for white/light colors to be visible */}
-                         {['white', 'transparent'].includes(val.value.toLowerCase()) && (
-                           <span className="block w-full h-full rounded-full border border-gray-100"></span>
-                         )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-            return null
-          })}
 
           {/* Quantity and Add to Cart */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100">
