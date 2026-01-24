@@ -28,7 +28,7 @@ const Footer = () => {
             </div>
             <div className="links-info flex flex-col">
               <h3 className='text-2xl font-bold mb-7'>Cuenta</h3>
-              <Link href="/about" className="pb-5 text-black transition">Mi Cuenta</Link>
+              <Link href="/register" className="pb-5 text-black transition">Mi Cuenta</Link>
               <Link href="/about" className="pb-5 text-black transition">Carrito</Link>
               <Link href="/about" className="pb-5 text-black transition">Tienda</Link>
             </div>

@@ -68,7 +68,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Left Side: Images */}
         <div className="flex flex-col gap-4">
           <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
