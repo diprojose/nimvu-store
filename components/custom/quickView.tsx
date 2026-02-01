@@ -1,32 +1,33 @@
 "use client"
-import { useEffect, useState, use } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { sdk } from "../../lib/sdk"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
+import { Product } from "@/types/product";
+import { Images } from "@/types/images";
+import { useCartStore } from '@/store/cartStore';
+import { CartProduct } from "@/types/cartProduct";
+import { toast } from "sonner";
 
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const unwrappedParams = use(params);
-  const [product, setProduct] = useState<any>(null)
+const QuickView = ({ item }: { item: Product }) => {
   const [selectedImage, setSelectedImage] = useState<string>("")
-  const [selectedColor, setSelectedColor] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
 
+  const addToCart = useCartStore((state) => state.addToCartFromQuickView);
 
+  const cartProduct: CartProduct = {
+    id: item.id,
+    title: item.title,
+    image: item.thumbnail,
+    quantity: quantity,
+    price: item.variants?.[0]?.calculated_price?.calculated_amount
+  }
 
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const { product } = await sdk.store.product.retrieve(unwrappedParams.id)
-        setProduct(product)
-        if (product.thumbnail) setSelectedImage(product.thumbnail)
-        
-        // Default to first color if available
-        const colorOption = product.options?.find((opt: any) => opt.title === "Color")
-        if (colorOption?.values?.length > 0) {
-          setSelectedColor(colorOption.values[0].value)
-        }
+        if (item.thumbnail) setSelectedImage(item.thumbnail)
       } catch (err) {
         
       } finally {
@@ -34,35 +35,27 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       }
     }
     fetchProduct()
-  }, [unwrappedParams.id])
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
-
-  if (!product) {
-    return <div className="min-h-screen flex items-center justify-center">Product not found</div>
-  }
+  })
 
   const handleQuantityChange = (delta: number) => {
     setQuantity(prev => Math.max(1, prev + delta))
   }
 
-  const addToCart = () => {
-    console.log(`Added ${quantity} of ${product.title} (${selectedColor}) to cart`)
-    // Implement actual add to cart logic here
-  }
+  const handleAddToCart = () => {
+    addToCart(cartProduct, quantity);
+    toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+  };
 
   return (
-    <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="bg-white dark:bg-black py-16 px-6">
+      <div className="max-w-350 mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Left Side: Images */}
         <div className="flex flex-col gap-4">
           <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
             {selectedImage ? (
               <Image
                 src={selectedImage}
-                alt={product.title}
+                alt={item.title}
                 fill
                 className="object-cover"
                 unoptimized={selectedImage.startsWith("http://localhost") || selectedImage.startsWith("http://127.0.0.1")}
@@ -72,7 +65,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             )}
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {product.images?.map((img: any) => (
+            {item.images?.map((img: Images) => (
               <button
                 key={img.id}
                 onClick={() => setSelectedImage(img.url)}
@@ -95,9 +88,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         {/* Right Side: Info */}
         <div className="flex flex-col gap-8">
           <div>
-            <h1 className="text-4xl font-italiana font-bold mb-4">{product.title}</h1>
+            <h1 className="text-4xl font-italiana font-bold mb-4">{item.title}</h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              {product.description || "No description available."}
+              {item.description || "Descripción no disponible"}
             </p>
           </div>
 
@@ -121,15 +114,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </button>
             </div>
             <Button 
-              onClick={addToCart}
+              onClick={handleAddToCart}
               className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white"
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
-              Add to Cart
+              Agregar al carrito
             </Button>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default QuickView;

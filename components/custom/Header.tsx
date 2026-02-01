@@ -60,9 +60,9 @@ const Header = () => {
             <button className="p-2 text-black cursor-pointer">
               <Search className="w-7 h-7" />
             </button>
-            <button className="p-2 text-black cursor-pointer">
+            {/* <button className="p-2 text-black cursor-pointer">
               <Heart className="w-7 h-7" />
-            </button>
+            </button> */}
             <Sheet>
               <SheetTrigger>
                 <div>
@@ -88,7 +88,9 @@ const Header = () => {
                   <p className='font-bold'>${totalPrice}</p>
                 </div>
                 <div className="checkout-section py-5">
-                  <Button className='w-full cursor-pointer'>Continuar</Button>
+                  <Link href="/cart">
+                    <Button className='w-full cursor-pointer'>Continuar</Button>
+                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

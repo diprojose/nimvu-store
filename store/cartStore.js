@@ -26,6 +26,26 @@ export const useCartStore = create(
           set({ cart: [...cart, { ...product, quantity: 1 }] });
         }
       },
+      
+      // Acción para agregar producto
+      addToCartFromQuickView: (product, quantity) => {
+        const { cart } = get();
+        // Verificamos si ya está
+        const productInCart = cart.find((item) => item.id === product.id);
+
+        if (productInCart) {
+          // Si existe, creamos un nuevo array actualizando SOLO ese producto (+1)
+          const updatedCart = cart.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: (item.quantity || 1) + quantity }
+              : item
+          );
+          set({ cart: updatedCart });
+        } else {
+          // Si es nuevo, lo agregamos con quantity: 1
+          set({ cart: [...cart, { ...product, quantity: quantity }] });
+        }
+      },
 
       increaseQuantity: (productId) => {
         const { cart } = get();
@@ -61,8 +81,7 @@ export const useCartStore = create(
       clearCart: () => set({ cart: [] }),
     }),
     {
-      name: 'shopping-cart-storage', // Nombre único en LocalStorage
-      // Por defecto usa localStorage, así que no necesitas configurar más
+      name: 'shopping-cart-storage',
     }
   )
 );

@@ -23,7 +23,7 @@ export default function Home() {
     async function fetchProducts() {
       try {
         const { products } = await sdk.store.product.list({
-          region_id: process.env.REGION_ID,
+          region_id: process.env.NEXT_PUBLIC_REGION_ID,
           fields: "*variants.calculated_price"
         })
         setProducts(products)
@@ -43,7 +43,7 @@ export default function Home() {
 
   return (
     <div className="flex items-center justify-center font-sans dark:bg-black">
-      <main className="flex max-w-[1400px] w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
+      <main className="flex max-w-350 w-full flex-col items-center py-16 px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
           <div className="call-to-action bg-[url(/banner.jpg)] max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-center rounded-md">
             <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
