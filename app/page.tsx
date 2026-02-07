@@ -27,7 +27,7 @@ export default function Home() {
           fields: "*variants.calculated_price"
         })
         setProducts(products)
-      } catch (err: any) {
+      } catch (err) {
         let errorMessage = err.message || "An error occurred"
         if (errorMessage === "Failed to fetch") {
           errorMessage = "Failed to fetch. Ensure your Medusa backend is running and CORS is configured to allow this origin (e.g., http://localhost:3000)."

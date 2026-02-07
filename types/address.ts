@@ -1,0 +1,21 @@
+export type Address = {
+  id: string;
+  customer_id: string;
+  first_name: string;
+  last_name: string;
+  company: string | null; 
+  address_1: string;
+  address_2: string | null; 
+  city: string;
+  country_code: string;
+  province: string | null;
+  postal_code: string;
+  phone: string | null;
+  address_name: string | null; 
+  is_default_shipping: boolean;
+  is_default_billing: boolean;
+  metadata: string; 
+  created_at: string; 
+  updated_at: string;
+  deleted_at: string | null;
+};

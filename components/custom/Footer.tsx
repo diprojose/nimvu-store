@@ -2,16 +2,6 @@
 import Link from 'next/link';
 import Image from "next/image";
 import { Phone, Mail, MapPin  } from "lucide-react";
-import CartProductItem from "@/components/custom/cartProductItem";
-import { useCartStore } from '@/store/cartStore';
-import { CartProduct } from "@/types/cartProduct";
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 
 const Footer = () => {
   

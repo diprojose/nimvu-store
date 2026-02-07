@@ -2,18 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAuthStore } from '@/store/authStore';
 import { sdk } from "../lib/sdk"
 import { Button } from "@/components/ui/button"
 import { FetchError } from "@medusajs/js-sdk"
+import { useRouter } from "next/navigation";
+
+import { useAuthRedirect } from "@/lib/hooks/redirect-if-authenticated";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false)
+
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  
+  // login variables
+  const [loginEmail, setLoginEmail] = useState("")
+  const [loginPassword, setLoginPassword] = useState("")
+
   const [error, setError] = useState<string | null>(null);
+
+  const login = useAuthStore((state) => state.login);
+
+  const { isChecking } = useAuthRedirect({
+    redirectTo: "/profile",
+    condition: "ifAuthenticated", 
+  });
+
+  if (isChecking) {
+    return <div className="p-10 text-center">Cargando...</div>;
+  }
 
   const handleRegistration = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -75,6 +96,29 @@ export default function AuthPage() {
     }
   }
 
+  const handleLogin = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault()
+    if (!loginEmail || !loginPassword) {
+      return
+    }
+
+    setLoading(true)
+
+    let token: string | { location: string }
+
+    try {
+      await login(loginEmail, loginPassword);
+      router.refresh(); 
+      router.push("/profile");
+    } catch (error) {
+      alert(`An error occurred while logging in: ${error}`)
+      setLoading(false)
+      return
+    }
+    setLoading(false)
+  }
 
   return (
     <section className="min-h-[80vh] flex items-center justify-center bg-white py-20">
@@ -109,7 +153,7 @@ export default function AuthPage() {
                   type="email"
                   required
                   className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors rounded-none"
-                  onChange={(e) => setLoginData({...loginData, email: e.target.value})}
+                  onChange={(e) => setLoginEmail(e.target.value)}
                 />
               </div>
 
@@ -121,7 +165,7 @@ export default function AuthPage() {
                   type="password"
                   required
                   className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors rounded-none"
-                  onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                 />
               </div>
 
@@ -139,6 +183,7 @@ export default function AuthPage() {
                 type="submit" 
                 disabled={loading}
                 className="mt-4 bg-black text-white uppercase font-bold text-xs tracking-widest py-4 px-8 transition-colors w-full md:w-auto self-start disabled:opacity-50 cursor-pointer"
+                onClick={handleLogin}
               >
                 {loading ? "Cargando..." : "Acceder"}
               </Button>
@@ -162,6 +207,7 @@ export default function AuthPage() {
                   <input
                     type="text"
                     required
+                    value={firstName}
                     className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black rounded-none"
                     onChange={(e) => setFirstName(e.target.value)}
                   />
@@ -173,6 +219,7 @@ export default function AuthPage() {
                   <input
                     type="text"
                     required
+                    value={lastName}
                     className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black rounded-none"
                     onChange={(e) => setLastName(e.target.value)}
                   />
@@ -186,6 +233,7 @@ export default function AuthPage() {
                 <input
                   type="email"
                   required
+                  value={email}
                   className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black rounded-none"
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -199,6 +247,7 @@ export default function AuthPage() {
                 <input
                   type="password"
                   required
+                  value={password}
                   className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black rounded-none"
                   onChange={(e) => setPassword(e.target.value)}
                 />

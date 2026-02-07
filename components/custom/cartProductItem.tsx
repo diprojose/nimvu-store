@@ -6,7 +6,7 @@ import { CartProduct } from "@/types/cartProduct";
 import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner"
 
-const CartProductItem = ({ item }: { item: CartProduct }) => {
+const CartProductItem = ({ item, cart, onCartUpdate }: { item: CartProduct, cart: boolean, onCartUpdate?: () => void }) => {
 
   const removeProductFromCart = useCartStore((state) => state.removeProductFromCart);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
@@ -15,26 +15,37 @@ const CartProductItem = ({ item }: { item: CartProduct }) => {
   const handleRemoveFromCart = () => {
     removeProductFromCart(item);
     toast.error("Producto removido del carrito", { position: "top-center"})
+    onCartUpdate();
   };
 
   const handleIncreaseQuantity = () => {
     increaseQuantity(item.id);
     toast.success(`${item.title} actualizado`, { position: "top-center"})
+    onCartUpdate();
   };
   
   const handleDecreaseQuantity = () => {
     decreaseQuantity(item.id);
     toast.error(`${item.title} actualizado`, { position: "top-center"})
+    onCartUpdate();
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(amount);
   };
 
   return (
     <div className="product-item flex items-center justify-between mb-5">
-      <div className="remove-product mr-2 grow-1">
+      <div className="remove-product mr-2 grow">
         <button className="cursor-pointer" onClick={handleRemoveFromCart}>
           <X />
         </button>
       </div>
-      <div className="w-full aspect-square relative overflow-hidden max-w-[50px] mr-2 grow-2">
+      <div className="w-full aspect-square relative overflow-hidden max-w-12.5 mr-2 grow-2">
         {item.image ? (
           <Link href={`/products/${item.id}`}>
             <Image
@@ -57,27 +68,32 @@ const CartProductItem = ({ item }: { item: CartProduct }) => {
       <div className="right-side grow-4 w-full pr-1">
         <Link href={`/products/${item.id}`}><span className="font-medium">{item.title}</span></Link>
         <p className="gap-2 font-medium">
-          <span className="text-black">${item.price}</span>
+          <span className="text-black">{formatCurrency(item.price)}</span>
         </p>
       </div>
       <div className="quantity-controls grow-3">
-        <div className="flex items-center border border-gray-300 rounded-md w-fit">
-          <button
-            onClick={() => handleDecreaseQuantity()}
-            className="p-2 hover:bg-gray-50 transition-colors"
-            aria-label="Decrease quantity"
-          >
-            <Minus className="w-4 h-4" />
-          </button>
+        {cart ? (
+          <div className="flex items-center border border-gray-300 rounded-md w-fit">
+            <button
+              onClick={() => handleDecreaseQuantity()}
+              className="p-2 hover:bg-gray-50 transition-colors"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="w-8 text-center font-medium">{item.quantity}</span>
+            <button
+              onClick={() => handleIncreaseQuantity()}
+              className="p-2 hover:bg-gray-50 transition-colors"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
           <span className="w-8 text-center font-medium">{item.quantity}</span>
-          <button
-            onClick={() => handleIncreaseQuantity()}
-            className="p-2 hover:bg-gray-50 transition-colors"
-            aria-label="Increase quantity"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+        )}
+        
       </div>
     </div>
   );
