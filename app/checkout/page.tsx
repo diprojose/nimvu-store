@@ -46,10 +46,10 @@ export default function CheckoutPage() {
   
   
   useEffect(() => {
-    if (customer.addresses && customer.addresses.length > 0) {
-      setSelectedAddressId(customer.addresses[0].id);
+    if (customer?.addresses && customer?.addresses?.length > 0) {
+      setSelectedAddressId(customer?.addresses?.[0].id);
     }
-  }, [customer.addresses]);
+  }, [customer?.addresses]);
 
   const [newAddress, setNewAddress] = useState({
     first_name: "",
@@ -173,13 +173,13 @@ export default function CheckoutPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 
-                {customer.addresses && customer.addresses.length > 0 ? (
+                {customer?.addresses && customer?.addresses?.length > 0 ? (
                   <RadioGroup 
                     value={selectedAddressId} 
                     onValueChange={setSelectedAddressId}
                     className="grid grid-cols-1 gap-3"
                   >
-                    {customer.addresses.map((addr: Address) => (
+                    {customer?.addresses?.map((addr: Address) => (
                       <div key={addr.id} className={`relative flex items-start space-x-3 space-y-0 rounded-md border p-4 transition-all ${selectedAddressId === addr.id ? 'border-black ring-1 ring-black bg-gray-50' : 'hover:bg-gray-50'}`}>
                         <RadioGroupItem value={addr.id} id={addr.id} className="mt-1" />
                         <Label htmlFor={addr.id} className="cursor-pointer w-full font-normal">
