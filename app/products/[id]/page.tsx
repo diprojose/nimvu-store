@@ -4,16 +4,29 @@ import Image from "next/image"
 import { sdk } from "../../lib/sdk"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
+import { useCartStore } from '@/store/cartStore';
+import { CartProduct } from "@/types/cartProduct"
+import { toast } from "sonner";
+import { Images } from "@/types/images"
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [product, setProduct] = useState<any>(null)
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [selectedColor, setSelectedColor] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
 
+  const addToCart = useCartStore((state) => state.addToCartFromQuickView);
 
+  const cartProduct: CartProduct = {
+    id: product?.id,
+    title: product?.title,
+    image: product?.thumbnail,
+    quantity: quantity,
+    price: product?.variants?.[0]?.calculated_price?.calculated_amount
+  }
 
   useEffect(() => {
     async function fetchProduct() {
@@ -23,7 +36,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         if (product.thumbnail) setSelectedImage(product.thumbnail)
         
         // Default to first color if available
-        const colorOption = product.options?.find((opt: any) => opt.title === "Color")
+        const colorOption = product.options?.find((opt) => opt.title === "Color")
         if (colorOption?.values?.length > 0) {
           setSelectedColor(colorOption.values[0].value)
         }
@@ -48,14 +61,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setQuantity(prev => Math.max(1, prev + delta))
   }
 
-  const addToCart = () => {
-    console.log(`Added ${quantity} of ${product.title} (${selectedColor}) to cart`)
-    // Implement actual add to cart logic here
-  }
+  const handleAddToCart = () => {
+    addToCart(cartProduct, quantity);
+    toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+  };
 
   return (
     <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="max-w-350 mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Left Side: Images */}
         <div className="flex flex-col gap-4">
           <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -72,11 +85,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             )}
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {product.images?.map((img: any) => (
+            {product.images?.map((img: Images) => (
               <button
                 key={img.id}
                 onClick={() => setSelectedImage(img.url)}
-                className={`relative w-20 h-20 flex-shrink-0 border-2 rounded-md overflow-hidden ${
+                className={`relative w-20 h-20 shrink-0 border-2 rounded-md overflow-hidden ${
                   selectedImage === img.url ? "border-black" : "border-transparent"
                 }`}
               >
@@ -121,11 +134,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </button>
             </div>
             <Button 
-              onClick={addToCart}
+              onClick={handleAddToCart}
               className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white"
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
-              Add to Cart
+              Agregar al Carrito
             </Button>
           </div>
         </div>

@@ -8,8 +8,8 @@ const Footer = () => {
   return (
     <footer>
       <div className='flex items-center justify-center font-sans dark:bg-black'>
-        <div className='flex max-w-[1400px] w-full flex-col items-center py-5 px-16 bg-white dark:bg-black sm:items-start justify-between'>
-          <div className="upper-part flex justify-between w-full">
+        <div className='max-w-350 w-full items-center py-5 px-5 md:px-16 bg-white dark:bg-black sm:items-start justify-between'>
+          <div className="upper-part grid grid-cols-1 md:grid-cols-3 justify-between w-full">
             <div className="contact-info flex flex-col">
               <h3 className='text-2xl font-bold mb-7'>Ayuda y Soporte</h3>
               <p className='flex items-center pb-5'><MapPin className='mr-2'  /> Bogota, Colombia</p>
