@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
         hostname: "localhost",
         port: "9000",
       },
+      {
+        protocol: 'https',
+        hostname: 'gfetopzhwzaiekvzzzwu.supabase.co', 
+        port: '',
+        pathname: '/storage/v1/object/public/**', 
+      },
     ],
   },
 };
