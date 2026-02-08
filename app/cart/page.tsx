@@ -4,70 +4,29 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { sdk } from "../lib/sdk"; 
 import CartProductItem from "@/components/custom/cartProductItem";
-import { CartProduct } from "@/types/cartProduct";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
+import { CartItem } from "@/types/cartItem";
+import { useCartStore } from '@/store/cartStore';
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function CartPage() {
-  const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. SOLUCIÓN APLICADA: Forzamos asincronía real
-  const loadCartStrategy = useCallback(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    // ESTRATEGIA DE CACHÉ (VELOCIDAD)
-    const localCartData = localStorage.getItem("shopping-cart-storage"); 
-    const cartId = localStorage.getItem("cart_id");
-
-    if (localCartData) {
-      try {
-        const parsedItems = JSON.parse(localCartData);
-        // Ajustamos la ruta para leer los items
-        const items = parsedItems.state?.cart || parsedItems; 
-        
-        if (items && items.length > 0) {
-          setCartProducts(items);
-          setIsLoading(false);
-          return; // Cortamos aquí si encontramos caché
-        }
-      } catch (e) {
-        console.error("Error leyendo caché local:", e);
-      }
-    }
-
-    // ESTRATEGIA DE RESPALDO (DB / MEDUSA)
-    if (cartId) {
-      try {
-        const { cart } = await sdk.store.cart.retrieve(cartId, {
-          fields: "+items.thumbnail,+items.product_title,+items.variant_title",
-        });
-
-        if (cart && cart.items && cart.items.length > 0) {
-          setCartProducts(cart.items as CartProduct[]);
-          localStorage.setItem("shopping-cart-storage", JSON.stringify(cart.items)); 
-        }
-      } catch (error) {
-        console.error("Error recuperando carrito:", error);
-      }
-    }
-
-    setIsLoading(false);
-  }, []);
+  const cart = useCartStore((state) => state.cart);
   
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadCartStrategy();
+      setIsLoading(false);
     }, 0);
     return () => clearTimeout(timer);
-  }, [loadCartStrategy]);
+  }, [cart]);
   
   const { productQuantity, totalProductPrice, totalPrice, shippingPrice } = useMemo(() => {
     const shipping = 12000;
-    
-    const qty = cartProducts.reduce((total, item) => total + item.quantity, 0);
-    const subtotal = cartProducts.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const total = subtotal + shipping;
+    const qty = cart?.items?.reduce((total, item) => total + item?.quantity, 0) || 0;
+    const subtotal = cart?.subtotal;
+    const total = cart?.total;
 
     return {
       productQuantity: qty,
@@ -75,7 +34,7 @@ export default function CartPage() {
       totalPrice: total,
       shippingPrice: shipping
     };
-  }, [cartProducts]);
+  }, [cart]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -97,22 +56,21 @@ export default function CartPage() {
 
       {isLoading ? (
         <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-gray-100 rounded-md w-full"></div>
-          <div className="h-32 bg-gray-100 rounded-md w-full"></div>
+          <Skeleton className="h-32 rounded-md w-full" />
+          <Skeleton className="h-32 rounded-md w-full" />
         </div>
-      ) : cartProducts.length > 0 ? (
+      ) : cart?.items?.length > 0 ? (
         
         // --- LAYOUT GRID: 2 COLUMNAS ---
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* COLUMNA IZQUIERDA: PRODUCTOS (66% del ancho) */}
           <div className="lg:col-span-8 space-y-6">
-            {cartProducts.map((product: CartProduct) => (
+            {cart?.items?.map((product: CartItem) => (
               <CartProductItem 
                 key={product.id} 
                 item={product} 
-                cart={true} // Asumo que esta prop indica que estamos en la pag de carrito
-                onCartUpdate={loadCartStrategy} 
+                cart={true}
               />
             ))}
           </div>
@@ -164,7 +122,7 @@ export default function CartPage() {
 
         </div>
 
-      ) : (
+      ) : cart?.items?.length === 0 ? (
         // ESTADO VACÍO
         <div className="text-center py-20 flex flex-col items-center justify-center">
           <p className="text-xl text-gray-500 font-light mb-6">
@@ -175,6 +133,11 @@ export default function CartPage() {
               Volver a la tienda
             </Button>
           </Link>
+        </div>
+      ) : (
+        <div className="animate-pulse space-y-4">
+          <Skeleton className="h-32 rounded-md w-full" />
+          <Skeleton className="h-32 rounded-md w-full" />
         </div>
       )}
     </div>

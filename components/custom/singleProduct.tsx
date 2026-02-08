@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Product } from "@/types/product";
 import { ShoppingCart, Eye } from "lucide-react";
 import { useCartStore } from '@/store/cartStore';
-import { CartProduct } from "@/types/cartProduct";
 import { toast } from "sonner"
 import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
@@ -14,17 +13,16 @@ const ProductItem = ({ item }: { item: Product }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const cartProduct: CartProduct = {
-    id: item.id,
+  const cartProduct: Product = {
+    id: item?.variants?.[0].id,
     title: item.title,
-    image: item.thumbnail,
     quantity: 1,
-    price: item.variants?.[0]?.calculated_price?.calculated_amount
   }
 
   const handleAddToCart = () => {
-    addToCart(cartProduct);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    addToCart(cartProduct?.id, 1).then(() => {
+      toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    });
   };
 
   return (

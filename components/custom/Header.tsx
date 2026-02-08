@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from 'next/link';
 import Image from "next/image";
 import { ShoppingCart, Search, CircleUserRound } from "lucide-react";
@@ -25,28 +25,28 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { CartItem } from "@/types/cartItem";
 
 const Header = () => {
-
-  const cartProducts: CartProduct[] = useCartStore((state) => state.cart);
+  const cartProducts: CartProduct = useCartStore((state) => state.cart);
 
   const customer = useAuthStore((state) => state.customer);
   const logout = useAuthStore((state) => state.logout);
 
-  const { productQuantity, totalProductPrice, totalPrice, shippingPrice } = useMemo(() => {
-      const shipping = 12000;
-      
-      const qty = cartProducts.reduce((total, item) => total + item.quantity, 0);
-      const subtotal = cartProducts.reduce((total, item) => total + (item.price * item.quantity), 0);
-      const total = subtotal + shipping;
-  
-      return {
-        productQuantity: qty,
-        totalProductPrice: subtotal,
-        totalPrice: total,
-        shippingPrice: shipping
-      };
-    }, [cartProducts]);
+  const { productQuantity, totalPrice } = useMemo(() => {
+    const shipping = 12000;
+    
+    const qty = cartProducts?.items?.reduce((total, item) => total + item?.quantity, 0) || 0;
+    const subtotal = cartProducts?.subtotal;
+    const total = cartProducts?.total;
+
+    return {
+      productQuantity: qty,
+      totalProductPrice: subtotal,
+      totalPrice: total,
+      shippingPrice: shipping
+    };
+  }, [cartProducts]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -56,6 +56,11 @@ const Header = () => {
     }).format(amount);
   };
 
+  const initialize = useCartStore((state) => state.initialize)
+
+  useEffect(() => {
+    initialize();
+  }, [])
   
   return (
     <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md">
@@ -109,8 +114,8 @@ const Header = () => {
                   Carrito
                 </SheetTitle>
                 <div className="cart-products py-5">
-                  {cartProducts && cartProducts.length > 0 ? (
-                    cartProducts.map((product: CartProduct) => (
+                  {cartProducts && cartProducts?.items?.length > 0 ? (
+                    cartProducts?.items?.map((product: CartItem) => (
                       <CartProductItem key={product.id} item={product} cart={true} />
                     ))
                   ) : (
@@ -120,7 +125,11 @@ const Header = () => {
                 <Separator />
                 <div className="subtotal-section py-5 flex justify-between">
                   <p>Subtotal:</p>
-                  <p className='font-bold'>{formatCurrency(totalPrice)}</p>
+                  {totalPrice ? (
+                    <p className='font-bold'>{formatCurrency(totalPrice)}</p>
+                  ) : (
+                    <p className='font-bold'>{formatCurrency(0)}</p>
+                  )}
                 </div>
                 <div className="checkout-section py-5">
                   <SheetClose asChild>

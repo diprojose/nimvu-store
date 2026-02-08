@@ -14,18 +14,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [product, setProduct] = useState<any>(null)
   const [selectedImage, setSelectedImage] = useState<string>("")
-  const [selectedColor, setSelectedColor] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
 
   const addToCart = useCartStore((state) => state.addToCartFromQuickView);
 
-  const cartProduct: CartProduct = {
-    id: product?.id,
-    title: product?.title,
-    image: product?.thumbnail,
+  const cartProduct = {
+    id: product?.variants?.[0]?.id,
     quantity: quantity,
-    price: product?.variants?.[0]?.calculated_price?.calculated_amount
   }
 
   useEffect(() => {
@@ -34,12 +30,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         const { product } = await sdk.store.product.retrieve(unwrappedParams.id)
         setProduct(product)
         if (product.thumbnail) setSelectedImage(product.thumbnail)
-        
-        // Default to first color if available
-        const colorOption = product.options?.find((opt) => opt.title === "Color")
-        if (colorOption?.values?.length > 0) {
-          setSelectedColor(colorOption.values[0].value)
-        }
       } catch (err) {
         
       } finally {
@@ -62,8 +52,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   const handleAddToCart = () => {
-    addToCart(cartProduct, quantity);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    addToCart(cartProduct.id, quantity).then(() => {
+      toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    });
   };
 
   return (

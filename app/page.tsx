@@ -15,6 +15,7 @@ import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
 
 export default function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true);

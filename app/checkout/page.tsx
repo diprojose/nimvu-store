@@ -20,24 +20,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-  DialogClose
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CartProduct } from "@/types/cartProduct";
+import WompiButtonProps from "@/components/custom/wompi-button";
+import { WompiCart } from "@/types/wompiCart";
+import { CartItem } from "@/types/cartItem";
 
-// Importa aquí tu botón de Wompi que hicimos antes
-// import { WompiButton } from "@/components/checkout/wompi-button";
 
 export default function CheckoutPage() {
   const { customer, syncWithBackend } = useAuthStore();
   const { cart } = useCartStore();
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [selectedAddress, setSelectedAddress] = useState<Address>();
   const [loading, setLoading] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const shipping = 12000;
-  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const total = subtotal + shipping;
+  const subtotal = cart?.subtotal;
+  const total = cart?.total;
   const [receiverData, setReceiverData] = useState({
     fullName: "",
     phone: "",
@@ -48,6 +47,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (customer?.addresses && customer?.addresses?.length > 0) {
       setSelectedAddressId(customer?.addresses?.[0].id);
+      setSelectedAddress(customer?.addresses?.[0]);
     }
   }, [customer?.addresses]);
 
@@ -105,6 +105,12 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  const handleAddressSelected = (id: string) => {
+    setSelectedAddressId(id);
+    const selected: Address = customer.addresses.find((add) => id === add.id);
+    setSelectedAddress(selected);
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -176,7 +182,7 @@ export default function CheckoutPage() {
                 {customer?.addresses && customer?.addresses?.length > 0 ? (
                   <RadioGroup 
                     value={selectedAddressId} 
-                    onValueChange={setSelectedAddressId}
+                    onValueChange={() => handleAddressSelected(selectedAddressId)}
                     className="grid grid-cols-1 gap-3"
                   >
                     {customer?.addresses?.map((addr: Address) => (
@@ -330,9 +336,7 @@ export default function CheckoutPage() {
                 
                 {/* AQUÍ VA EL BOTÓN DE WOMPI */}
                 {/* <WompiButton cart={cart} email={customer?.email} /> */}
-                <Button className="w-full h-12 text-lg bg-[#182662] hover:bg-[#111b46]">
-                   Pagar con Wompi
-                </Button>
+                <WompiButtonProps cart={cart} address={selectedAddress} customer={receiverData} />
                 
                 <div className="flex justify-center gap-4 mt-4 opacity-50 grayscale">
                     {/* Puedes poner logos de Visa, Mastercard, Nequi, Bancolombia aquí */}
@@ -372,18 +376,18 @@ export default function CheckoutPage() {
                     {/* Lista de Items (Mockup visual) */}
                     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                        {/* Item 1 */}
-                       {cart?.map((product: CartProduct) => (
+                       {cart?.items?.map((product: CartItem) => (
                         <div className="flex gap-4 pt-2" key={product.id}>
                             <div className="h-16 w-16 rounded-md border flex-shrink-0 relative">
                               {/* <Image src... /> */}
                               <Image
-                                src={product.image}
+                                src={product.thumbnail}
                                 fill
                                 alt={product.title}
                                 className="object-cover rounded-md"
                                 unoptimized={
-                                  product.image.startsWith("http://localhost") ||
-                                  product.image.startsWith("http://127.0.0.1")
+                                  product.thumbnail.startsWith("http://localhost") ||
+                                  product.thumbnail.startsWith("http://127.0.0.1")
                                 }
                               />
                               <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{product.quantity}</span>
@@ -391,7 +395,7 @@ export default function CheckoutPage() {
                             <div className="flex-1">
                               <p className="font-medium text-sm line-clamp-2">{product.title}</p>
                             </div>
-                            <div className="text-sm font-medium">{formatCurrency(product.price)}</div>
+                            <div className="text-sm font-medium">{formatCurrency(product.unit_price)}</div>
                         </div>
                        ))}
                     </div>

@@ -5,29 +5,30 @@ import { useCartStore } from '@/store/cartStore';
 import { CartProduct } from "@/types/cartProduct";
 import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner"
+import { CartItem } from "@/types/cartItem";
 
-const CartProductItem = ({ item, cart, onCartUpdate }: { item: CartProduct, cart: boolean, onCartUpdate?: () => void }) => {
+const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
 
   const removeProductFromCart = useCartStore((state) => state.removeProductFromCart);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
 
   const handleRemoveFromCart = () => {
-    removeProductFromCart(item);
-    toast.error("Producto removido del carrito", { position: "top-center"})
-    onCartUpdate();
+    removeProductFromCart(item.id).then(() => {
+      toast.error("Producto removido del carrito", { position: "top-center"})
+    });
   };
 
   const handleIncreaseQuantity = () => {
-    increaseQuantity(item.id);
-    toast.success(`${item.title} actualizado`, { position: "top-center"})
-    onCartUpdate();
+    increaseQuantity(item.id, item.quantity).then(() => {
+      toast.success(`${item.title} actualizado`, { position: "top-center"})
+    });
   };
   
   const handleDecreaseQuantity = () => {
-    decreaseQuantity(item.id);
-    toast.error(`${item.title} actualizado`, { position: "top-center"})
-    onCartUpdate();
+    decreaseQuantity(item.id, item.quantity).then(() => {
+      toast.error(`${item.title} actualizado`, { position: "top-center"})
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -46,16 +47,16 @@ const CartProductItem = ({ item, cart, onCartUpdate }: { item: CartProduct, cart
         </button>
       </div>
       <div className="w-full aspect-square relative overflow-hidden max-w-12.5 mr-2 grow-2">
-        {item.image ? (
+        {item.thumbnail ? (
           <Link href={`/products/${item.id}`}>
             <Image
-              src={item.image}
+              src={item.thumbnail}
               fill
               alt={item.title}
               className="object-cover rounded-md"
               unoptimized={
-                item.image.startsWith("http://localhost") ||
-                item.image.startsWith("http://127.0.0.1")
+                item.thumbnail.startsWith("http://localhost") ||
+                item.thumbnail.startsWith("http://127.0.0.1")
               }
             />
           </Link>
@@ -68,7 +69,7 @@ const CartProductItem = ({ item, cart, onCartUpdate }: { item: CartProduct, cart
       <div className="right-side grow-4 w-full pr-1">
         <Link href={`/products/${item.id}`}><span className="font-medium">{item.title}</span></Link>
         <p className="gap-2 font-medium">
-          <span className="text-black">{formatCurrency(item.price)}</span>
+          <span className="text-black">{formatCurrency(item.unit_price)}</span>
         </p>
       </div>
       <div className="quantity-controls grow-3">

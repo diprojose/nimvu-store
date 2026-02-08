@@ -16,12 +16,9 @@ const QuickView = ({ item }: { item: Product }) => {
 
   const addToCart = useCartStore((state) => state.addToCartFromQuickView);
 
-  const cartProduct: CartProduct = {
-    id: item.id,
-    title: item.title,
-    image: item.thumbnail,
+  const cartProduct = {
+    id: item.variants?.[0]?.id,
     quantity: quantity,
-    price: item.variants?.[0]?.calculated_price?.calculated_amount
   }
 
   useEffect(() => {
@@ -42,8 +39,9 @@ const QuickView = ({ item }: { item: Product }) => {
   }
 
   const handleAddToCart = () => {
-    addToCart(cartProduct, quantity);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    addToCart(cartProduct.id, cartProduct.quantity).then(() => {
+      toast.success("¡Producto agregado al carrito!", { position: "top-center"})
+    });
   };
 
   return (

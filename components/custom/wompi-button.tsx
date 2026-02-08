@@ -1,85 +1,108 @@
-// components/checkout/wompi-button.tsx
-"use client";
+'use client'
 
-import Script from "next/script";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { generateWompiSignature } from "@/lib/actions/wompi-actions"; // Importa la acción del paso 1
-import { sdk } from "../../app/lib/sdk";
-import { toast } from "sonner"; // O tu librería de toast
+import { useEffect, useState } from 'react'
+import Script from 'next/script'
+import { WompiCart } from '@/types/wompiCart'
+import { Address } from '@/types/address'
 
-export function WompiButton({ cart, email }: { cart: any; email: string }) {
-  const [loading, setLoading] = useState(false);
+interface Customer {
+  email?: string
+  fullName: string
+  phone?: string
+  idNumber?: string // Asumo que aquí tienes la cédula
+}
 
-  // Wompi necesita el monto en centavos (Medusa ya lo guarda así, pero confirma)
-  // Si Medusa dice 10000 (y son pesos), para Wompi es 1000000
-  const amountInCents = cart.total * 100; 
+interface WompiButtonProps {
+  cart: WompiCart
+  address: Address
+  customer: Customer
+}
 
-  const handlePayment = async () => {
-    setLoading(true);
+export default function WompiButton({ cart, address, customer }: WompiButtonProps) {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [loadingPayment, setLoadingPayment] = useState(false)
 
-    try {
-      // 1. Generamos la firma en el servidor
-      const signature = await generateWompiSignature(cart.id, amountInCents);
+  // 1. CALCULAMOS LOS VALORES AQUÍ (Para asegurarnos de que existan)
+  // Usamos el operador ?. y || para evitar que sean undefined
+  const amountInCents = (cart?.total * 100) || 0;
+  const currency = cart?.region?.currency_code?.toUpperCase() || 'COP';
+  const email = cart?.email;
+  const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY_TEST;
+  const integrityKey = process.env.NEXT_PUBLIC_WOMPI_INTEGRITY_KEY_TEST;
+  // Generamos referencia única
+  const reference = cart?.id;
 
-      // 2. Configuramos el Widget
-      const checkout = new (window as any).WidgetCheckout({
-        currency: "COP",
-        amountInCents: amountInCents,
-        reference: cart.id, // Usamos el ID del carrito como referencia
-        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
-        signature: signature, // La firma de seguridad
-        redirectUrl: `${window.location.origin}/checkout/success`, // A donde vuelve el usuario
-        customerData: {
-          email: email,
-          fullName: `${cart.shipping_address?.first_name} ${cart.shipping_address?.last_name}`,
-          phoneNumber: cart.shipping_address?.phone,
-          legalId: "1234567890", // Opcional o pedir cédula en el checkout
-          phoneNumberPrefix: "+57"
-        }
-      });
-
-      // 3. Abrimos el widget
-      checkout.open((result: any) => {
-        const transaction = result.transaction;
-        
-        if (transaction.status === "APPROVED") {
-           // Si Wompi responde APPROVED directo en el callback (a veces no pasa y solo redirige)
-           completeMedusaOrder(); 
-        } else if (transaction.status === "DECLINED") {
-           toast.error("El pago fue rechazado.");
-           setLoading(false);
-        }
-      });
-
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
+  const handlePayment = () => {
+    if (!amountInCents || !reference) {
+      console.error("Error Wompi: Faltan datos críticos", { amountInCents, reference, cart })
+      alert("Error: No se pudo calcular el total a pagar. Intenta recargar.")
+      return
     }
-  };
 
-  const completeMedusaOrder = async () => {
-    // Aquí le decimos a Medusa "Cierra la orden"
-    // NOTA: Debes tener el proveedor "manual" habilitado en tu backend de Medusa
-    try {
-      await sdk.store.cart.complete(cart.id);
-      window.location.href = "/checkout/success"; // Forzar redirección
-    } catch (e) {
-      console.error("Error cerrando orden en Medusa", e);
+    if (!window.WidgetCheckout) {
+      alert('La pasarela de pagos no cargó correctamente.')
+      return
     }
-  };
+
+    setLoadingPayment(true)
+
+    const checkout = new window.WidgetCheckout({
+      currency: currency,
+      amountInCents: amountInCents,
+      reference: reference,
+      publicKey: publicKey,
+      signature: {integrity : integrityKey},
+      taxInCents: {
+        vat: 0,
+        consumption: 0
+      },
+      customerData: { // Opcional
+        email: email,
+        fullName: customer.fullName,
+        phoneNumber: customer.phone,
+        phoneNumberPrefix: '+57',
+        legalId: customer.idNumber,
+        legalIdType: 'CC'
+      },
+      shippingAddress: { // Opcional
+        addressLine1: address?.address_1,
+        city: address?.city,
+        phoneNumber: address?.phone,
+        region: address?.province,
+        country: "CO"
+      }
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    checkout.open((result: any) => {
+      const transaction = result.transaction
+      setLoadingPayment(false)
+      if (transaction.status === 'APPROVED') {
+        console.log("Pago Aprobado", transaction)
+      }
+    })
+  }
 
   return (
-    <>
-      <Script src="https://checkout.wompi.co/widget.js" strategy="lazyOnload" />
-      
-      <Button 
-        onClick={handlePayment} 
-        className="w-full bg-[#182662] hover:bg-[#111b46] text-white" // Azul Wompi
-        disabled={loading}
+    <div className="w-full">
+      <Script
+        type="text/javascript"
+        src="https://checkout.wompi.co/widget.js"
+      ></Script>
+
+      <button
+        onClick={handlePayment}
+        className='w-full py-4 px-6 rounded-lg font-bold text-white shadow-md transition-all bg-[#2C2A29] hover:bg-black hover:shadow-lg transform hover:-translate-y-0.5'
       >
-        {loading ? "Procesando..." : "Pagar con Wompi"}
-      </Button>
-    </>
-  );
+        Pagar con Wompi
+      </button>
+    </div>
+  )
+}
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    WidgetCheckout: any;
+  }
 }
