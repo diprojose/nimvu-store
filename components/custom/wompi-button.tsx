@@ -1,15 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Script from 'next/script'
 import { WompiCart } from '@/types/wompiCart'
 import { Address } from '@/types/address'
+import { useCartStore } from "@/store/cartStore";
+
 
 interface Customer {
   email?: string
   fullName: string
   phone?: string
-  idNumber?: string // Asumo que aquí tienes la cédula
+  idNumber?: string 
 }
 
 interface WompiButtonProps {
@@ -22,79 +25,104 @@ export default function WompiButton({ cart, address, customer }: WompiButtonProp
   const [isLoaded, setIsLoaded] = useState(false)
   const [loadingPayment, setLoadingPayment] = useState(false)
 
-  // 1. CALCULAMOS LOS VALORES AQUÍ (Para asegurarnos de que existan)
-  // Usamos el operador ?. y || para evitar que sean undefined
-  const amountInCents = (cart?.total * 100) || 0;
-  const currency = cart?.region?.currency_code?.toUpperCase() || 'COP';
-  const email = cart?.email;
+  const amountInCents = Math.floor((cart?.total || 0) * 100) 
+  const currency = 'COP'
   const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY_TEST;
-  const integrityKey = process.env.NEXT_PUBLIC_WOMPI_INTEGRITY_KEY_TEST;
-  // Generamos referencia única
-  const reference = cart?.id;
 
-  const handlePayment = () => {
-    if (!amountInCents || !reference) {
-      console.error("Error Wompi: Faltan datos críticos", { amountInCents, reference, cart })
-      alert("Error: No se pudo calcular el total a pagar. Intenta recargar.")
+  const handlePayment = async () => {
+    const reference = `${cart?.id}`
+
+    if (!amountInCents || !cart?.id) {
+      alert("Error: Datos del carrito incompletos.")
       return
     }
 
     if (!window.WidgetCheckout) {
-      alert('La pasarela de pagos no cargó correctamente.')
+      alert('Error: El script de Wompi no cargó.')
       return
     }
 
     setLoadingPayment(true)
 
-    const checkout = new window.WidgetCheckout({
-      currency: currency,
-      amountInCents: amountInCents,
-      reference: reference,
-      publicKey: publicKey,
-      signature: {integrity : integrityKey},
-      taxInCents: {
-        vat: 0,
-        consumption: 0
-      },
-      customerData: { // Opcional
-        email: email,
-        fullName: customer.fullName,
-        phoneNumber: customer.phone,
-        phoneNumberPrefix: '+57',
-        legalId: customer.idNumber,
-        legalIdType: 'CC'
-      },
-      shippingAddress: { // Opcional
-        addressLine1: address?.address_1,
-        city: address?.city,
-        phoneNumber: address?.phone,
-        region: address?.province,
-        country: "CO"
-      }
-    });
+    try {
+      // 2. PEDIR FIRMA AL SERVIDOR (Enviando la expiración)
+      const response = await fetch('/api/wompi/signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          reference, 
+          amountInCents, 
+          currency
+        })
+      });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    checkout.open((result: any) => {
-      const transaction = result.transaction
-      setLoadingPayment(false)
-      if (transaction.status === 'APPROVED') {
-        console.log("Pago Aprobado", transaction)
-      }
-    })
+      if (!response.ok) throw new Error('Error al obtener firma');
+
+      const { signature } = await response.json();
+      
+      console.log("✅ Firma (con expiración) recibida:", signature);
+
+      // 3. CONFIGURAR WIDGET
+      const checkoutOptions = {
+        currency: currency,
+        amountInCents: amountInCents,
+        reference: reference,
+        publicKey: publicKey,
+        signature: {integrity : signature},
+        taxInCents: { vat: 0, consumption: 0 },
+        customerData: { 
+          email: cart.email,
+          fullName: customer.fullName,
+          phoneNumber: customer.phone,
+          phoneNumberPrefix: '+57',
+          legalId: customer.idNumber,
+          legalIdType: 'CC'
+        }
+      };
+
+      console.log("🚀 Abriendo Wompi con:", checkoutOptions);
+
+      const checkout = new window.WidgetCheckout(checkoutOptions)
+
+      checkout.open((result: any) => {
+        const transaction = result.transaction
+        setLoadingPayment(false)
+        if (transaction.status === 'APPROVED') {
+          console.log("Pago Aprobado", transaction)
+          window.location.href = `/order?id=${transaction.id}`
+        }
+      })
+
+    } catch (error) {
+      console.error("Error en pago:", error);
+      alert("Hubo un error iniciando la pasarela.");
+      setLoadingPayment(false);
+    }
   }
 
   return (
-    <div className="w-full">
-      <Script
-        type="text/javascript"
-        src="https://checkout.wompi.co/widget.js"
-      ></Script>
+    <div className="w-full mt-6">
+      <Script 
+        src="https://checkout.wompi.co/widget.js" 
+        strategy="lazyOnload"
+        onLoad={() => setIsLoaded(true)}
+      />
 
       <button
         onClick={handlePayment}
-        className='w-full py-4 px-6 rounded-lg font-bold text-white shadow-md transition-all bg-[#2C2A29] hover:bg-black hover:shadow-lg transform hover:-translate-y-0.5'
+        disabled={!isLoaded || loadingPayment}
+        className={`w-full py-4 px-6 rounded-lg font-bold text-white shadow-md transition-all
+          ${!isLoaded || loadingPayment 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-[#2C2A29] hover:bg-black hover:shadow-lg transform hover:-translate-y-0.5'
+          }`}
       >
-        Pagar con Wompi
+        {loadingPayment 
+          ? 'Conectando...' 
+          : isLoaded 
+            ? `Pagar $${(amountInCents / 100).toLocaleString('es-CO')}`
+            : 'Pagar con Wompi'
+        }
       </button>
     </div>
   )
@@ -102,7 +130,6 @@ export default function WompiButton({ cart, address, customer }: WompiButtonProp
 
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     WidgetCheckout: any;
   }
 }
