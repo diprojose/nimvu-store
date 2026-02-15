@@ -97,7 +97,7 @@ const Header = () => {
             <Link href="/about" className="text-black transition">
               Nosotros
             </Link>
-            <Link href="/category" className="text-black transition">
+            <Link href="/products" className="text-black transition">
               Categorias
             </Link>
             <Link href="/contact" className="text-black transition">

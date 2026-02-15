@@ -20,6 +20,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export interface BackendCategory {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BackendProduct {
   id: string;
   name: string;
@@ -29,10 +37,12 @@ export interface BackendProduct {
   images: string[];
   createdAt: string;
   updatedAt: string;
-  width?: number; // Added
-  length?: number; // Added
-  height?: number; // Added
-  longDescription?: string; // Added
+  width?: number;
+  length?: number;
+  height?: number;
+  longDescription?: string;
+  categoryId?: string; // Added
+  category?: BackendCategory; // Added
   variants?: BackendVariant[];
 }
 
@@ -54,9 +64,10 @@ export interface FrontendProduct {
   thumbnail: string;
   price: number;
   images: { id: string; url: string }[];
-  variants: { id: string; title: string; inventory_quantity: number; price?: number; images?: string[] }[]; // Added images to variant
-  dimensions?: { width: number; height: number; length: number }; // Added
-  longDescription?: string; // Added
+  variants: { id: string; title: string; inventory_quantity: number; price?: number; images?: string[] }[];
+  category?: { id: string; name: string; slug: string }; // Added
+  dimensions?: { width: number; height: number; length: number };
+  longDescription?: string;
   // Add other fields as necessary based on usage
 }
 
@@ -79,6 +90,11 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
       price: v.price || product.price, // Fallback to product price if variant price is null
       images: v.images, // Pass variant images
     })) || [],
+    category: product.category ? {
+      id: product.category.id,
+      name: product.category.name,
+      slug: product.category.slug
+    } : undefined,
     dimensions: {
       width: product.width || 0,
       height: product.height || 0,
@@ -155,6 +171,13 @@ export const addresses = {
   },
   delete: async (id: string) => {
     const response = await api.delete(`/addresses/${id}`);
+    return response.data;
+  }
+};
+
+export const categories = {
+  list: async () => {
+    const response = await api.get<BackendCategory[]>("/categories");
     return response.data;
   }
 };

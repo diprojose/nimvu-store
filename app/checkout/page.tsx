@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, MapPin, User, CreditCard, Plus, ArrowLeft } from "lucide-react";
+import { CheckCircle2, MapPin, User, CreditCard, Plus, ArrowLeft, RefreshCw } from "lucide-react";
 import { Address } from "@/types/address"
 import {
   Dialog,
@@ -39,6 +39,7 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [selectedAddress, setSelectedAddress] = useState<Address>();
   const [loading, setLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const [isWompiLoaded, setIsWompiLoaded] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -55,6 +56,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Check if Wompi widget is already loaded (e.g. from cache or previous navigation)
+    if (window.WidgetCheckout) {
+      setIsWompiLoaded(true);
+    }
     if (customer?.addresses && customer?.addresses?.length > 0 && !selectedAddressId) {
       setSelectedAddressId(customer.addresses[0].id);
       setSelectedAddress(customer.addresses[0]);
@@ -134,6 +139,10 @@ export default function CheckoutPage() {
     }
 
     setLoading(true);
+    setShowReset(false);
+    setTimeout(() => {
+      setShowReset(true);
+    }, 5000);
 
     try {
       const amountInCents = Math.floor(total * 100);
@@ -270,6 +279,15 @@ export default function CheckoutPage() {
         src="https://checkout.wompi.co/widget.js"
         strategy="lazyOnload"
         onLoad={() => setIsWompiLoaded(true)}
+        onReady={() => {
+          if (window.WidgetCheckout) {
+            setIsWompiLoaded(true);
+          }
+        }}
+        onError={() => {
+          toast.error("Error cargando la pasarela de pagos. Por favor recarga la página.");
+          setLoading(false);
+        }}
       />
       <div className="container px-4 max-w-6xl">
 
@@ -492,6 +510,21 @@ export default function CheckoutPage() {
                 >
                   {loading ? "Procesando..." : (isMounted ? `Pagar con Wompi ${formatCurrency(total)}` : "Cargando...")}
                 </Button>
+
+                {loading && showReset && (
+                  <div className="text-center mt-3 animate-fade-in">
+                    <button
+                      onClick={() => {
+                        setLoading(false);
+                        setShowReset(false);
+                      }}
+                      className="text-sm text-red-500 hover:text-red-700 underline flex items-center justify-center gap-2 mx-auto cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      ¿Cerraste la ventana de pago? Click para reintentar
+                    </button>
+                  </div>
+                )}
 
                 <div className="flex justify-center gap-4 mt-4 opacity-50 grayscale">
                   {/* Puedes poner logos de Visa, Mastercard, Nequi, Bancolombia aquí */}

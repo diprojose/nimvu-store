@@ -84,8 +84,11 @@ export default function AuthPage() {
       await login(loginEmail, loginPassword);
       router.refresh();
       router.push("/profile");
-    } catch (error) {
-      alert(`An error occurred while logging in: ${error}`)
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage = error.response?.data?.message || "Ocurrió un error al iniciar sesión.";
+      // NestJS might return message as array [string] or string
+      setError(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
       setLoading(false)
       return
     }
