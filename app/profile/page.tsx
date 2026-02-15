@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { addresses, orders } from "@/lib/api"
@@ -28,7 +28,7 @@ import { MapPin, User, Plus, Package, Calendar, DollarSign } from "lucide-react"
 import { toast } from "sonner"
 import Link from 'next/link';
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { customer, updateCustomer, syncWithBackend } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,7 +109,8 @@ export default function ProfilePage() {
   if (!isMounted) return <div className="min-h-[80vh] p-12 text-center">Cargando...</div>;
 
   if (!customer) {
-    return router.replace("/");
+    router.replace("/");
+    return null;
   }
 
   // --- HANDLERS ---
@@ -520,4 +521,12 @@ export default function ProfilePage() {
 
     </div>
   );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando perfil...</div>}>
+      <ProfileContent />
+    </Suspense>
+  )
 }
