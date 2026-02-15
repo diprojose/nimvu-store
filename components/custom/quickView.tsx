@@ -49,7 +49,7 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
                 alt={item.title}
                 fill
                 className="object-cover"
-                unoptimized={selectedImage.startsWith("http://localhost") || selectedImage.startsWith("http://127.0.0.1")}
+                unoptimized={selectedImage.startsWith("http://localhost") || selectedImage.startsWith("http://127.0.0.1") || selectedImage.includes("supabase.co")}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
@@ -68,7 +68,7 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
                   alt="Product thumbnail"
                   fill
                   className="object-cover"
-                  unoptimized={img.url.startsWith("http://localhost") || img.url.startsWith("http://127.0.0.1")}
+                  unoptimized={img.url.startsWith("http://localhost") || img.url.startsWith("http://127.0.0.1") || img.url.includes("supabase.co")}
                 />
               </button>
             ))}

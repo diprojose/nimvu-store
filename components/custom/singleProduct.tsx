@@ -32,7 +32,8 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
               className="object-cover rounded-md static"
               unoptimized={
                 item.thumbnail.startsWith("http://localhost") ||
-                item.thumbnail.startsWith("http://127.0.0.1")
+                item.thumbnail.startsWith("http://127.0.0.1") ||
+                item.thumbnail.includes("supabase.co")
               }
             />
           </Link>

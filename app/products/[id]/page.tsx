@@ -102,7 +102,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 alt={product.title}
                 fill
                 className="object-cover"
-                unoptimized={img.url.startsWith("http://localhost") || img.url.startsWith("http://127.0.0.1")}
+                unoptimized={img.url.startsWith("http://localhost") || img.url.startsWith("http://127.0.0.1") || img.url.includes("supabase.co")}
               />
             </div>
           ))}
@@ -145,7 +145,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         alt={variant.title}
                         fill
                         className="object-cover"
-                        unoptimized={variant.images[0].startsWith("http")}
+                        unoptimized={variant.images[0].startsWith("http") || variant.images[0].includes("supabase.co")}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">

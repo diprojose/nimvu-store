@@ -51,7 +51,8 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
               className="object-cover rounded-md"
               unoptimized={
                 item.thumbnail.startsWith("http://localhost") ||
-                item.thumbnail.startsWith("http://127.0.0.1")
+                item.thumbnail.startsWith("http://127.0.0.1") ||
+                item.thumbnail.includes("supabase.co")
               }
             />
           </Link>
