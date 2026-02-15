@@ -2,27 +2,22 @@
 import { useState } from "react"
 import Image from "next/image";
 import Link from "next/link";
-import { Product } from "@/types/product";
+import { FrontendProduct } from "@/lib/api";
 import { ShoppingCart, Eye } from "lucide-react";
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/store/cart';
 import { toast } from "sonner"
 import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
 
-const ProductItem = ({ item }: { item: Product }) => {
+const ProductItem = ({ item }: { item: FrontendProduct }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const addToCart = useCartStore((state) => state.addToCart);
-
-  const cartProduct: Product = {
-    id: item?.variants?.[0].id,
-    title: item.title,
-    quantity: 1,
-  }
+  const addToCart = useCartStore((state) => state.addItem);
 
   const handleAddToCart = () => {
-    addToCart(cartProduct?.id, 1).then(() => {
-      toast.success("¡Producto agregado al carrito!", { position: "top-center"})
-    });
+    // Add logic to select variant if needed, for now default to first or product ID
+    const variantId = item.variants?.[0]?.id || item.id;
+    addToCart(item, variantId, 1);
+    toast.success("¡Producto agregado al carrito!", { position: "top-center" })
   };
 
   return (
@@ -59,18 +54,11 @@ const ProductItem = ({ item }: { item: Product }) => {
         </div>
       </div>
       <Link href={`/products/${item.id}`}><span className="font-medium">{item.title}</span></Link>
-      {item.variants?.[0]?.calculated_price?.calculated_amount === item.variants?.[0]?.calculated_price?.original_amount ? (
-        <p className="gap-2 font-medium">
-          <span className="text-dark text-black font-bold">${item.variants?.[0]?.calculated_price?.original_amount}</span>
-        </p>
-      ) : (
-        <p className="gap-2 font-medium">
-          <span className="text-dark pr-2 text-red-500">${item.variants?.[0]?.calculated_price?.calculated_amount}</span>
-          <span className="text-dark-4 line-through">${item.variants?.[0]?.calculated_price?.original_amount}</span>
-        </p>
-      )}
-      <Modal 
-        isOpen={isModalOpen} 
+      <p className="gap-2 font-medium">
+        <span className="text-dark text-black font-bold">${item.price}</span>
+      </p>
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={item.title}
       >

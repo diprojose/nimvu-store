@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import Image from "next/image";
 import { ShoppingCart, Search, CircleUserRound } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/store/cart';
 import { useAuthStore } from '@/store/authStore';
-import { CartProduct } from "@/types/cartProduct";
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,20 +24,31 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { CartItem } from "@/types/cartItem";
+import { CartItem } from "@/store/cart";
 
 const Header = () => {
-  const cartProducts: CartProduct = useCartStore((state) => state.cart);
+  const items = useCartStore((state) => state.items);
+  const getCartSubtotal = useCartStore((state) => state.getCartSubtotal);
+  const getCartTotal = useCartStore((state) => state.getCartTotal);
 
   const customer = useAuthStore((state) => state.customer);
   const logout = useAuthStore((state) => state.logout);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { productQuantity, totalPrice } = useMemo(() => {
     const shipping = 12000;
-    
-    const qty = cartProducts?.items?.reduce((total, item) => total + item?.quantity, 0) || 0;
-    const subtotal = cartProducts?.subtotal;
-    const total = cartProducts?.total;
+
+    const qty = items?.reduce((total, item) => total + item?.quantity, 0) || 0;
+    const subtotal = getCartSubtotal();
+    // const total = getCartTotal(); // If shipping needs to be added here or not. 
+    // original code had total = cartProducts.total. 
+    // My store total is just products. 
+    // Let's assume header just shows subtotal or simple total.
+    const total = subtotal + (qty > 0 ? shipping : 0);
 
     return {
       productQuantity: qty,
@@ -46,7 +56,7 @@ const Header = () => {
       totalPrice: total,
       shippingPrice: shipping
     };
-  }, [cartProducts]);
+  }, [items, getCartSubtotal]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -56,17 +66,18 @@ const Header = () => {
     }).format(amount);
   };
 
-  const initialize = useCartStore((state) => state.initialize)
+  // Initialize removed as it's auto-handled by persist middleware
+  // const initialize = useCartStore((state) => state.initialize)
 
-  useEffect(() => {
-    initialize();
-  }, [])
-  
+  // useEffect(() => {
+  //   initialize();
+  // }, [])
+
   return (
     <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md">
       <div className="md:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
+
           {/* Logo - Nimvu */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="text-2xl font-bold tracking-tighter text-black">
@@ -114,8 +125,8 @@ const Header = () => {
                   Carrito
                 </SheetTitle>
                 <div className="cart-products py-5">
-                  {cartProducts && cartProducts?.items?.length > 0 ? (
-                    cartProducts?.items?.map((product: CartItem) => (
+                  {items && items.length > 0 ? (
+                    items.map((product: CartItem) => (
                       <CartProductItem key={product.id} item={product} cart={true} />
                     ))
                   ) : (
@@ -144,17 +155,19 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <button className="p-2 text-black cursor-pointer">
                   <CircleUserRound className="w-7 h-7" />
-                </button>   
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                {customer ? (
+                {isMounted && customer ? (
                   // ✅ Envuelves todo en <> ... </>
                   <>
                     <DropdownMenuLabel>Hola, {customer.first_name}</DropdownMenuLabel>
                     <DropdownMenuItem>
                       <Link href="/profile">Perfil</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Mis pedidos</DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/profile?tab=orders" className="w-full">Mis pedidos</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => logout()}>Cerrar Sesión</DropdownMenuItem>
                   </>
                 ) : (

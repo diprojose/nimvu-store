@@ -1,32 +1,33 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
-import { sdk } from "../lib/sdk"; 
 import CartProductItem from "@/components/custom/cartProductItem";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { CartItem } from "@/types/cartItem";
-import { useCartStore } from '@/store/cartStore';
+import { CartItem } from "@/store/cart";
+import { useCartStore } from '@/store/cart';
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function CartPage() {
   const [isLoading, setIsLoading] = useState(true);
 
-  const cart = useCartStore((state) => state.cart);
-  
+  const items = useCartStore((state) => state.items);
+  const getCartSubtotal = useCartStore((state) => state.getCartSubtotal);
+  const getCartTotal = useCartStore((state) => state.getCartTotal);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 0);
     return () => clearTimeout(timer);
-  }, [cart]);
-  
+  }, []); // Only run once on mount
+
   const { productQuantity, totalProductPrice, totalPrice, shippingPrice } = useMemo(() => {
     const shipping = 12000;
-    const qty = cart?.items?.reduce((total, item) => total + item?.quantity, 0) || 0;
-    const subtotal = cart?.subtotal;
-    const total = cart?.total;
+    const qty = items?.reduce((total, item) => total + item?.quantity, 0) || 0;
+    const subtotal = getCartSubtotal();
+    const total = subtotal + (qty > 0 ? shipping : 0);
 
     return {
       productQuantity: qty,
@@ -34,7 +35,7 @@ export default function CartPage() {
       totalPrice: total,
       shippingPrice: shipping
     };
-  }, [cart]);
+  }, [items, getCartSubtotal]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -46,7 +47,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-20 min-h-[80vh]">
-      
+
       {/* TÍTULO */}
       <h1 className="text-3xl md:text-4xl font-italiana text-gray-900 mb-6">
         Carrito de Compras
@@ -59,17 +60,17 @@ export default function CartPage() {
           <Skeleton className="h-32 rounded-md w-full" />
           <Skeleton className="h-32 rounded-md w-full" />
         </div>
-      ) : cart?.items?.length > 0 ? (
-        
+      ) : items?.length > 0 ? (
+
         // --- LAYOUT GRID: 2 COLUMNAS ---
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
+
           {/* COLUMNA IZQUIERDA: PRODUCTOS (66% del ancho) */}
           <div className="lg:col-span-8 space-y-6">
-            {cart?.items?.map((product: CartItem) => (
-              <CartProductItem 
-                key={product.id} 
-                item={product} 
+            {items?.map((product: CartItem) => (
+              <CartProductItem
+                key={product.id}
+                item={product}
                 cart={true}
               />
             ))}
@@ -81,7 +82,7 @@ export default function CartPage() {
               <h2 className="text-lg font-bold uppercase tracking-wider mb-4 font-italiana text-gray-900">
                 Resumen del Pedido
               </h2>
-              
+
               <Separator className="mb-4 bg-gray-300" />
 
               <div className="space-y-3 text-sm mb-6">
@@ -89,7 +90,7 @@ export default function CartPage() {
                   <span>Productos ({productQuantity})</span>
                   <span>{formatCurrency(totalProductPrice)}</span>
                 </div>
-                
+
                 <div className="flex justify-between text-gray-600">
                   <span>Envío</span>
                   <span>{formatCurrency(shippingPrice)}</span>
@@ -122,7 +123,7 @@ export default function CartPage() {
 
         </div>
 
-      ) : cart?.items?.length === 0 ? (
+      ) : items?.length === 0 ? (
         // ESTADO VACÍO
         <div className="text-center py-20 flex flex-col items-center justify-center">
           <p className="text-xl text-gray-500 font-light mb-6">

@@ -1,34 +1,29 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useCartStore } from '@/store/cartStore';
-import { CartProduct } from "@/types/cartProduct";
+import { useCartStore } from '@/store/cart';
 import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner"
-import { CartItem } from "@/types/cartItem";
+import { CartItem } from "@/store/cart";
 
 const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
 
-  const removeProductFromCart = useCartStore((state) => state.removeProductFromCart);
-  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
-  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
 
   const handleRemoveFromCart = () => {
-    removeProductFromCart(item.id).then(() => {
-      toast.error("Producto removido del carrito", { position: "top-center"})
-    });
+    removeItem(item.id);
+    toast.error("Producto removido del carrito", { position: "top-center" })
   };
 
   const handleIncreaseQuantity = () => {
-    increaseQuantity(item.id, item.quantity).then(() => {
-      toast.success(`${item.title} actualizado`, { position: "top-center"})
-    });
+    updateQuantity(item.id, item.quantity + 1);
+    toast.success(`${item.title} actualizado`, { position: "top-center" })
   };
-  
+
   const handleDecreaseQuantity = () => {
-    decreaseQuantity(item.id, item.quantity).then(() => {
-      toast.error(`${item.title} actualizado`, { position: "top-center"})
-    });
+    updateQuantity(item.id, item.quantity - 1);
+    toast.error(`${item.title} actualizado`, { position: "top-center" })
   };
 
   const formatCurrency = (amount: number) => {
@@ -94,7 +89,7 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
         ) : (
           <span className="w-8 text-center font-medium">{item.quantity}</span>
         )}
-        
+
       </div>
     </div>
   );
