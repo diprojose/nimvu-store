@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: process.env.NODE_ENV === 'development', 
+    unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
       {
         protocol: "https",
@@ -15,9 +15,9 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'gfetopzhwzaiekvzzzwu.supabase.co', 
+        hostname: 'rnhwvaurswbnnxyedzsx.supabase.co',
         port: '',
-        pathname: '/storage/v1/object/public/**', 
+        pathname: '/storage/v1/object/public/**',
       },
     ],
   },
