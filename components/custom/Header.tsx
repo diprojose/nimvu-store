@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import Image from "next/image";
-import { ShoppingCart, Search, CircleUserRound } from "lucide-react";
+import { ShoppingCart, Search, CircleUserRound, Menu } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
 import { useCartStore } from '@/store/cart';
 import { useAuthStore } from '@/store/authStore';
@@ -182,6 +182,38 @@ const Header = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden flex items-center">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Menú de navegación</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+                  <nav className="flex flex-col gap-4 mt-8">
+                    <SheetClose asChild>
+                      <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">
+                        Nosotros
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">
+                        Categorias
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link href="/contact" className="text-lg font-medium hover:text-primary transition-colors">
+                        Contacto
+                      </Link>
+                    </SheetClose>
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
 
         </div>
