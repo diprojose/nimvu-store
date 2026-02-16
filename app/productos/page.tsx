@@ -49,7 +49,7 @@ function ProductsContent() {
         <ul className="space-y-3 text-sm">
           <li>
             <Link
-              href="/products"
+              href="/productos"
               className={`block hover:text-black transition-colors ${!selectedCategorySlug ? 'text-black font-bold' : 'text-gray-500'}`}
             >
               Todos los productos
@@ -58,7 +58,7 @@ function ProductsContent() {
           {categories.map((cat) => (
             <li key={cat.id}>
               <Link
-                href={`/products?category=${cat.slug}`}
+                href={`/productos?category=${cat.slug}`}
                 className={`block hover:text-black transition-colors ${selectedCategorySlug === cat.slug ? 'text-black font-bold' : 'text-gray-500'}`}
               >
                 {cat.name}
@@ -121,7 +121,7 @@ function ProductsContent() {
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-24 text-gray-500">
                   <p>No se encontraron productos en esta categoría.</p>
-                  <Link href="/products" className="text-black underline mt-2 block">Ver todos</Link>
+                  <Link href="/productos" className="text-black underline mt-2 block">Ver todos</Link>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">

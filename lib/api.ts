@@ -10,11 +10,13 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const storage = localStorage.getItem('nimvu-auth-storage');
-  if (storage) {
-    const { state } = JSON.parse(storage);
-    if (state?.token) {
-      config.headers.Authorization = `Bearer ${state.token}`;
+  if (typeof window !== 'undefined') {
+    const storage = localStorage.getItem('nimvu-auth-storage');
+    if (storage) {
+      const { state } = JSON.parse(storage);
+      if (state?.token) {
+        config.headers.Authorization = `Bearer ${state.token}`;
+      }
     }
   }
   return config;
@@ -32,6 +34,7 @@ export interface BackendProduct {
   id: string;
   name: string;
   description: string | null;
+  slug: string; // Added
   price: number;
   stock: number;
   images: string[];
@@ -61,6 +64,7 @@ export interface FrontendProduct {
   id: string;
   title: string;
   description: string;
+  slug: string; // Added
   thumbnail: string;
   price: number;
   images: { id: string; url: string }[];
@@ -77,6 +81,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     id: product.id,
     title: product.name,
     description: product.description || "",
+    slug: product.slug || "", // Added fallback
     thumbnail: product.images[0] || "",
     price: product.price,
     images: product.images.map((url, index) => ({
@@ -109,8 +114,8 @@ export const products = {
     const response = await api.get<BackendProduct[]>("/products");
     return response.data.map(adaptProduct);
   },
-  retrieve: async (id: string) => {
-    const response = await api.get<BackendProduct>(`/products/${id}`);
+  retrieve: async (term: string) => {
+    const response = await api.get<BackendProduct>(`/products/${term}`);
     return { product: adaptProduct(response.data) };
   },
 };

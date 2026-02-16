@@ -24,7 +24,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
     <div className="product-item">
       <div className="w-full aspect-square relative overflow-hidden mb-2 group">
         {item.thumbnail ? (
-          <Link href={`/products/${item.id}`}>
+          <Link href={`/productos/${item.slug || item.id}`}>
             <Image
               src={item.thumbnail}
               fill
@@ -54,7 +54,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
           </button>
         </div>
       </div>
-      <Link href={`/products/${item.id}`}><span className="font-medium">{item.title}</span></Link>
+      <Link href={`/productos/${item.slug || item.id}`}><span className="font-medium">{item.title}</span></Link>
       <p className="gap-2 font-medium">
         <span className="text-dark text-black font-bold">${item.price}</span>
       </p>

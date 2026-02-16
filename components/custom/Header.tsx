@@ -94,13 +94,13 @@ const Header = () => {
 
           {/* Navegación Desktop */}
           <nav className="hidden md:flex space-x-8">
-            <Link href="/about" className="text-black transition">
+            <Link href="/nosotros" className="text-black transition">
               Nosotros
             </Link>
-            <Link href="/products" className="text-black transition">
+            <Link href="/productos" className="text-black transition">
               Categorias
             </Link>
-            <Link href="/contact" className="text-black transition">
+            <Link href="/contacto" className="text-black transition">
               Contacto
             </Link>
           </nav>
@@ -117,7 +117,7 @@ const Header = () => {
               <SheetTrigger>
                 <div className="flex relative">
                   <ShoppingCart className="w-7 h-7 cursor-pointer" />
-                  <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">{productQuantity}</Badge>
+                  <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">{isMounted ? productQuantity : 0}</Badge>
                 </div>
               </SheetTrigger>
               <SheetContent>
@@ -125,7 +125,7 @@ const Header = () => {
                   Carrito
                 </SheetTitle>
                 <div className="cart-products py-5">
-                  {items && items.length > 0 ? (
+                  {isMounted && items && items.length > 0 ? (
                     items.map((product: CartItem) => (
                       <CartProductItem key={product.id} item={product} cart={true} />
                     ))
@@ -136,7 +136,7 @@ const Header = () => {
                 <Separator />
                 <div className="subtotal-section py-5 flex justify-between">
                   <p>Subtotal:</p>
-                  {totalPrice ? (
+                  {isMounted && totalPrice ? (
                     <p className='font-bold'>{formatCurrency(totalPrice)}</p>
                   ) : (
                     <p className='font-bold'>{formatCurrency(0)}</p>
@@ -163,10 +163,10 @@ const Header = () => {
                   <>
                     <DropdownMenuLabel>Hola, {customer.first_name}</DropdownMenuLabel>
                     <DropdownMenuItem>
-                      <Link href="/profile">Perfil</Link>
+                      <Link href="/perfil">Perfil</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Link href="/profile?tab=orders" className="w-full">Mis pedidos</Link>
+                      <Link href="/perfil?tab=orders" className="w-full">Mis pedidos</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => logout()}>Cerrar Sesión</DropdownMenuItem>
                   </>
@@ -196,17 +196,17 @@ const Header = () => {
                   <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
                   <nav className="flex flex-col gap-4 mt-8">
                     <SheetClose asChild>
-                      <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">
+                      <Link href="/nosotros" className="text-lg font-medium hover:text-primary transition-colors">
                         Nosotros
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">
+                      <Link href="/productos" className="text-lg font-medium hover:text-primary transition-colors">
                         Categorias
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link href="/contact" className="text-lg font-medium hover:text-primary transition-colors">
+                      <Link href="/contacto" className="text-lg font-medium hover:text-primary transition-colors">
                         Contacto
                       </Link>
                     </SheetClose>
