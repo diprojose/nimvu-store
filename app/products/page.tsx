@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { products as apiProducts, categories as apiCategories, FrontendProduct, BackendCategory } from "@/lib/api";
 import ProductItem from "@/components/custom/singleProduct";
 import { Loader2, Filter } from "lucide-react";
@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
-export default function ShopPage() {
+function ProductsContent() {
   const [products, setProducts] = useState<FrontendProduct[]>([]);
   const [categories, setCategories] = useState<BackendCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,5 +135,17 @@ export default function ShopPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-screen bg-white">
+        <Loader2 className="w-10 h-10 animate-spin text-gray-900" />
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }
