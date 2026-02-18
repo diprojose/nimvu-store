@@ -56,8 +56,15 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
         </div>
       </div>
       <Link href={`/productos/${item.slug || item.id}`}><span className="font-medium">{item.title}</span></Link>
-      <p className="gap-2 font-medium">
-        <span className="text-dark text-black font-bold">{formatPrice(item.price)}</span>
+      <p className="flex gap-2 font-medium items-center">
+        {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price ? (
+          <>
+            <span className="text-gray-400 line-through text-sm">{formatPrice(item.price)}</span>
+            <span className="text-red-600 font-bold">{formatPrice(item.discountPrice)}</span>
+          </>
+        ) : (
+          <span className="text-dark text-black font-bold">{formatPrice(item.price)}</span>
+        )}
       </p>
       <Modal
         isOpen={isModalOpen}

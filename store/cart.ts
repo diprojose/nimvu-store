@@ -8,6 +8,8 @@ export interface CartItem {
   title: string;
   thumbnail: string;
   price: number;
+  originalPrice?: number;
+  discountPrice?: number;
   unit_price: number; // Compatibility
   quantity: number;
 }
@@ -31,16 +33,28 @@ export const useCartStore = create<CartState>()(
         const { items } = get();
         const existingItemIndex = items.findIndex((item) => item.variantId === variantId);
 
-        // Find the variant details from the product to get the price
+        // Find the variant details
         const variant = product.variants?.find((v: any) => v.id === variantId);
-        const price = variant?.price || product.price || 0;
-        // Note: Backend might have price on product or variant. 
-        // We'll assume the product object passed here is the one from our API adapter.
+
+        let basePrice = product.price || 0;
+        let discount = product.discountPrice;
+
+        if (variant) {
+          basePrice = variant.price || product.price || 0;
+          discount = variant.discountPrice;
+        }
+
+        const hasDiscount = discount && discount > 0 && discount < basePrice;
+        const finalPrice = hasDiscount ? discount : basePrice;
 
         if (existingItemIndex > -1) {
           // Update quantity if item exists
           const updatedItems = [...items];
           updatedItems[existingItemIndex].quantity += quantity;
+          // Update price in case it changed
+          updatedItems[existingItemIndex].price = finalPrice;
+          updatedItems[existingItemIndex].unit_price = finalPrice;
+          updatedItems[existingItemIndex].originalPrice = hasDiscount ? basePrice : undefined;
           set({ items: updatedItems });
         } else {
           // Add new item
@@ -53,8 +67,10 @@ export const useCartStore = create<CartState>()(
                 productId: product.id,
                 title: product.title,
                 thumbnail: product.thumbnail,
-                price: price,
-                unit_price: price, // Alias for compatibility
+                price: finalPrice,
+                originalPrice: hasDiscount ? basePrice : undefined,
+                discountPrice: hasDiscount ? discount : undefined,
+                unit_price: finalPrice, // Alias for compatibility
                 quantity,
               },
             ],

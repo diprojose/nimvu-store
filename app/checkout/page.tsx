@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
-import { orders, addresses } from "@/lib/api"
+import { orders, addresses, shipping } from "@/lib/api"
+import AddressForm from "@/components/custom/AddressForm";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,9 +44,9 @@ export default function CheckoutPage() {
   const [isWompiLoaded, setIsWompiLoaded] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const shipping = 12000;
+  const [shippingCost, setShippingCost] = useState(15000);
   const subtotal = isMounted ? getCartSubtotal() : 0;
-  const total = isMounted ? (getCartTotal() + shipping) : 0;
+  const total = isMounted ? (getCartTotal() + shippingCost) : 0;
   const router = useRouter();
   const [receiverData, setReceiverData] = useState({
     fullName: "",
@@ -55,54 +56,57 @@ export default function CheckoutPage() {
 
 
   useEffect(() => {
+    if (selectedAddress) {
+      // Trigger shipping calculation
+      const calcShipping = async () => {
+        try {
+          const rate = await shipping.calculate({
+            country: 'Colombia',
+            state: selectedAddress.province,
+            city: selectedAddress.city
+          });
+          if (rate && rate.price) {
+            setShippingCost(rate.price);
+          } else {
+            setShippingCost(15000);
+          }
+        } catch (error) {
+          console.error("Shipping calc failed", error);
+          setShippingCost(15000);
+        }
+      }
+      calcShipping();
+    }
+  }, [selectedAddress]);
+
+  useEffect(() => {
     setIsMounted(true);
     // Check if Wompi widget is already loaded (e.g. from cache or previous navigation)
     if (window.WidgetCheckout) {
       setIsWompiLoaded(true);
     }
     if (customer?.addresses && customer?.addresses?.length > 0 && !selectedAddressId) {
-      setSelectedAddressId(customer.addresses[0].id);
-      setSelectedAddress(customer.addresses[0]);
+      // Default select first address
+      const defaultAddr = customer.addresses[0];
+      setSelectedAddressId(defaultAddr.id);
+      setSelectedAddress(defaultAddr);
     }
   }, [customer?.addresses, selectedAddressId]);
 
-  const [newAddress, setNewAddress] = useState({
-    first_name: "",
-    last_name: "",
-    address_1: "",
-    company: "",
-    postal_code: "",
-    city: "",
-    country_code: "co",
-    province: "",
-    phone: "",
-  });
-
-  // Handlers
-
-  const handleChange = (field: string, value: string) => {
-    setNewAddress((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleAddAddress = async () => {
+  const handleSaveAddress = async (data: any) => {
     setLoading(true);
     try {
-      await addresses.create(newAddress);
+      const newAddr = await addresses.create(data);
       await syncWithBackend();
-
       setIsAddressModalOpen(false);
-      setNewAddress({
-        first_name: "",
-        last_name: "",
-        address_1: "",
-        company: "",
-        postal_code: "",
-        city: "",
-        country_code: "co",
-        province: "",
-        phone: "",
-      })
-      toast.success("Dirección agregada", { position: "top-center" })
+      toast.success("Dirección agregada", { position: "top-center" });
+
+      // Auto-select new address
+      if (newAddr && newAddr.id) {
+        setSelectedAddressId(newAddr.id);
+        setSelectedAddress(newAddr);
+        // useEffect will trigger shipping calc
+      }
     } catch (error) {
       console.error(error);
       toast.error("Error al agregar dirección");
@@ -390,52 +394,11 @@ export default function CheckoutPage() {
                       <DialogHeader className="md:col-span-2">
                         <DialogTitle>Nueva Dirección</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-2">
-                        <Label>Nombre *</Label>
-                        <Input required value={newAddress.first_name} onChange={(e) => handleChange("first_name", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Apellido *</Label>
-                        <Input required value={newAddress.last_name} onChange={(e) => handleChange("last_name", e.target.value)} />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Empresa (Opcional)</Label>
-                        <Input value={newAddress.company} onChange={(e) => handleChange("company", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Teléfono *</Label>
-                        <Input required value={newAddress.phone} onChange={(e) => handleChange("phone", e.target.value)} />
-                      </div>
-
-                      <div className="md:col-span-2 space-y-2">
-                        <Label>Dirección *</Label>
-                        <Input required placeholder="Calle 123 # 45 - 67" value={newAddress.address_1} onChange={(e) => handleChange("address_1", e.target.value)} />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Ciudad *</Label>
-                        <Input required value={newAddress.city} onChange={(e) => handleChange("city", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Provincia / Depto *</Label>
-                        <Input required value={newAddress.province} onChange={(e) => handleChange("province", e.target.value)} />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Código Postal *</Label>
-                        <Input required value={newAddress.postal_code} onChange={(e) => handleChange("postal_code", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>País</Label>
-                        <Input value="Colombia" disabled className="bg-gray-100" />
-                      </div>
-
-                      <div className="md:col-span-2 pt-4">
-                        <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={loading} onClick={handleAddAddress}>
-                          {loading ? "Guardando..." : "Guardar Dirección"}
-                        </Button>
-                      </div>
+                      <AddressForm
+                        onSubmit={handleSaveAddress}
+                        loading={loading}
+                        onCancel={() => setIsAddressModalOpen(false)}
+                      />
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -599,7 +562,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between text-gray-600">
                       <span>Envío</span>
-                      <span>{formatCurrency(shipping)}</span>
+                      <span>{formatCurrency(shippingCost)}</span>
                     </div>
                   </div>
 

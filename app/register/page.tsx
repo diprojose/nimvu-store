@@ -27,7 +27,7 @@ export default function AuthPage() {
   const login = useAuthStore((state) => state.login);
 
   const { isChecking } = useAuthRedirect({
-    redirectTo: "/profile",
+    redirectTo: "/perfil",
     condition: "ifAuthenticated",
   });
 
@@ -54,7 +54,7 @@ export default function AuthPage() {
 
       // Auto-login after registration
       await login(email, password);
-      router.push("/profile");
+      router.push("/perfil");
 
     } catch (error) {
       console.error(error);
@@ -83,7 +83,7 @@ export default function AuthPage() {
     try {
       await login(loginEmail, loginPassword);
       router.refresh();
-      router.push("/profile");
+      router.push("/perfil");
     } catch (error: any) {
       console.error(error);
       const errorMessage = error.response?.data?.message || "Ocurrió un error al iniciar sesión.";

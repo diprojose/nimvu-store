@@ -57,8 +57,15 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
       </div>
       <div className="right-side grow-4 w-full pr-1">
         <Link href={`/productos/${item.id}`}><span className="font-medium">{item.title}</span></Link>
-        <p className="gap-2 font-medium">
-          <span className="text-black">{formatPrice(item.unit_price || item.price)}</span>
+        <p className="flex gap-2 font-medium items-center">
+          {item.originalPrice && item.originalPrice > item.price ? (
+            <>
+              <span className="text-gray-400 line-through text-sm">{formatPrice(item.originalPrice)}</span>
+              <span className="text-red-600 font-bold">{formatPrice(item.unit_price || item.price)}</span>
+            </>
+          ) : (
+            <span className="text-black">{formatPrice(item.unit_price || item.price)}</span>
+          )}
         </p>
       </div>
       <div className="quantity-controls grow-3">

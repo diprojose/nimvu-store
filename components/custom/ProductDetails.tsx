@@ -75,9 +75,24 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
               {product.description || "No description available."}
             </p>
-            <p className="text-2xl font-bold mt-4 font-sans dark:text-white">
-              {selectedVariant?.price ? formatPrice(selectedVariant.price) : formatPrice(product.price)}
-            </p>
+            <div className="mt-4">
+              {(() => {
+                const basePrice = selectedVariant?.price || product.price;
+                const discount = selectedVariant ? selectedVariant.discountPrice : product.discountPrice;
+                const hasDiscount = discount && discount > 0 && discount < basePrice;
+
+                return hasDiscount ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold text-red-600 font-sans">{formatPrice(discount)}</span>
+                    <span className="text-xl text-gray-400 line-through font-sans">{formatPrice(basePrice)}</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold font-sans dark:text-white">
+                    {formatPrice(basePrice)}
+                  </p>
+                );
+              })()}
+            </div>
           </div>
 
           {/* Variants Selector */}

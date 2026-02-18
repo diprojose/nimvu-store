@@ -27,6 +27,7 @@ import {
 import { MapPin, User, Plus, Package, Calendar, DollarSign } from "lucide-react";
 import { toast } from "sonner"
 import Link from 'next/link';
+import AddressForm from "@/components/custom/AddressForm";
 
 function ProfileContent() {
   const { customer, updateCustomer, syncWithBackend } = useAuthStore();
@@ -35,6 +36,7 @@ function ProfileContent() {
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<any>(null); // State for editing
   const [isDeleteAddressModalOpen, setIsDeleteAddressModalOpen] = useState(false);
 
   // Tab state
@@ -51,17 +53,7 @@ function ProfileContent() {
     addresses: []
   });
 
-  const [newAddress, setNewAddress] = useState({
-    first_name: "",
-    last_name: "",
-    address_1: "",
-    company: "",
-    postal_code: "",
-    city: "",
-    country_code: "co",
-    province: "",
-    phone: "",
-  });
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -130,36 +122,42 @@ function ProfileContent() {
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setNewAddress((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleAddAddress = async () => {
+  const handleSaveAddress = async (data: any) => {
     setLoading(true);
     try {
-      await addresses.create(newAddress);
+      if (editingAddress) {
+        await addresses.update(editingAddress.id, data);
+        toast.success("Dirección actualizada", { position: "top-center" });
+      } else {
+        await addresses.create(data);
+        toast.success("Dirección agregada", { position: "top-center" });
+      }
       await syncWithBackend();
-
       setIsAddressModalOpen(false);
-      setNewAddress({
-        first_name: "",
-        last_name: "",
-        address_1: "",
-        company: "",
-        postal_code: "",
-        city: "",
-        country_code: "co",
-        province: "",
-        phone: "",
-      })
-      toast.success("Dirección agregada", { position: "top-center" })
+      setEditingAddress(null);
     } catch (error) {
       console.error(error);
-      toast.error("Error al agregar dirección");
+      toast.error(editingAddress ? "Error al actualizar dirección" : "Error al agregar dirección");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleEditAddress = (addr: any) => {
+    // Adapter to match AddressForm expectation (flat structure) if needed
+    // Assuming backend returns: address_1 (or street), city, etc.
+    // If backend returns 'street', we map it to 'address_1' for the form.
+    // Let's create a mapped object based on what we see in the Card rendering:
+    // {addr.address_1} implies it has address_1.
+    // So we just pass addr.
+    setEditingAddress(addr);
+    setIsAddressModalOpen(true);
+  };
+
+  const handleOpenNewAddress = () => {
+    setEditingAddress(null);
+    setIsAddressModalOpen(true);
+  }
 
   const handleDeleteAddress = async (addrId) => {
     try {
@@ -267,7 +265,7 @@ function ProfileContent() {
                     <h3 className="font-medium text-gray-900">No tienes direcciones guardadas</h3>
                     <p className="text-sm text-gray-500 mt-1">Agrega una dirección para facilitar tus compras.</p>
                   </div>
-                  <Button variant="outline" className="mt-4 gap-2 border-black text-black hover:bg-gray-100" onClick={() => setIsAddressModalOpen(true)}>
+                  <Button variant="outline" className="mt-4 gap-2 border-black text-black hover:bg-gray-100" onClick={handleOpenNewAddress}>
                     <Plus className="w-4 h-4" /> Agregar dirección
                   </Button>
                 </div>
@@ -285,7 +283,7 @@ function ProfileContent() {
                           <p className="text-sm text-gray-500 mt-1">📞 {addr.phone}</p>
                         </CardContent>
                         <CardFooter>
-                          <Button className="mr-2 cursor-pointer" variant="outline" size="sm">Editar</Button>
+                          <Button className="mr-2 cursor-pointer" variant="outline" size="sm" onClick={() => handleEditAddress(addr)}>Editar</Button>
                           <Dialog open={isDeleteAddressModalOpen} onOpenChange={setIsDeleteAddressModalOpen}>
                             <DialogTrigger asChild>
                               <Button className="bg-red-900 cursor-pointer" size="sm" onClick={() => setIsDeleteAddressModalOpen(true)}>Borrar</Button>
@@ -306,7 +304,7 @@ function ProfileContent() {
                   ))}
 
                   <div className="pt-4">
-                    <Button variant="outline" className="gap-2 border-black text-black hover:bg-gray-100" onClick={() => setIsAddressModalOpen(true)}>
+                    <Button variant="outline" className="gap-2 border-black text-black hover:bg-gray-100" onClick={handleOpenNewAddress}>
                       <Plus className="w-4 h-4" /> Agregar otra dirección
                     </Button>
                   </div>
@@ -317,54 +315,17 @@ function ProfileContent() {
               <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                   <DialogHeader className="md:col-span-2">
-                    <DialogTitle>Nueva Dirección</DialogTitle>
+                    <DialogTitle>{editingAddress ? "Editar Dirección" : "Nueva Dirección"}</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2">
-                    <Label>Nombre *</Label>
-                    <Input required value={newAddress.first_name} onChange={(e) => handleChange("first_name", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Apellido *</Label>
-                    <Input required value={newAddress.last_name} onChange={(e) => handleChange("last_name", e.target.value)} />
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>Empresa (Opcional)</Label>
-                    <Input value={newAddress.company} onChange={(e) => handleChange("company", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Teléfono *</Label>
-                    <Input required value={newAddress.phone} onChange={(e) => handleChange("phone", e.target.value)} />
-                  </div>
+                  <AddressForm
+                    initialData={editingAddress}
+                    onSubmit={handleSaveAddress}
+                    loading={loading}
+                    onCancel={() => setIsAddressModalOpen(false)}
+                    submitLabel={editingAddress ? "Actualizar Dirección" : "Guardar Dirección"}
+                  />
 
-                  <div className="md:col-span-2 space-y-2">
-                    <Label>Dirección *</Label>
-                    <Input required placeholder="Calle 123 # 45 - 67" value={newAddress.address_1} onChange={(e) => handleChange("address_1", e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Ciudad *</Label>
-                    <Input required value={newAddress.city} onChange={(e) => handleChange("city", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Provincia / Depto *</Label>
-                    <Input required value={newAddress.province} onChange={(e) => handleChange("province", e.target.value)} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Código Postal *</Label>
-                    <Input required value={newAddress.postal_code} onChange={(e) => handleChange("postal_code", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>País</Label>
-                    <Input value="Colombia" disabled className="bg-gray-100" />
-                  </div>
-
-                  <div className="md:col-span-2 pt-4">
-                    <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={loading} onClick={handleAddAddress}>
-                      {loading ? "Guardando..." : "Guardar Dirección"}
-                    </Button>
-                  </div>
                 </DialogContent>
               </Dialog>
 

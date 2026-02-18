@@ -34,8 +34,9 @@ export interface BackendProduct {
   id: string;
   name: string;
   description: string | null;
-  slug: string; // Added
+  slug: string;
   price: number;
+  discountPrice?: number;
   stock: number;
   images: string[];
   createdAt: string;
@@ -44,8 +45,8 @@ export interface BackendProduct {
   length?: number;
   height?: number;
   longDescription?: string;
-  categoryId?: string; // Added
-  category?: BackendCategory; // Added
+  categoryId?: string;
+  category?: BackendCategory;
   variants?: BackendVariant[];
 }
 
@@ -55,6 +56,7 @@ export interface BackendVariant {
   name: string;
   stock: number;
   price: number | null;
+  discountPrice?: number;
   images: string[];
   sku: string;
 }
@@ -74,12 +76,13 @@ export interface FrontendProduct {
   id: string;
   title: string;
   description: string;
-  slug: string; // Added
+  slug: string;
   thumbnail: string;
   price: number;
+  discountPrice?: number;
   images: { id: string; url: string }[];
-  variants: { id: string; title: string; inventory_quantity: number; price?: number; images?: string[] }[];
-  category?: { id: string; name: string; slug: string }; // Added
+  variants: { id: string; title: string; inventory_quantity: number; price?: number; discountPrice?: number; images?: string[] }[];
+  category?: { id: string; name: string; slug: string };
   dimensions?: { width: number; height: number; length: number };
   longDescription?: string;
   // Add other fields as necessary based on usage
@@ -91,9 +94,10 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     id: product.id,
     title: product.name,
     description: product.description || "",
-    slug: product.slug || "", // Added fallback
+    slug: product.slug || "",
     thumbnail: product.images[0] || "",
     price: product.price,
+    discountPrice: product.discountPrice,
     images: product.images.map((url, index) => ({
       id: `${product.id}-img-${index}`,
       url: url,
@@ -102,8 +106,9 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
       id: v.id,
       title: v.name,
       inventory_quantity: v.stock,
-      price: v.price || product.price, // Fallback to product price if variant price is null
-      images: v.images, // Pass variant images
+      price: v.price || product.price,
+      discountPrice: v.discountPrice,
+      images: v.images,
     })) || [],
     category: product.category ? {
       id: product.category.id,
@@ -178,10 +183,28 @@ export const addresses = {
       city: data.city,
       state: data.province,
       zip: data.postal_code,
-      country: data.country_code || "Colombia",
+      country: "Colombia",
       phone: data.phone,
+      company: data.company,
+      first_name: data.first_name,
+      last_name: data.last_name
     };
     const response = await api.post("/addresses", payload);
+    return response.data;
+  },
+  update: async (id: string, data: any) => {
+    const payload = {
+      street: data.address_1,
+      city: data.city,
+      state: data.province,
+      zip: data.postal_code,
+      country: "Colombia",
+      phone: data.phone,
+      company: data.company,
+      first_name: data.first_name,
+      last_name: data.last_name
+    };
+    const response = await api.patch(`/addresses/${id}`, payload);
     return response.data;
   },
   delete: async (id: string) => {
@@ -193,6 +216,13 @@ export const addresses = {
 export const categories = {
   list: async () => {
     const response = await api.get<BackendCategory[]>("/categories");
+    return response.data;
+  }
+};
+
+export const shipping = {
+  calculate: async (data: { country: string; state?: string; city?: string }) => {
+    const response = await api.post<{ id: string; price: number; country: string; state?: string; city?: string }>("/shipping/calculate", data);
     return response.data;
   }
 };
