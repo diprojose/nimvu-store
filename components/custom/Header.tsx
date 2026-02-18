@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { CartItem } from "@/store/cart";
+import { formatPrice } from "@/lib/utils";
 
 const Header = () => {
   const items = useCartStore((state) => state.items);
@@ -57,14 +58,6 @@ const Header = () => {
       shippingPrice: shipping
     };
   }, [items, getCartSubtotal]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Initialize removed as it's auto-handled by persist middleware
   // const initialize = useCartStore((state) => state.initialize)
@@ -113,106 +106,127 @@ const Header = () => {
             {/* <button className="p-2 text-black cursor-pointer">
               <Heart className="w-7 h-7" />
             </button> */}
-            <Sheet>
-              <SheetTrigger>
+            {isMounted ? (
+              <Sheet>
+                <SheetTrigger>
+                  <div className="flex relative">
+                    <ShoppingCart className="w-7 h-7 cursor-pointer" />
+                    <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">{productQuantity}</Badge>
+                  </div>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetTitle className="sr-only">
+                    Carrito
+                  </SheetTitle>
+                  <div className="cart-products py-5">
+                    {items && items.length > 0 ? (
+                      items.map((product: CartItem) => (
+                        <CartProductItem key={product.id} item={product} cart={true} />
+                      ))
+                    ) : (
+                      <p>No hay productos</p>
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="subtotal-section py-5 flex justify-between">
+                    <p>Subtotal:</p>
+                    {totalPrice ? (
+                      <p className='font-bold'>{formatPrice(totalPrice)}</p>
+                    ) : (
+                      <p className='font-bold'>{formatPrice(0)}</p>
+                    )}
+                  </div>
+                  <div className="checkout-section py-5">
+                    <SheetClose asChild>
+                      <Link href="/cart">
+                        <Button className='w-full cursor-pointer'>Continuar</Button>
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            ) : (
+              <button type="button">
                 <div className="flex relative">
                   <ShoppingCart className="w-7 h-7 cursor-pointer" />
-                  <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">{isMounted ? productQuantity : 0}</Badge>
+                  <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">0</Badge>
                 </div>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetTitle className="sr-only">
-                  Carrito
-                </SheetTitle>
-                <div className="cart-products py-5">
-                  {isMounted && items && items.length > 0 ? (
-                    items.map((product: CartItem) => (
-                      <CartProductItem key={product.id} item={product} cart={true} />
-                    ))
+              </button>
+            )}
+            {isMounted ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2 text-black cursor-pointer">
+                    <CircleUserRound className="w-7 h-7" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {customer ? (
+                    <>
+                      <DropdownMenuLabel>Hola, {customer.first_name}</DropdownMenuLabel>
+                      <DropdownMenuItem>
+                        <Link href="/perfil">Perfil</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Link href="/perfil?tab=orders" className="w-full">Mis pedidos</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => logout()}>Cerrar Sesión</DropdownMenuItem>
+                    </>
                   ) : (
-                    <p>No hay productos</p>
+                    <>
+                      <DropdownMenuItem>
+                        <Link href="/register">Iniciar Sesión</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Link href="/register">Registrarse</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
-                </div>
-                <Separator />
-                <div className="subtotal-section py-5 flex justify-between">
-                  <p>Subtotal:</p>
-                  {isMounted && totalPrice ? (
-                    <p className='font-bold'>{formatCurrency(totalPrice)}</p>
-                  ) : (
-                    <p className='font-bold'>{formatCurrency(0)}</p>
-                  )}
-                </div>
-                <div className="checkout-section py-5">
-                  <SheetClose asChild>
-                    <Link href="/cart">
-                      <Button className='w-full cursor-pointer'>Continuar</Button>
-                    </Link>
-                  </SheetClose>
-                </div>
-              </SheetContent>
-            </Sheet>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 text-black cursor-pointer">
-                  <CircleUserRound className="w-7 h-7" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {isMounted && customer ? (
-                  // ✅ Envuelves todo en <> ... </>
-                  <>
-                    <DropdownMenuLabel>Hola, {customer.first_name}</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                      <Link href="/perfil">Perfil</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/perfil?tab=orders" className="w-full">Mis pedidos</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => logout()}>Cerrar Sesión</DropdownMenuItem>
-                  </>
-                ) : (
-                  <>
-                    <DropdownMenuItem>
-                      <Link href="/register">Iniciar Sesión</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/register">Registrarse</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <button className="p-2 text-black cursor-pointer">
+                <CircleUserRound className="w-7 h-7" />
+              </button>
+            )}
 
             {/* Mobile Menu */}
             <div className="md:hidden flex items-center">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Menú de navegación</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                  <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
-                  <nav className="flex flex-col gap-4 mt-8">
-                    <SheetClose asChild>
-                      <Link href="/nosotros" className="text-lg font-medium hover:text-primary transition-colors">
-                        Nosotros
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link href="/productos" className="text-lg font-medium hover:text-primary transition-colors">
-                        Categorias
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link href="/contacto" className="text-lg font-medium hover:text-primary transition-colors">
-                        Contacto
-                      </Link>
-                    </SheetClose>
-                  </nav>
-                </SheetContent>
-              </Sheet>
+              {isMounted ? (
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="md:hidden">
+                      <Menu className="h-6 w-6" />
+                      <span className="sr-only">Menú de navegación</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                    <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+                    <nav className="flex flex-col gap-4 mt-8">
+                      <SheetClose asChild>
+                        <Link href="/nosotros" className="text-lg font-medium hover:text-primary transition-colors">
+                          Nosotros
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/productos" className="text-lg font-medium hover:text-primary transition-colors">
+                          Categorias
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/contacto" className="text-lg font-medium hover:text-primary transition-colors">
+                          Contacto
+                        </Link>
+                      </SheetClose>
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+              ) : (
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Menú de navegación</span>
+                </Button>
+              )}
             </div>
           </div>
 

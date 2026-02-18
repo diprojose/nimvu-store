@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { CartItem } from "@/store/cart";
 import { useCartStore } from '@/store/cart';
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatPrice } from "@/lib/utils";
 
 export default function CartPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,14 +37,6 @@ export default function CartPage() {
       shippingPrice: shipping
     };
   }, [items, getCartSubtotal]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-20 min-h-[80vh]">
@@ -88,19 +81,19 @@ export default function CartPage() {
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Productos ({productQuantity})</span>
-                  <span>{formatCurrency(totalProductPrice)}</span>
+                  <span>{formatPrice(totalProductPrice)}</span>
                 </div>
 
                 <div className="flex justify-between text-gray-600">
                   <span>Envío</span>
-                  <span>{formatCurrency(shippingPrice)}</span>
+                  <span>{formatPrice(shippingPrice)}</span>
                 </div>
 
                 <Separator className="my-2" />
 
                 <div className="flex justify-between text-lg font-bold text-gray-900">
                   <span>Total</span>
-                  <span>{formatCurrency(totalPrice)}</span>
+                  <span>{formatPrice(totalPrice)}</span>
                 </div>
               </div>
 

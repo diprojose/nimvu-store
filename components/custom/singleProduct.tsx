@@ -3,6 +3,7 @@ import { useState } from "react"
 import Image from "next/image";
 import Link from "next/link";
 import { FrontendProduct } from "@/lib/api";
+import { cn, formatPrice } from "@/lib/utils";
 import { ShoppingCart, Eye } from "lucide-react";
 import { useCartStore } from '@/store/cart';
 import { toast } from "sonner"
@@ -56,7 +57,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
       </div>
       <Link href={`/productos/${item.slug || item.id}`}><span className="font-medium">{item.title}</span></Link>
       <p className="gap-2 font-medium">
-        <span className="text-dark text-black font-bold">${item.price}</span>
+        <span className="text-dark text-black font-bold">{formatPrice(item.price)}</span>
       </p>
       <Modal
         isOpen={isModalOpen}

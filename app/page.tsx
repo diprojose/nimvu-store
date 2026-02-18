@@ -1,5 +1,5 @@
 "use client"
-import { products as apiProducts, FrontendProduct } from "@/lib/api"
+import { collections, FrontendProduct } from "@/lib/api"
 import { useEffect, useState } from "react"
 import {
   Carousel,
@@ -23,8 +23,8 @@ export default function Home() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const productList = await apiProducts.list()
-        setProducts(productList)
+        const bestSellers = await collections.retrieve("ec6d6793-e160-4858-b231-561cb035ff9f")
+        setProducts(bestSellers.products)
       } catch (err) {
         let errorMessage = "An error occurred"
         if (err instanceof Error) {
@@ -80,6 +80,34 @@ export default function Home() {
               <CarouselPrevious className="hidden md:flex" />
               <CarouselNext className="hidden md:flex" />
             </Carousel>
+          </div>
+        </section>
+
+        <section className="kpop-banner w-full pb-[100px]">
+          <div className="relative w-full rounded-md overflow-hidden">
+            {/* Mobile Image */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/bts21-3.jpg" alt="Colección K-POP Mobile" className="block md:hidden w-full h-auto" />
+
+            {/* Desktop Image */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/bts21-1.jpg" alt="Colección K-POP Desktop" className="hidden md:block w-full h-auto" />
+
+            {/* Content Overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-start pt-16 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
+              <span className="text-xs md:text-sm font-bold tracking-[0.2em] mb-2 text-purple-900 uppercase">
+                Colección K-POP
+              </span>
+              <h2 className="font-italiana text-4xl md:text-6xl mb-4 text-purple-950 leading-tight">
+                Organiza <br className="md:hidden" /> tu Pasión
+              </h2>
+              <p className="text-sm md:text-lg mb-8 max-w-[250px] md:max-w-md text-gray-600 font-medium">
+                Dale a tu Army Bomb el lugar que merece.
+              </p>
+              <a href="/coleccion/bts" className="bg-purple-900 text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest hover:opacity-90 transition-opacity uppercase">
+                Ver Modelos
+              </a>
+            </div>
           </div>
         </section>
         <section className="testimonials w-full">

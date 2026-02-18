@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 import { useCartStore } from '@/store/cart';
 import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner"
@@ -26,14 +27,6 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
     toast.error(`${item.title} actualizado`, { position: "top-center" })
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <div className="product-item flex items-center justify-between mb-5">
       <div className="remove-product mr-2 grow">
@@ -43,7 +36,7 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
       </div>
       <div className="w-full aspect-square relative overflow-hidden max-w-12.5 mr-2 grow-2">
         {item.thumbnail ? (
-          <Link href={`/products/${item.id}`}>
+          <Link href={`/productos/${item.id}`}>
             <Image
               src={item.thumbnail}
               fill
@@ -63,9 +56,9 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
         )}
       </div>
       <div className="right-side grow-4 w-full pr-1">
-        <Link href={`/products/${item.id}`}><span className="font-medium">{item.title}</span></Link>
+        <Link href={`/productos/${item.id}`}><span className="font-medium">{item.title}</span></Link>
         <p className="gap-2 font-medium">
-          <span className="text-black">{formatCurrency(item.unit_price)}</span>
+          <span className="text-black">{formatPrice(item.unit_price || item.price)}</span>
         </p>
       </div>
       <div className="quantity-controls grow-3">

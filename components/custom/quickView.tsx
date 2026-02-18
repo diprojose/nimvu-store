@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { FrontendProduct } from "@/lib/api";
+import { formatPrice } from "@/lib/utils";
 import { useCartStore } from '@/store/cart';
 import { toast } from "sonner";
 
@@ -81,6 +82,9 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
             <h1 className="text-4xl font-italiana font-bold mb-4">{item.title}</h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
               {item.description || "Descripción no disponible"}
+            </p>
+            <p className="text-2xl font-bold mt-4 font-sans text-black dark:text-white">
+              {formatPrice(item.price)}
             </p>
           </div>
 

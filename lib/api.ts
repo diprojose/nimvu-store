@@ -59,6 +59,16 @@ export interface BackendVariant {
   sku: string;
 }
 
+export interface BackendCollection {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  isActive: boolean;
+  image: string;
+  products: BackendProduct[];
+}
+
 // Frontend interfaces based on what I saw in page.tsx
 export interface FrontendProduct {
   id: string;
@@ -184,5 +194,22 @@ export const categories = {
   list: async () => {
     const response = await api.get<BackendCategory[]>("/categories");
     return response.data;
+  }
+};
+
+export const collections = {
+  retrieve: async (id: string) => {
+    const response = await api.get<BackendCollection>(`/collections/${id}`);
+    return {
+      ...response.data,
+      products: response.data.products.map(adaptProduct)
+    };
+  },
+  retrieveBySlug: async (slug: string) => {
+    const response = await api.get<BackendCollection>(`/collections/slug/${slug}`);
+    return {
+      ...response.data,
+      products: response.data.products.map(adaptProduct)
+    };
   }
 };

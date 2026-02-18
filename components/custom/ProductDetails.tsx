@@ -7,6 +7,7 @@ import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useCartStore } from '@/store/cart';
 import { toast } from "sonner";
 import { FrontendProduct } from "@/lib/api"; // Ensure this is exported
+import { formatPrice } from "@/lib/utils";
 
 interface ProductDetailsProps {
   product: FrontendProduct;
@@ -75,7 +76,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               {product.description || "No description available."}
             </p>
             <p className="text-2xl font-bold mt-4 font-sans dark:text-white">
-              ${selectedVariant?.price ? selectedVariant.price.toLocaleString("es-CO") : product.price.toLocaleString("es-CO")}
+              {selectedVariant?.price ? formatPrice(selectedVariant.price) : formatPrice(product.price)}
             </p>
           </div>
 
