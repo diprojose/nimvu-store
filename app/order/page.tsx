@@ -49,7 +49,7 @@ function OrderConfirmedContent() {
         }
       }
       // CASE B: No pending order, but we have an ID. Assume it's a direct link to an existing internal order.
-      else if (orderId && !pendingOrderJson) {
+      else if (orderId && !pendingOrderJson && !internalOrder) {
         // If we implemented orders.get(id), we would fetch it here.
         // For now, we just show the ID assuming it's the internal one or just a receipt.
         setInternalOrder({ id: orderId, status: "CONFIRMED" });
