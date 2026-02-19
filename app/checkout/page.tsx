@@ -203,6 +203,7 @@ export default function CheckoutPage() {
         publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY, // Use env var
         signature: { integrity: signature },
         taxInCents: { vat: 0, consumption: 0 },
+        redirectUrl: "https://www.somosnimvu.com/order",
         customerData: {
           email: customer.email,
           fullName: receiverData.fullName,
