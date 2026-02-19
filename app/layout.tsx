@@ -5,7 +5,6 @@ import Header from '../components/custom/Header';
 import Footer from '../components/custom/Footer';
 import { Toaster } from "@/components/ui/sonner"
 import FloatingWhatsApp from '@/components/custom/FloatingWhatsApp';
-import MetaPixel from '@/components/custom/MetaPixel';
 import { GoogleTagManager } from '@next/third-parties/google'
 
 
@@ -48,7 +47,6 @@ export default function RootLayout({
         <Footer />
         <Toaster />
         <FloatingWhatsApp />
-        <MetaPixel />
       </body>
     </html>
   );
