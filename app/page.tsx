@@ -112,7 +112,7 @@ export default function Home() {
           </div>
         </section>
         <section className="testimonials w-full">
-          <h2 className="text-4xl font-italiana">Que dicen nuestros clientes</h2>
+          <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
           <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
           <div className="carousel-container">
             <Carousel

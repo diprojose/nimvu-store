@@ -4,34 +4,33 @@ import { Button } from "@/components/ui/button";
 
 export default function AboutPage() {
   return (
-    <div className="bg-white text-black font-sans">
+    <div className="bg-white text-black">
       {/* HEADER SECTION */}
       <header className="py-24 px-6 md:px-16 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
         <div className="max-w-xl">
-          <p className="text-xs tracking-[0.2em] text-black uppercase mb-4 font-bold">Est. 2025 — Elevando lo Cotidiano</p>
+          <p className="text-xs tracking-[0.2em] text-black uppercase mb-4 font-bold">2026 — Elevando lo Cotidiano</p>
           <h1 className="text-7xl md:text-9xl font-italiana leading-[0.8]">
             LA ESENCIA<br />
             <span className="italic font-light opacity-60 ml-12">DEL ESPACIO</span>
           </h1>
         </div>
-        <div className="max-w-xs mt-8 md:mt-24 text-sm leading-relaxed text-gray-600">
+        <div className="max-w-xs mt-8 md:mt-24 ">
           <p>
-            En Nimvu creemos que tu hogar es una extensión de quien eres. No creamos simples objetos; diseñamos piezas con carácter, texturas y formas pensadas para romper la monotonía y despertar conversaciones.
+            En Nimvu creemos que tu hogar es una extensión de quién eres. No creamos simples objetos; diseñamos piezas con carácter, texturas y formas pensadas para romper la monotonía y despertar conversaciones.
           </p>
         </div>
       </header>
 
       {/* TIMELINE SECTION */}
       <section className="relative max-w-7xl mx-auto px-6 md:px-16 py-12">
-        {/* Vertical Line */}
-        <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-gray-200 -z-10 hidden md:block"></div>
+
 
         {/* SECTION 1: The First Extrusion */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-32">
           <div className="text-left md:text-right md:pr-16 order-2 md:order-1 pt-12 md:pt-0">
             <span className="text-xs font-bold text-black uppercase tracking-widest mb-2 block">01. Nuestra visión</span>
             <h2 className="text-4xl font-italiana mb-6">Más que Decoración</h2>
-            <p className="text-gray-600 text-sm leading-relaxed max-w-sm ml-auto">
+            <p className=" max-w-sm ml-auto">
               Todo comienza con una pregunta: ¿Cómo podemos hacer que un objeto cotidiano se sienta extraordinario? Nimvu nace de la búsqueda de la geometría perfecta. Nos alejamos de lo convencional para explorar siluetas orgánicas y modernas que juegan con la luz de tu habitación, creando sombras y matices que cambian a lo largo del día.
             </p>
           </div>
@@ -49,7 +48,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-32">
           <div className="relative h-[500px] bg-gray-100">
             <Image
-              src="/about/monstera-verde.jfif"
+              src="/about/monstera-verde.jpg"
               alt="Polymers and Materials"
               fill
               className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
@@ -58,7 +57,7 @@ export default function AboutPage() {
           <div className="text-left md:pl-16 pt-12 md:pt-0">
             <span className="text-xs font-bold text-black uppercase tracking-widest mb-2 block">02. DISEÑO CONSCIENTE</span>
             <h2 className="text-4xl font-italiana mb-6">La Belleza de la Textura</h2>
-            <p className="text-gray-600 text-sm leading-relaxed max-w-sm">
+            <p className=" max-w-sm">
               En un mundo de superficies lisas y frías, nosotros apostamos por el tacto. Nuestras piezas tienen una identidad visual única, marcada por líneas finas y acabados mate que invitan a ser tocados. Cada objeto es producido bajo demanda, una filosofía de "Slow Design" que valora la exclusividad y respeta el medio ambiente.
             </p>
           </div>
@@ -82,22 +81,22 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-gray-200 pt-16 pb-32">
           <div className="p-4">
             <span className="text-3xl font-italiana text-gray-300 block mb-4">01.</span>
-            <h3 className="font-bold uppercase tracking-widest text-sm mb-4">Originalidad</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Nos rebelamos contra lo genérico. Cada diseño es una propuesta propia que no encontrarás en las grandes cadenas.
+            <h3 className="font-bold uppercase tracking-widest  mb-4">Originalidad</h3>
+            <p className="">
+              Nos revelamos contra lo genérico. Cada diseño es una propuesta propia que no encontrarás en las grandes cadenas.
             </p>
           </div>
           <div className="p-4">
             <span className="text-3xl font-italiana text-gray-300 block mb-4">02.</span>
-            <h3 className="font-bold uppercase tracking-widest text-sm mb-4">Producción Ética</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <h3 className="font-bold uppercase tracking-widest  mb-4">Producción Ética</h3>
+            <p className="">
               Creamos solo lo que se necesita. Sin stocks masivos, sin desperdicio innecesario. Un lujo responsable.
             </p>
           </div>
           <div className="p-4">
             <span className="text-3xl font-italiana text-gray-300 block mb-4">03.</span>
-            <h3 className="font-bold uppercase tracking-widest text-sm mb-4">Versatilidad</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <h3 className="font-bold uppercase tracking-widest  mb-4">Versatilidad</h3>
+            <p className="">
               Piezas camaleónicas diseñadas para brillar tanto en una oficina ejecutiva como en la mesa de centro de tu sala.
             </p>
           </div>
@@ -153,7 +152,7 @@ export default function AboutPage() {
       {/* CTA SECTION */}
       <section className="py-32 bg-white text-center">
         <h2 className="text-4xl md:text-5xl font-italiana mb-6">Redefine tu entorno</h2>
-        <p className="text-gray-500 text-sm mb-12 max-w-md mx-auto">
+        <p className="text-gray-500  mb-12 max-w-md mx-auto">
           Encuentra esa pieza que le falta a tu espacio para sentirse completo.
         </p>
         <Link href="/products">

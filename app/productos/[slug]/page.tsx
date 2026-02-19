@@ -11,18 +11,42 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   try {
     const { product } = await products.retrieve(slug);
+
+    const title = product.title;
+    const description = product.description || `Compra ${product.title} en Nimvu Store.`;
+    const images = product.images.map(img => img.url);
+
     return {
-      title: `${product.title} | Nimvu Store`,
-      description: product.description || `Compra ${product.title} en Nimvu Store.`,
+      title: title,
+      description: description,
       openGraph: {
-        title: product.title,
-        description: product.description || "",
-        images: product.images.map(img => img.url),
+        title: title,
+        description: description,
+        url: `https://nimvu.store/productos/${slug}`, // Assuming base URL, good practice
+        siteName: 'Nimvu Store',
+        images: [
+          {
+            url: images[0], // Primary image
+            width: 800,
+            height: 600,
+            alt: title,
+          },
+          ...images.slice(1).map(url => ({ url, alt: title })),
+        ],
+        locale: 'es_CO',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: title,
+        description: description,
+        images: images,
       },
     };
   } catch (error) {
     return {
       title: "Producto no encontrado | Nimvu Store",
+      description: "El producto que buscas no existe o ha sido movido.",
     };
   }
 }

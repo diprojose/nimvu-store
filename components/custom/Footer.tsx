@@ -1,10 +1,10 @@
 "use client"
 import Link from 'next/link';
 import Image from "next/image";
-import { Phone, Mail, MapPin  } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
 
 const Footer = () => {
-  
+
   return (
     <footer>
       <div className='flex items-center justify-center font-sans dark:bg-black'>
@@ -12,8 +12,8 @@ const Footer = () => {
           <div className="upper-part grid grid-cols-1 md:grid-cols-3 justify-between w-full">
             <div className="contact-info flex flex-col">
               <h3 className='text-2xl font-bold mb-7'>Ayuda y Soporte</h3>
-              <p className='flex items-center pb-5'><MapPin className='mr-2'  /> Bogota, Colombia</p>
-              <p className='flex items-center pb-5'><Phone className='mr-2' /> +583158204732</p>
+              <p className='flex items-center pb-5'><MapPin className='mr-2' /> Bogota, Colombia</p>
+              <p className='flex items-center pb-5'><Phone className='mr-2' /> +583123478307</p>
               <p className='flex items-center pb-5'><Mail className='mr-2' /> nimvustore@gmail.com</p>
             </div>
             <div className="links-info flex flex-col">
