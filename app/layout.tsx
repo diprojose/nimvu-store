@@ -4,6 +4,9 @@ import "./globals.css";
 import Header from '../components/custom/Header';
 import Footer from '../components/custom/Footer';
 import { Toaster } from "@/components/ui/sonner"
+import FloatingWhatsApp from '@/components/custom/FloatingWhatsApp';
+import MetaPixel from '@/components/custom/MetaPixel';
+import { GoogleTagManager } from '@next/third-parties/google'
 
 
 const geistSans = Geist({
@@ -28,13 +31,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="overflow-y-scroll">
+      <GoogleTagManager gtmId="GTM-P7JXWM9B" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-P7JXWM9B"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <Header />
         {children}
         <Footer />
         <Toaster />
+        <FloatingWhatsApp />
+        <MetaPixel />
       </body>
     </html>
   );

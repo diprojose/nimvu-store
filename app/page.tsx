@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link"
 import { collections, FrontendProduct } from "@/lib/api"
 import { useEffect, useState } from "react"
 import {
@@ -48,7 +49,7 @@ export default function Home() {
         <section className="banner-section w-full pb-[100px]">
           <div className="call-to-action bg-[url(/banner-mobile.jpg)] md:bg-[url(/BANNER-1.jpg)] md:max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-start pt-32 md:justify-center md:pt-10 rounded-md">
             <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
-            <button className="bg-black text-white py-2 px-4">Ver más</button>
+            <Link href="/productos" className="bg-black text-white py-2 px-4">Ver más</Link>
           </div>
         </section>
         <section className="top-products-section w-full pb-[100px]">
