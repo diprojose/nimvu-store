@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.somosnimvu.com'),
   title: "Nimvu | Diseño que acompaña tus momentos",
   description: "Diseño que acompaña tus momentos",
 };
