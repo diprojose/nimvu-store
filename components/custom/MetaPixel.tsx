@@ -2,7 +2,7 @@
 
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
 declare global {
   interface Window {
@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const MetaPixel = () => {
+const PixelEvents = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -20,6 +20,10 @@ const MetaPixel = () => {
     }
   }, [pathname, searchParams]);
 
+  return null;
+};
+
+const MetaPixel = () => {
   return (
     <>
       <Script
@@ -40,6 +44,9 @@ const MetaPixel = () => {
           `,
         }}
       />
+      <Suspense fallback={null}>
+        <PixelEvents />
+      </Suspense>
     </>
   );
 };
