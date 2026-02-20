@@ -46,19 +46,18 @@ export default function ContactPage() {
           <div className="space-y-8 py-4">
             <div>
               <h3 className="font-italiana text-2xl mb-2">Oficina</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Diagonal 167 #12-69<br />
+              <p className="text-gray-600">
                 Bogotá, Colombia<br />
                 110221
               </p>
             </div>
             <div>
               <h3 className="font-italiana text-2xl mb-2">Email</h3>
-              <p className="text-gray-600 text-sm">nimvustore@gmail.com</p>
+              <p className="text-gray-600">nimvustore@gmail.com</p>
             </div>
             <div>
               <h3 className="font-italiana text-2xl mb-2">Redes Sociales</h3>
-              <div className="flex gap-4 text-sm underline text-gray-500">
+              <div className="flex gap-4 underline text-gray-500">
                 <a href="https://www.instagram.com/nimvustore/" className="hover:text-black">Instagram</a>
                 <a href="https://www.tiktok.com/@nimvustore" className="hover:text-black">TikTok</a>
                 <a href="https://www.facebook.com/profile.php?id=61584617187657" className="hover:text-black">Facebook</a>
