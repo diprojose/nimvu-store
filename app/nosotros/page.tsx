@@ -104,12 +104,11 @@ export default function AboutPage() {
       </section>
 
       {/* TEAM SECTION */}
-      <section className="py-24 bg-zinc-50 border-t border-gray-200">
+      {/* <section className="py-24 bg-zinc-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6 md:px-16">
           <h2 className="text-5xl font-italiana mb-24">El Estudio Creativo</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Member 1 */}
             <div className="group">
               <div className="relative aspect-[3/4] bg-gray-200 mb-6 overflow-hidden">
                 <Image src="/team/member-01.jpg" alt="Team Member" fill className="object-cover grayscale hover:scale-105 transition-transform duration-500" />
@@ -118,7 +117,6 @@ export default function AboutPage() {
               <h3 className="font-italiana text-xl mb-1">José Parejo Tovar</h3>
               <p className="text-[10px] tracking-widest uppercase text-black">CEO & Fundador</p>
             </div>
-            {/* Member 2 */}
             <div className="group">
               <div className="relative aspect-[3/4] bg-gray-200 mb-6 overflow-hidden">
                 <Image src="/team/member-02.jpg" alt="Team Member" fill className="object-cover grayscale hover:scale-105 transition-transform duration-500" />
@@ -127,7 +125,6 @@ export default function AboutPage() {
               <h3 className="font-italiana text-xl mb-1">Oriana Hernández</h3>
               <p className="text-[10px] tracking-widest uppercase text-black">CEO & Fundador</p>
             </div>
-            {/* Member 3 */}
             <div className="group">
               <div className="relative aspect-[3/4] bg-gray-200 mb-6 overflow-hidden">
                 <Image src="/team/member-03.jpg" alt="Team Member" fill className="object-cover grayscale hover:scale-105 transition-transform duration-500" />
@@ -136,7 +133,6 @@ export default function AboutPage() {
               <h3 className="font-italiana text-xl mb-1">José Parejo Hernández</h3>
               <p className="text-[10px] tracking-widest uppercase text-black">Director de Calidad</p>
             </div>
-            {/* Member 4 */}
             <div className="group">
               <div className="relative aspect-[3/4] bg-gray-200 mb-6 overflow-hidden">
                 <Image src="/team/member-04.jpg" alt="Team Member" fill className="object-cover grayscale hover:scale-105 transition-transform duration-500" />
@@ -147,7 +143,7 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA SECTION */}
       <section className="py-32 bg-white text-center">
@@ -155,7 +151,7 @@ export default function AboutPage() {
         <p className="text-gray-500  mb-12 max-w-md mx-auto">
           Encuentra esa pieza que le falta a tu espacio para sentirse completo.
         </p>
-        <Link href="/products">
+        <Link href="/productos">
           <Button className="bg-black text-white px-8 py-6 uppercase tracking-widest text-xs font-bold hover:bg-zinc-800">
             Explorar Colección
           </Button>
