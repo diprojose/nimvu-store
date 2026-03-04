@@ -47,6 +47,7 @@ export interface BackendProduct {
   longDescription?: string;
   categoryId?: string;
   category?: BackendCategory;
+  discountEndDate?: string | null;
   variants?: BackendVariant[];
 }
 
@@ -85,6 +86,7 @@ export interface FrontendProduct {
   category?: { id: string; name: string; slug: string };
   dimensions?: { width: number; height: number; length: number };
   longDescription?: string;
+  discountEndDate?: string | null;
   // Add other fields as necessary based on usage
 }
 
@@ -121,6 +123,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
       length: product.length || 0,
     },
     longDescription: product.longDescription || "",
+    discountEndDate: product.discountEndDate || null,
   };
 };
 
@@ -223,6 +226,13 @@ export const categories = {
 export const shipping = {
   calculate: async (data: { country: string; state?: string; city?: string }) => {
     const response = await api.post<{ id: string; price: number; country: string; state?: string; city?: string }>("/shipping/calculate", data);
+    return response.data;
+  }
+};
+
+export const discounts = {
+  validate: async (code: string) => {
+    const response = await api.get(`/discounts/validate/${code}`);
     return response.data;
   }
 };

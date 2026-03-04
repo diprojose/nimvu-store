@@ -41,7 +41,6 @@ const Header = () => {
   }, []);
 
   const { productQuantity, totalPrice } = useMemo(() => {
-    const shipping = 12000;
 
     const qty = items?.reduce((total, item) => total + item?.quantity, 0) || 0;
     const subtotal = getCartSubtotal();
@@ -49,13 +48,12 @@ const Header = () => {
     // original code had total = cartProducts.total. 
     // My store total is just products. 
     // Let's assume header just shows subtotal or simple total.
-    const total = subtotal + (qty > 0 ? shipping : 0);
+    const total = subtotal;
 
     return {
       productQuantity: qty,
       totalProductPrice: subtotal,
-      totalPrice: total,
-      shippingPrice: shipping
+      totalPrice: total
     };
   }, [items, getCartSubtotal]);
 

@@ -79,7 +79,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               {(() => {
                 const basePrice = selectedVariant?.price || product.price;
                 const discount = selectedVariant ? selectedVariant.discountPrice : product.discountPrice;
-                const hasDiscount = discount && discount > 0 && discount < basePrice;
+                const hasDiscount = discount && discount > 0 && discount < basePrice && (!product.discountEndDate || new Date(product.discountEndDate) >= new Date());
 
                 return hasDiscount ? (
                   <div className="flex items-center gap-3">

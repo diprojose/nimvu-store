@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
-import { orders, addresses, shipping } from "@/lib/api"
+import { orders, addresses, shipping, discounts } from "@/lib/api"
 import AddressForm from "@/components/custom/AddressForm";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -42,11 +42,44 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [isWompiLoaded, setIsWompiLoaded] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'cod'>('wompi');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [shippingCost, setShippingCost] = useState(15000);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  const [loadingCoupon, setLoadingCoupon] = useState(false);
+
   const subtotal = isMounted ? getCartSubtotal() : 0;
-  const total = isMounted ? (getCartTotal() + shippingCost) : 0;
+
+  const discountAmount = isMounted && appliedCoupon ? (() => {
+    const hasSpecificTargets = appliedCoupon.products?.length > 0 || appliedCoupon.collections?.length > 0;
+    let applicableSubtotal = subtotal;
+
+    if (hasSpecificTargets) {
+      applicableSubtotal = 0;
+      const targetProductIds = new Set([
+        ...(appliedCoupon.products?.map((p: any) => p.id) || []),
+        ...(appliedCoupon.collections?.flatMap((c: any) => c.products?.map((p: any) => p.id)) || [])
+      ]);
+
+      items.forEach(item => {
+        if (targetProductIds.has(item.productId)) {
+          applicableSubtotal += item.price * item.quantity;
+        }
+      });
+    }
+
+    if (applicableSubtotal === 0) return 0;
+    if (appliedCoupon.type === "PERCENTAGE") {
+      return applicableSubtotal * (appliedCoupon.value / 100);
+    } else {
+      return Math.min(applicableSubtotal, appliedCoupon.value);
+    }
+  })() : 0;
+
+  const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + shippingCost)) : 0;
   const router = useRouter();
   const [receiverData, setReceiverData] = useState({
     fullName: "",
@@ -55,8 +88,14 @@ export default function CheckoutPage() {
   });
 
 
+  // Derived state to check if the current address is in Bogotá
+  const isBogota = selectedAddress?.city?.toLowerCase()?.includes('bogota') || selectedAddress?.city?.toLowerCase()?.includes('bogotá');
+
   useEffect(() => {
     if (selectedAddress) {
+      if (!isBogota) {
+        setPaymentMethod('wompi');
+      }
       // Trigger shipping calculation
       const calcShipping = async () => {
         try {
@@ -238,9 +277,17 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async (isCod: boolean = false) => {
     if (!customer?.id) {
       toast.error("Debes iniciar sesión");
+      return;
+    }
+    if (!selectedAddressId) {
+      toast.error("Selecciona una dirección de envío");
+      return;
+    }
+    if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) {
+      toast.error("Completa los datos de quien recibe (Nombre, Cédula y Celular son obligatorios)");
       return;
     }
     setLoading(true);
@@ -254,19 +301,41 @@ export default function CheckoutPage() {
           price: item.price
         })),
         total: total,
-        status: "PENDING",
-        shippingAddress: customer.addresses?.find(a => a.id === selectedAddressId)
+        status: isCod ? "PENDING" : "PENDING", // If backend supports "COD_PENDING" adjust here. Keeping standard model.
+        paymentMethod: isCod ? "CASH_ON_DELIVERY" : "WOMPI", // Adding tracking metadata if supported
+        shippingAddress: customer.addresses?.find(a => a.id === selectedAddressId),
+        // OPTIONAL: Include appliedCoupon logic to Backend if backend Orders schema explicitly supports it eventually
       };
 
       const newOrder = await orders.create(orderData);
       clearCart();
+
+      // CRITICAL: Remove any stale Wompi pending states so the /order page doesn't try to redeem them.
+      sessionStorage.removeItem('pendingOrder');
+
       toast.success("Pedido creado con éxito!");
-      router.push(`/order?id=${newOrder.id}&status=success`);
+      router.push(`/order?id=${newOrder.id}&status=success${isCod ? '&method=cod' : ''}`);
     } catch (err) {
       console.error(err);
       toast.error("Error al crear el pedido");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setLoadingCoupon(true);
+    setCouponError("");
+    try {
+      const coupon = await discounts.validate(couponCode.toUpperCase());
+      setAppliedCoupon(coupon);
+      toast.success("Cupón aplicado correctamente");
+    } catch (error: any) {
+      setAppliedCoupon(null);
+      setCouponError(error?.response?.data?.message || "Cupón inválido o expirado");
+    } finally {
+      setLoadingCoupon(false);
     }
   };
 
@@ -461,19 +530,50 @@ export default function CheckoutPage() {
               <CardContent>
                 <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-6">
                   <p className="text-sm text-blue-800">
-                    Serás redirigido a la pasarela de pagos segura de <strong>Wompi Bancolombia</strong> para completar tu transacción.
+                    {paymentMethod === 'wompi'
+                      ? "Serás redirigido a la pasarela de pagos segura de Wompi Bancolombia para completar tu transacción."
+                      : "Pagarás el total de tu pedido al momento de recibirlo en tu domicilio en Bogotá."}
                   </p>
                 </div>
 
-                {/* AQUÍ VA EL BOTÓN DE WOMPI */}
-                {/* AQUÍ VA EL BOTÓN DE WOMPI REEMPLAZADO */}
-                <Button
-                  onClick={handleWompiPayment}
-                  className="w-full bg-black text-white hover:bg-gray-800 py-6 text-lg mt-4"
-                  disabled={loading || !isWompiLoaded || !isMounted}
-                >
-                  {loading ? "Procesando..." : (isMounted ? `Pagar con Wompi ${formatCurrency(total)}` : "Cargando...")}
-                </Button>
+                {isBogota && (
+                  <div className="mb-6 space-y-3">
+                    <Label className="text-base font-semibold">Método de Pago</Label>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(val) => setPaymentMethod(val as 'wompi' | 'cod')}
+                      className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                    >
+                      <div className={`relative flex items-center space-x-3 rounded-md border p-4 transition-all ${paymentMethod === 'wompi' ? 'border-black ring-1 ring-black bg-gray-50' : 'hover:bg-gray-50'}`}>
+                        <RadioGroupItem value="wompi" id="wompi" />
+                        <Label htmlFor="wompi" className="cursor-pointer font-medium w-full">Pago Online (Wompi)</Label>
+                      </div>
+                      <div className={`relative flex items-center space-x-3 rounded-md border p-4 transition-all ${paymentMethod === 'cod' ? 'border-black ring-1 ring-black bg-gray-50' : 'hover:bg-gray-50'}`}>
+                        <RadioGroupItem value="cod" id="cod" />
+                        <Label htmlFor="cod" className="cursor-pointer font-medium w-full">Pago Contra Entrega</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {/* BOTÓN DE PAGO (Dinámico) */}
+                {paymentMethod === 'wompi' ? (
+                  <Button
+                    onClick={handleWompiPayment}
+                    className="w-full bg-black text-white hover:bg-gray-800 py-6 text-lg mt-4"
+                    disabled={loading || !isWompiLoaded || !isMounted}
+                  >
+                    {loading ? "Procesando..." : (isMounted ? `Pagar con Wompi ${formatCurrency(total)}` : "Cargando...")}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handlePlaceOrder(true)}
+                    className="w-full bg-black text-white hover:bg-gray-800 py-6 text-lg mt-4"
+                    disabled={loading || !isMounted}
+                  >
+                    {loading ? "Procesando..." : `Confirmar Pedido (Pago al recibir ${formatCurrency(total)})`}
+                  </Button>
+                )}
 
                 {loading && showReset && (
                   <div className="text-center mt-3 animate-fade-in">
@@ -555,15 +655,58 @@ export default function CheckoutPage() {
 
                   <Separator />
 
-                  {/* Totales */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-                      <span>{formatCurrency(subtotal)}</span>
+                  <div className="space-y-4">
+                    {/* Código de Descuento */}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Código de descuento"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value);
+                          if (couponError) setCouponError("");
+                        }}
+                        disabled={loadingCoupon || appliedCoupon !== null}
+                        className="bg-white"
+                      />
+                      {appliedCoupon ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}
+                        >
+                          Quitar
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          onClick={handleApplyCoupon}
+                          disabled={loadingCoupon || !couponCode}
+                        >
+                          {loadingCoupon ? "..." : "Aplicar"}
+                        </Button>
+                      )}
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Envío</span>
-                      <span>{formatCurrency(shippingCost)}</span>
+                    {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+
+                    <Separator />
+
+                    {/* Totales */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span>{formatCurrency(subtotal)}</span>
+                      </div>
+
+                      {appliedCoupon && (
+                        <div className="flex justify-between text-green-600 font-medium">
+                          <span>Descuento ({appliedCoupon.code})</span>
+                          <span>-{formatCurrency(discountAmount)}</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between text-gray-600">
+                        <span>Envío</span>
+                        <span>{formatCurrency(shippingCost)}</span>
+                      </div>
                     </div>
                   </div>
 

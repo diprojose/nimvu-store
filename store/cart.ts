@@ -44,7 +44,8 @@ export const useCartStore = create<CartState>()(
           discount = variant.discountPrice;
         }
 
-        const hasDiscount = discount && discount > 0 && discount < basePrice;
+        const isDiscountActive = !product.discountEndDate || new Date(product.discountEndDate) >= new Date();
+        const hasDiscount = isDiscountActive && discount && discount > 0 && discount < basePrice;
         const finalPrice = hasDiscount ? discount : basePrice;
 
         if (existingItemIndex > -1) {

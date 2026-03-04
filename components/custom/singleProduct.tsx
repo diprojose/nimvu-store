@@ -57,7 +57,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
       </div>
       <Link href={`/productos/${item.slug || item.id}`}><span className="font-medium">{item.title}</span></Link>
       <p className="flex gap-2 font-medium items-center">
-        {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price ? (
+        {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price && (!item.discountEndDate || new Date(item.discountEndDate) >= new Date()) ? (
           <>
             <span className="text-gray-400 line-through text-sm">{formatPrice(item.price)}</span>
             <span className="text-red-600 font-bold">{formatPrice(item.discountPrice)}</span>

@@ -24,17 +24,15 @@ export default function CartPage() {
     return () => clearTimeout(timer);
   }, []); // Only run once on mount
 
-  const { productQuantity, totalProductPrice, totalPrice, shippingPrice } = useMemo(() => {
-    const shipping = 12000;
+  const { productQuantity, totalProductPrice, totalPrice } = useMemo(() => {
     const qty = items?.reduce((total, item) => total + item?.quantity, 0) || 0;
     const subtotal = getCartSubtotal();
-    const total = subtotal + (qty > 0 ? shipping : 0);
+    const total = subtotal;
 
     return {
       productQuantity: qty,
       totalProductPrice: subtotal,
-      totalPrice: total,
-      shippingPrice: shipping
+      totalPrice: total
     };
   }, [items, getCartSubtotal]);
 
@@ -82,11 +80,6 @@ export default function CartPage() {
                 <div className="flex justify-between text-gray-600">
                   <span>Productos ({productQuantity})</span>
                   <span>{formatPrice(totalProductPrice)}</span>
-                </div>
-
-                <div className="flex justify-between text-gray-600">
-                  <span>Envío</span>
-                  <span>{formatPrice(shippingPrice)}</span>
                 </div>
 
                 <Separator className="my-2" />

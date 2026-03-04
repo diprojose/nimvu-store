@@ -10,6 +10,7 @@ function OrderConfirmedContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('id')
   const statusParam = searchParams.get('status')
+  const methodParam = searchParams.get('method')
 
   const { clearCart } = useCartStore()
   const [internalOrder, setInternalOrder] = useState<any>(null)
@@ -20,8 +21,8 @@ function OrderConfirmedContent() {
     const createOrderFromTransaction = async () => {
       const pendingOrderJson = sessionStorage.getItem('pendingOrder');
 
-      // CASE A: We have a pending order and a Wompi ID -> Create the order
-      if (orderId && pendingOrderJson && !internalOrder) {
+      // CASE A: We have a pending order, a Wompi ID, AND it is NOT a Cash on Delivery redirect
+      if (orderId && pendingOrderJson && methodParam !== 'cod' && !internalOrder) {
         setLoading(true);
         try {
           const pendingOrder = JSON.parse(pendingOrderJson);
