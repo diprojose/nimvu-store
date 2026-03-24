@@ -20,8 +20,8 @@ export interface CartState {
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
-  getCartTotal: () => number;
-  getCartSubtotal: () => number;
+  getCartTotal: (isB2BContext?: boolean) => number;
+  getCartSubtotal: (isB2BContext?: boolean) => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -96,14 +96,32 @@ export const useCartStore = create<CartState>()(
         set({ items: [] });
       },
 
-      getCartTotal: () => {
+      getCartTotal: (isB2BContext?: boolean) => {
         const { items } = get();
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        return items.reduce((total, item) => {
+          let currentPrice = item.price;
+          let originalItemPrice = item.originalPrice || item.price; // fallback if discountPrice wasn't active
+
+          if (isB2BContext) {
+            // Evaluamos la lógica de porcentaje global
+            if (item.quantity >= 200) {
+              currentPrice = originalItemPrice * 0.75; // 25% descuento
+            } else if (item.quantity >= 50) {
+              currentPrice = originalItemPrice * 0.80; // 20% descuento
+            } else if (item.quantity >= 12) {
+              currentPrice = originalItemPrice * 0.90; // 10% descuento
+            } else {
+              currentPrice = originalItemPrice; // Precio normal para -11 items si pasa (aunque B2B tiene defaults manuales)
+            }
+          }
+          return total + (currentPrice * item.quantity);
+        }, 0);
       },
 
-      getCartSubtotal: () => {
+      getCartSubtotal: (isB2BContext?: boolean) => {
         const { items } = get();
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        // Since getCartTotal is identical to subtotal right now for missing shipping logic
+        return get().getCartTotal(isB2BContext);
       },
 
       // Compatibility getters for the UI which expects 'cart' object

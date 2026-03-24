@@ -30,13 +30,26 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
               src={item.thumbnail}
               fill
               alt={item.title}
-              className="object-cover rounded-md static"
+              className={cn("object-cover rounded-md static transition-opacity duration-300", item.images && item.images.length > 1 ? "group-hover:opacity-0" : "")}
               unoptimized={
                 item.thumbnail.startsWith("http://localhost") ||
                 item.thumbnail.startsWith("http://127.0.0.1") ||
                 item.thumbnail.includes("supabase.co")
               }
             />
+            {item.images && item.images.length > 1 && (
+              <Image
+                src={item.images[1].url}
+                fill
+                alt={`${item.title} - 2`}
+                className="object-cover rounded-md absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                unoptimized={
+                  item.images[1].url.startsWith("http://localhost") ||
+                  item.images[1].url.startsWith("http://127.0.0.1") ||
+                  item.images[1].url.includes("supabase.co")
+                }
+              />
+            )}
           </Link>
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
@@ -55,8 +68,17 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
           </button>
         </div>
       </div>
-      <Link href={`/productos/${item.slug || item.id}`}><span className="font-medium">{item.title}</span></Link>
-      <p className="flex gap-2 font-medium items-center">
+      <div className="mt-3">
+        {item.category && (
+          <Link href={`/categorias/${item.category.slug}`} className="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mb-1 block hover:text-black transition-colors">
+            {item.category.name}
+          </Link>
+        )}
+        <Link href={`/productos/${item.slug || item.id}`} className="block">
+          <span className="font-medium line-clamp-2 min-h-[3rem] leading-tight">{item.title}</span>
+        </Link>
+      </div>
+      <p className="flex gap-2 font-medium items-center mt-1">
         {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price && (!item.discountEndDate || new Date(item.discountEndDate) >= new Date()) ? (
           <>
             <span className="text-gray-400 line-through text-sm">{formatPrice(item.price)}</span>
@@ -66,6 +88,12 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
           <span className="text-dark text-black font-bold">{formatPrice(item.price)}</span>
         )}
       </p>
+      <button 
+        onClick={handleAddToCart}
+        className="w-full mt-4 bg-black text-white text-xs md:text-sm font-medium py-2.5 rounded hover:bg-gray-800 transition-colors uppercase tracking-wider"
+      >
+        Agregar al carrito
+      </button>
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

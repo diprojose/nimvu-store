@@ -2,8 +2,12 @@
 import Link from 'next/link';
 import Image from "next/image";
 import { Phone, Mail, MapPin } from "lucide-react";
+import { usePathname } from 'next/navigation';
 
 const Footer = () => {
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/b2b')) return null;
 
   return (
     <footer>

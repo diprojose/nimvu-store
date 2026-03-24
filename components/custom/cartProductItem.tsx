@@ -7,7 +7,7 @@ import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner"
 import { CartItem } from "@/store/cart";
 
-const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
+const CartProductItem = ({ item, cart, isB2BContext }: { item: CartItem, cart: boolean, isB2BContext?: boolean }) => {
 
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -26,6 +26,23 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
     updateQuantity(item.id, item.quantity - 1);
     toast.error(`${item.title} actualizado`, { position: "top-center" })
   };
+
+  let displayPrice = item.unit_price || item.price;
+  let originalPrice = item.originalPrice;
+
+  // Renderizar la visual del flotante B2B usando las reglas matemáticas globales
+  if (isB2BContext) {
+    originalPrice = item.originalPrice || item.price;
+    displayPrice = originalPrice;
+
+    if (item.quantity >= 200) {
+      displayPrice = originalPrice * 0.75;
+    } else if (item.quantity >= 50) {
+      displayPrice = originalPrice * 0.80;
+    } else if (item.quantity >= 12) {
+      displayPrice = originalPrice * 0.90;
+    }
+  }
 
   return (
     <div className="product-item flex items-center justify-between mb-5">
@@ -58,13 +75,13 @@ const CartProductItem = ({ item, cart }: { item: CartItem, cart: boolean }) => {
       <div className="right-side grow-4 w-full pr-1">
         <Link href={`/productos/${item.id}`}><span className="font-medium">{item.title}</span></Link>
         <p className="flex gap-2 font-medium items-center">
-          {item.originalPrice && item.originalPrice > item.price ? (
+          {originalPrice && originalPrice > displayPrice ? (
             <>
-              <span className="text-gray-400 line-through text-sm">{formatPrice(item.originalPrice)}</span>
-              <span className="text-red-600 font-bold">{formatPrice(item.unit_price || item.price)}</span>
+              <span className="text-gray-400 line-through text-sm">{formatPrice(originalPrice)}</span>
+              <span className="text-red-600 font-bold">{formatPrice(displayPrice)}</span>
             </>
           ) : (
-            <span className="text-black">{formatPrice(item.unit_price || item.price)}</span>
+            <span className="text-black">{formatPrice(displayPrice)}</span>
           )}
         </p>
       </div>

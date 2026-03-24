@@ -26,6 +26,7 @@ export interface BackendCategory {
   id: string;
   name: string;
   slug: string;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,7 @@ export interface BackendProduct {
   category?: BackendCategory;
   discountEndDate?: string | null;
   variants?: BackendVariant[];
+  isB2BOnly?: boolean;
 }
 
 export interface BackendVariant {
@@ -82,11 +84,12 @@ export interface FrontendProduct {
   price: number;
   discountPrice?: number;
   images: { id: string; url: string }[];
-  variants: { id: string; title: string; inventory_quantity: number; price?: number; discountPrice?: number; images?: string[] }[];
+  variants: { id: string; title: string; sku: string; inventory_quantity: number; price?: number; discountPrice?: number; images?: string[] }[];
   category?: { id: string; name: string; slug: string };
   dimensions?: { width: number; height: number; length: number };
   longDescription?: string;
   discountEndDate?: string | null;
+  isB2BOnly?: boolean;
   // Add other fields as necessary based on usage
 }
 
@@ -107,6 +110,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     variants: product.variants?.map((v) => ({
       id: v.id,
       title: v.name,
+      sku: v.sku, // Allow frontend search by variant sku
       inventory_quantity: v.stock,
       price: v.price || product.price,
       discountPrice: v.discountPrice,
@@ -124,12 +128,14 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     },
     longDescription: product.longDescription || "",
     discountEndDate: product.discountEndDate || null,
+    isB2BOnly: product.isB2BOnly || false,
   };
 };
 
 export const products = {
-  list: async () => {
-    const response = await api.get<BackendProduct[]>("/products");
+  list: async (isB2BContext?: boolean) => {
+    const url = isB2BContext ? "/products?isB2B=true" : "/products";
+    const response = await api.get<BackendProduct[]>(url);
     return response.data.map(adaptProduct);
   },
   retrieve: async (term: string) => {
@@ -156,9 +162,8 @@ export const auth = {
     return response.data; // Should return { access_token, user } or similar
   },
   me: async (token?: string) => {
-    // If token is needed, we might need to intercept request or pass it.
-    // For simplicity, assuming session or token handling is managed or we return mock/stored user.
-    const response = await api.get("/auth/profile"); // or /users/me
+    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const response = await api.get("/auth/profile", config);
     return response.data;
   },
   register: async (data: any) => {

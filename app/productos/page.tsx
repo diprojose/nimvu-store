@@ -4,18 +4,22 @@ import { products as apiProducts, categories as apiCategories, FrontendProduct, 
 import ProductItem from "@/components/custom/singleProduct";
 import { Loader2, Filter } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import categoryImages from "@/data/categoryImages.json";
 
-function ProductsContent() {
+function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string }) {
   const [products, setProducts] = useState<FrontendProduct[]>([]);
   const [categories, setCategories] = useState<BackendCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isCategoryPage = Boolean(initialCategorySlug);
   const searchParams = useSearchParams();
-  const selectedCategorySlug = searchParams.get("category");
+  const selectedCategorySlug = initialCategorySlug || searchParams.get("category");
   const router = useRouter();
 
   useEffect(() => {
@@ -42,6 +46,20 @@ function ProductsContent() {
     return products.filter(p => p.category?.slug === selectedCategorySlug);
   }, [products, selectedCategorySlug]);
 
+  const activeCategory = useMemo(() => {
+    return categories.find(c => c.slug === selectedCategorySlug);
+  }, [categories, selectedCategorySlug]);
+
+  const headerTitle = activeCategory ? activeCategory.name : "Tienda";
+  const headerDescription = activeCategory?.description || "Explora nuestra colección de objetos diseñados para elevar tu espacio.";
+  
+  // Typecast to avoid TS error if slug isn't in JSON
+  const mappedImage = activeCategory && selectedCategorySlug 
+    ? (categoryImages as Record<string, string>)[selectedCategorySlug]
+    : undefined;
+  
+  const headerImage = mappedImage || "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=1920&q=80";
+
   const CategorySidebar = () => (
     <div className="space-y-6">
       <div>
@@ -58,7 +76,7 @@ function ProductsContent() {
           {categories.map((cat) => (
             <li key={cat.id}>
               <Link
-                href={`/productos?category=${cat.slug}`}
+                href={`/categorias/${cat.slug}`}
                 className={`block hover:text-black transition-colors ${selectedCategorySlug === cat.slug ? 'text-black font-bold' : 'text-gray-500'}`}
               >
                 {cat.name}
@@ -73,35 +91,58 @@ function ProductsContent() {
   return (
     <div className="bg-white text-black font-sans min-h-screen">
       {/* Header */}
-      <header className="py-24 px-6 md:px-16 text-center bg-zinc-50 dark:bg-black">
-        <h1 className="text-5xl md:text-6xl font-italiana mb-4 dark:text-white">Tienda</h1>
-        <p className="text-gray-500 text-sm tracking-wide max-w-lg mx-auto dark:text-gray-400">
-          Explora nuestra colección de objetos diseñados para elevar tu espacio.
-        </p>
+      <header className="relative py-32 px-6 md:px-16 text-center text-white overflow-hidden">
+        <Image 
+          src={headerImage}
+          alt={headerTitle}
+          fill
+          className="object-cover absolute inset-0 z-0"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <div className="relative z-20 flex flex-col items-center">
+          {loading && selectedCategorySlug ? (
+            <>
+              <Skeleton className="h-[48px] md:h-[60px] w-64 md:w-96 mb-4 bg-white/20" />
+              <Skeleton className="h-4 w-[280px] md:w-[480px] mx-auto bg-white/20" />
+            </>
+          ) : (
+            <>
+              <h1 className="text-5xl md:text-6xl font-italiana mb-4 drop-shadow-md">{headerTitle}</h1>
+              <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
+                {headerDescription}
+              </p>
+            </>
+          )}
+        </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-16 py-12 flex flex-col md:flex-row gap-12">
         {/* Mobile Filter */}
         <div className="md:hidden flex justify-between items-center mb-6">
           <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="w-4 h-4" /> Filtros
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <div className="py-6">
-                <CategorySidebar />
-              </div>
-            </SheetContent>
-          </Sheet>
+          {!isCategoryPage && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="w-4 h-4" /> Filtros
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <div className="py-6">
+                  <CategorySidebar />
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 flex-shrink-0">
-          <CategorySidebar />
-        </aside>
+        {!isCategoryPage && (
+          <aside className="hidden md:block w-64 flex-shrink-0">
+            <CategorySidebar />
+          </aside>
+        )}
 
         {/* Product Grid */}
         <main className="flex-1">
@@ -138,14 +179,14 @@ function ProductsContent() {
   );
 }
 
-export default function ShopPage() {
+export default function ShopPage({ initialCategorySlug }: { initialCategorySlug?: string }) {
   return (
     <Suspense fallback={
       <div className="flex justify-center items-center h-screen bg-white">
         <Loader2 className="w-10 h-10 animate-spin text-gray-900" />
       </div>
     }>
-      <ProductsContent />
+      <ProductsContent initialCategorySlug={initialCategorySlug} />
     </Suspense>
   );
 }

@@ -17,8 +17,28 @@ export function useAuthRedirect({ redirectTo, condition }: UseAuthRedirectProps)
   
   // Estado para saber si estamos validando (para mostrar loaders o null)
   const [isChecking, setIsChecking] = useState(true);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    // Escuchar cuando Zustand termine de conectarse al localStorage y tener todo listo
+    const checkHydration = () => {
+      setHasHydrated(useAuthStore.persist.hasHydrated());
+    };
+    checkHydration();
+
+    const unsubHydrate = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+
+    return () => {
+      unsubHydrate();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Si aún no ha cargado los datos persistentes (localStorage), salimos temprano
+    if (!hasHydrated) return;
+
     // Validamos la lógica según la condición
     const validate = () => {
       
@@ -41,7 +61,7 @@ export function useAuthRedirect({ redirectTo, condition }: UseAuthRedirectProps)
     };
 
     validate();
-  }, [customer, condition, redirectTo, router]);
+  }, [customer, condition, redirectTo, router, hasHydrated]);
 
   return { isChecking };
 }

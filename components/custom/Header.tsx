@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
-import { ShoppingCart, Search, CircleUserRound, Menu } from "lucide-react";
+import { ShoppingCart, Search, CircleUserRound, Menu, ChevronDown } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
 import { useCartStore } from '@/store/cart';
 import { useAuthStore } from '@/store/authStore';
@@ -26,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { CartItem } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
+import { categories as apiCategories, BackendCategory } from "@/lib/api";
 
 const Header = () => {
   const items = useCartStore((state) => state.items);
@@ -35,9 +37,12 @@ const Header = () => {
   const customer = useAuthStore((state) => state.customer);
   const logout = useAuthStore((state) => state.logout);
   const [isMounted, setIsMounted] = useState(false);
+  const [categories, setCategories] = useState<BackendCategory[]>([]);
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
+    apiCategories.list().then(setCategories).catch(console.error);
   }, []);
 
   const { productQuantity, totalPrice } = useMemo(() => {
@@ -61,8 +66,11 @@ const Header = () => {
   // const initialize = useCartStore((state) => state.initialize)
 
   // useEffect(() => {
+  // useEffect(() => {
   //   initialize();
   // }, [])
+
+  if (pathname.startsWith('/b2b')) return null;
 
   return (
     <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md">
@@ -84,13 +92,27 @@ const Header = () => {
           </div>
 
           {/* Navegación Desktop */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 items-center">
             <Link href="/nosotros" className="text-black transition">
               Nosotros
             </Link>
             <Link href="/productos" className="text-black transition">
-              Categorias
+              Tienda
             </Link>
+            <div className="relative group/nav h-full flex items-center">
+              <button className="text-black transition flex items-center gap-1 cursor-pointer outline-none py-4">
+                Categorías <ChevronDown className="w-4 h-4 transition-transform group-hover/nav:-rotate-180" />
+              </button>
+              <div className="absolute top-[calc(100%-0.5rem)] left-0 w-56 bg-white border border-gray-100 rounded-lg shadow-xl opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 z-50 flex flex-col py-2 translate-y-2 group-hover/nav:translate-y-0">
+                {categories.length > 0 ? categories.map((cat) => (
+                  <Link key={cat.id} href={`/categorias/${cat.slug}`} className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-zinc-50 hover:text-black transition-colors w-full">
+                    {cat.name}
+                  </Link>
+                )) : (
+                  <div className="px-4 py-2 text-sm text-gray-400">Cargando...</div>
+                )}
+              </div>
+            </div>
             <Link href="/contacto" className="text-black transition">
               Contacto
             </Link>
@@ -208,9 +230,16 @@ const Header = () => {
                       </SheetClose>
                       <SheetClose asChild>
                         <Link href="/productos" className="text-lg font-medium hover:text-primary transition-colors">
-                          Categorias
+                          Tienda
                         </Link>
                       </SheetClose>
+                      {categories.map((cat) => (
+                        <SheetClose asChild key={cat.id}>
+                          <Link href={`/categorias/${cat.slug}`} className="text-md pl-4 font-medium text-gray-600 hover:text-primary transition-colors">
+                            {cat.name}
+                          </Link>
+                        </SheetClose>
+                      ))}
                       <SheetClose asChild>
                         <Link href="/contacto" className="text-lg font-medium hover:text-primary transition-colors">
                           Contacto
