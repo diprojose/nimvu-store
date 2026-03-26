@@ -17,7 +17,7 @@ const Footer = () => {
             <div className="contact-info flex flex-col">
               <h3 className='text-2xl font-bold mb-7'>Ayuda y Soporte</h3>
               <p className='flex items-center pb-5'><MapPin className='mr-2' /> Bogota, Colombia</p>
-              <p className='flex items-center pb-5'><Phone className='mr-2' /> +583123478307</p>
+              <p className='flex items-center pb-5'><Phone className='mr-2' /> +573123478307</p>
               <p className='flex items-center pb-5'><Mail className='mr-2' /> nimvustore@gmail.com</p>
             </div>
             <div className="links-info flex flex-col">
