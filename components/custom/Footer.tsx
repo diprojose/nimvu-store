@@ -1,11 +1,12 @@
 "use client"
+import React, { FC, ReactElement } from "react";
 import Link from 'next/link';
 import Image from "next/image";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { usePathname } from 'next/navigation';
 
-const Footer = () => {
-  const pathname = usePathname();
+const Footer: FC = (): ReactElement | null => {
+  const pathname: string = usePathname();
 
   if (pathname.startsWith('/b2b')) return null;
 
@@ -23,16 +24,16 @@ const Footer = () => {
             <div className="links-info flex flex-col">
               <h3 className='text-2xl font-bold mb-7'>Cuenta</h3>
               <Link href="/register" className="pb-5 text-black transition">Mi Cuenta</Link>
-              <Link href="/about" className="pb-5 text-black transition">Carrito</Link>
-              <Link href="/about" className="pb-5 text-black transition">Tienda</Link>
+              <Link href="/cart" className="pb-5 text-black transition">Carrito</Link>
+              <Link href="/productos" className="pb-5 text-black transition">Tienda</Link>
             </div>
             <div className="legal-info flex flex-col">
-              <h3 className='text-2xl font-bold mb-7'>Politicas</h3>
-              <Link href="/about" className="pb-5">Politicas de Privacidad</Link>
-              <Link href="/about" className="pb-5">Politicas de Devoluciones</Link>
-              <Link href="/about" className="pb-5">Terminos de uso</Link>
-              <Link href="/about" className="pb-5">Preguntas Frecuentes</Link>
-              <Link href="/about" className="pb-5">Contacto</Link>
+              <h3 className='text-2xl font-bold mb-7'>Políticas</h3>
+              <Link href="/politicas-de-privacidad" className="pb-5 text-black transition">Políticas de Privacidad</Link>
+              <Link href="/politicas-de-devoluciones" className="pb-5 text-black transition">Políticas de Devoluciones</Link>
+              <Link href="/terminos-de-uso" className="pb-5 text-black transition">Términos de uso</Link>
+              <Link href="/faq" className="pb-5 text-black transition">Preguntas Frecuentes</Link>
+              <Link href="/contacto" className="pb-5 text-black transition">Contacto</Link>
             </div>
           </div>
         </div>

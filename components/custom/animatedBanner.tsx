@@ -1,15 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, FC, ReactElement } from "react";
 import Link from "next/link";
 
-export default function AnimatedBanner() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
+const AnimatedBanner: FC = (): ReactElement => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if md breakpoint (min-width: 768px) is met
-    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    const checkIsDesktop = (): void => setIsDesktop(window.innerWidth >= 768);
     checkIsDesktop();
     window.addEventListener("resize", checkIsDesktop);
     return () => window.removeEventListener("resize", checkIsDesktop);
@@ -154,4 +154,6 @@ export default function AnimatedBanner() {
       </div>
     </div>
   );
-}
+};
+
+export default AnimatedBanner;

@@ -1,24 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, FC, ReactElement, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react"; // Asumo que tienes lucide-react instalado
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   title?: string;
 }
 
-export const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
-  const [mounted, setMounted] = useState(false);
+export const Modal: FC<ModalProps> = ({ isOpen, onClose, children, title }): ReactElement | null => {
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
     
     // Opcional: Cerrar con la tecla ESC
-    const handleEsc = (e: KeyboardEvent) => {
+    const handleEsc = (e: KeyboardEvent): void => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleEsc);

@@ -1,12 +1,14 @@
-"use client";
+import React, { FC, ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { TestimonialsModel } from "@/types/testimonials";
 import StarRating from "@/components/custom/starRating";
 
-const TestimonialItem = ({ item }: { item: TestimonialsModel }) => {
+export interface TestimonialItemProps {
+  item: TestimonialsModel;
+}
 
-
+const TestimonialItem: FC<TestimonialItemProps> = ({ item }): ReactElement => {
 
   return (
     <div className="product-item">

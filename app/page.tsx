@@ -1,7 +1,5 @@
-"use client"
 import Link from "next/link"
-import { collections, FrontendProduct } from "@/lib/api"
-import { useEffect, useState } from "react"
+import { collections, products as apiProducts, FrontendProduct } from "@/lib/api"
 import {
   Carousel,
   CarouselContent,
@@ -11,37 +9,33 @@ import {
 } from "@/components/ui/carousel";
 import ProductItem from "@/components/custom/singleProduct";
 import TestimonialItem from "@/components/custom/testimonialItem";
-// import { Product } from "@/types/product"; // Removed in favor of FrontendProduct
 import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
 
-export default function Home() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [products, setProducts] = useState<FrontendProduct[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const bestSellers = await collections.retrieve("ec6d6793-e160-4858-b231-561cb035ff9f")
-        setProducts(bestSellers.products)
-      } catch (err) {
-        let errorMessage = "An error occurred"
-        if (err instanceof Error) {
-          errorMessage = err.message
-        }
-        if (errorMessage === "Network Error") {
-          errorMessage = "Failed to fetch. Ensure your NestJS backend is running on port 3001."
-        }
-        setError(errorMessage)
-        console.error(err)
-      } finally {
-        setLoading(false)
+export default async function Home() {
+  let products: FrontendProduct[] = [];
+  let error: string | null = null;
+  
+  try {
+    // Intentamos cargar la colección por ID usando fetch con caché (ISR)
+    const bestSellers = await collections.retrieve("ec6d6793-e160-4858-b231-561cb035ff9f");
+    products = bestSellers.products;
+  } catch (err) {
+    // FALLBACK: Si no existe el ID o falla, cargamos productos genéricos
+    try {
+      const allProducts = await apiProducts.list();
+      products = allProducts.slice(0, 8); // Mostramos hasta 8 en el carousel
+    } catch (e) {
+      if (e instanceof Error) {
+        error = e.message === "Network Error" 
+          ? "Failed to fetch. Ensure your NestJS backend is running."
+          : e.message;
+      } else {
+        error = "An unexpected error occurred.";
       }
+      console.error("El fallback también falló", e);
     }
-    fetchProducts()
-  }, [])
+  }
 
   return (
     <div className="flex items-center justify-center font-sans dark:bg-black">
@@ -55,46 +49,45 @@ export default function Home() {
             <Link href="/productos" className="bg-black text-white py-2 px-4">Ver más</Link>
           </div>
         </section>
+        
         <section className="top-products-section w-full pb-[100px]">
           <h2 className="text-4xl font-italiana">Nuestros productos más populares</h2>
           <p className="pb-[50px]">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
           <div className="carousel-container">
-            {loading && <p>Cargando...</p>}
-
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 <strong>Error:</strong> {error}
               </div>
             )}
 
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {products.map((product: FrontendProduct) => (
-                  <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4 p-5">
-                    <ProductItem item={product}></ProductItem>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
+            {!error && products.length > 0 && (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {products.map((product: FrontendProduct) => (
+                    <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4 p-5">
+                      <ProductItem item={product}></ProductItem>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </Carousel>
+            )}
           </div>
         </section>
 
         <section className="kpop-banner w-full pb-[100px]">
           <div className="relative w-full rounded-md overflow-hidden">
             {/* Mobile Image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/bts21-3.jpg" alt="Colección K-POP Mobile" className="block md:hidden w-full h-auto" />
 
             {/* Desktop Image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/bts21-1.jpg" alt="Colección K-POP Desktop" className="hidden md:block w-full h-auto" />
 
             {/* Content Overlay */}
@@ -114,6 +107,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        
         <section className="testimonials w-full">
           <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
           <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>

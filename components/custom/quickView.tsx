@@ -11,21 +11,11 @@ import { toast } from "sonner";
 const QuickView = ({ item }: { item: FrontendProduct }) => {
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
-  const [loading, setLoading] = useState(true)
 
   const addToCart = useCartStore((state) => state.addItem);
 
   useEffect(() => {
-    async function fetchProduct() {
-      try {
-        if (item.thumbnail) setSelectedImage(item.thumbnail)
-      } catch (err) {
-
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProduct()
+    if (item.thumbnail) setSelectedImage(item.thumbnail)
   }, [item])
 
   const handleQuantityChange = (delta: number) => {

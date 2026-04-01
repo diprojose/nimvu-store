@@ -1,12 +1,13 @@
+import React, { FC, ReactElement } from "react";
 import { Star } from "lucide-react";
 
-interface StarRatingProps {
+export interface StarRatingProps {
   rating: number; // Ej: 4
 }
 
-export default function StarRating({ rating }: StarRatingProps) {
+const StarRating: FC<StarRatingProps> = ({ rating }): ReactElement => {
   // Creamos un array de 5 posiciones vacías para poder iterar
-  const totalStars = 5;
+  const totalStars: number = 5;
 
   return (
     <div className="flex items-center gap-1">
@@ -29,4 +30,6 @@ export default function StarRating({ rating }: StarRatingProps) {
       })}
     </div>
   );
-}
+};
+
+export default StarRating;

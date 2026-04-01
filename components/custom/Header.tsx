@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react";
+import React, { FC, ReactElement, useEffect, useMemo, useState } from "react";
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
-import { ShoppingCart, Search, CircleUserRound, Menu, ChevronDown } from "lucide-react";
+import { ShoppingCart, CircleUserRound, Menu, ChevronDown } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
-import { useCartStore } from '@/store/cart';
+import { useCartStore, CartState, CartItem } from '@/store/cart';
 import { useAuthStore } from '@/store/authStore';
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -25,50 +25,39 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { CartItem } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { categories as apiCategories, BackendCategory } from "@/lib/api";
+import { Customer } from "@/types/customer";
 
-const Header = () => {
-  const items = useCartStore((state) => state.items);
-  const getCartSubtotal = useCartStore((state) => state.getCartSubtotal);
-  const getCartTotal = useCartStore((state) => state.getCartTotal);
+const Header: FC = (): ReactElement | null => {
+  const items: CartItem[] = useCartStore((state: CartState): CartItem[] => state.items);
+  const getCartSubtotal: (isB2BContext?: boolean) => number = useCartStore((state: CartState) => state.getCartSubtotal);
 
-  const customer = useAuthStore((state) => state.customer);
-  const logout = useAuthStore((state) => state.logout);
-  const [isMounted, setIsMounted] = useState(false);
+  const customer: Customer | null = useAuthStore((state: any): Customer | null => state.customer);
+  const logout: (redirect?: string) => Promise<void> = useAuthStore((state: any) => state.logout);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
   const [categories, setCategories] = useState<BackendCategory[]>([]);
-  const pathname = usePathname();
+  const pathname: string = usePathname();
 
-  useEffect(() => {
+  useEffect((): void => {
     setIsMounted(true);
     apiCategories.list().then(setCategories).catch(console.error);
   }, []);
 
-  const { productQuantity, totalPrice } = useMemo(() => {
+  interface HeaderTotals {
+    productQuantity: number;
+    totalPrice: number;
+  }
 
-    const qty = items?.reduce((total, item) => total + item?.quantity, 0) || 0;
-    const subtotal = getCartSubtotal();
-    // const total = getCartTotal(); // If shipping needs to be added here or not. 
-    // original code had total = cartProducts.total. 
-    // My store total is just products. 
-    // Let's assume header just shows subtotal or simple total.
-    const total = subtotal;
+  const { productQuantity, totalPrice }: HeaderTotals = useMemo((): HeaderTotals => {
+    const qty: number = items?.reduce((total: number, item: CartItem): number => total + (item?.quantity || 0), 0) || 0;
+    const subtotal: number = getCartSubtotal();
 
     return {
       productQuantity: qty,
-      totalProductPrice: subtotal,
-      totalPrice: total
+      totalPrice: subtotal
     };
   }, [items, getCartSubtotal]);
-
-  // Initialize removed as it's auto-handled by persist middleware
-  // const initialize = useCartStore((state) => state.initialize)
-
-  // useEffect(() => {
-  // useEffect(() => {
-  //   initialize();
-  // }, [])
 
   if (pathname.startsWith('/b2b')) return null;
 
@@ -104,7 +93,7 @@ const Header = () => {
                 Categorías <ChevronDown className="w-4 h-4 transition-transform group-hover/nav:-rotate-180" />
               </button>
               <div className="absolute top-[calc(100%-0.5rem)] left-0 w-56 bg-white border border-gray-100 rounded-lg shadow-xl opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 z-50 flex flex-col py-2 translate-y-2 group-hover/nav:translate-y-0">
-                {categories.length > 0 ? categories.map((cat) => (
+                {categories.length > 0 ? categories.map((cat: BackendCategory) => (
                   <Link key={cat.id} href={`/categorias/${cat.slug}`} className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-zinc-50 hover:text-black transition-colors w-full">
                     {cat.name}
                   </Link>
@@ -120,12 +109,6 @@ const Header = () => {
 
           {/* Acciones: Carrito/Contacto */}
           <div className="flex items-center space-x-4">
-            {/* <button className="p-2 text-black cursor-pointer">
-              <Search className="w-7 h-7" />
-            </button> */}
-            {/* <button className="p-2 text-black cursor-pointer">
-              <Heart className="w-7 h-7" />
-            </button> */}
             {isMounted ? (
               <Sheet>
                 <SheetTrigger>
@@ -190,7 +173,7 @@ const Header = () => {
                       <DropdownMenuItem>
                         <Link href="/perfil?tab=orders" className="w-full">Mis pedidos</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => logout()}>Cerrar Sesión</DropdownMenuItem>
+                      <DropdownMenuItem onClick={(): Promise<void> => logout()}>Cerrar Sesión</DropdownMenuItem>
                     </>
                   ) : (
                     <>
@@ -233,7 +216,7 @@ const Header = () => {
                           Tienda
                         </Link>
                       </SheetClose>
-                      {categories.map((cat) => (
+                      {categories.map((cat: BackendCategory) => (
                         <SheetClose asChild key={cat.id}>
                           <Link href={`/categorias/${cat.slug}`} className="text-md pl-4 font-medium text-gray-600 hover:text-primary transition-colors">
                             {cat.name}

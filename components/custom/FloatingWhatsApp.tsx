@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { FC, ReactElement } from 'react';
 
-const FloatingWhatsApp = () => {
+const FloatingWhatsApp: FC = (): ReactElement => {
   return (
     <a
       href="https://wa.link/qicquj"

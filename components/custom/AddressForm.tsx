@@ -7,16 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import colombiaData from "@/data/colombia.min.json";
 
-interface AddressFormProps {
-  initialData?: any;
-  onSubmit: (data: any) => void;
+export interface AddressFormData {
+  first_name: string;
+  last_name: string;
+  address_1: string;
+  company: string;
+  postal_code: string;
+  city: string;
+  country_code: string;
+  province: string;
+  phone: string;
+}
+
+export interface AddressFormProps {
+  initialData?: Partial<AddressFormData>;
+  onSubmit: (data: AddressFormData) => void;
   onCancel?: () => void;
   loading?: boolean;
   submitLabel?: string;
 }
 
 export default function AddressForm({ initialData, onSubmit, onCancel, loading, submitLabel = "Guardar Dirección" }: AddressFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AddressFormData>({
     first_name: "",
     last_name: "",
     address_1: "",
@@ -26,7 +38,7 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
     country_code: "Colombia",
     province: "",
     phone: "",
-    ...initialData // Override defaults with initialData if present
+    ...(initialData || {}) // Override defaults with initialData si existe
   });
 
   const [cities, setCities] = useState<string[]>([]);

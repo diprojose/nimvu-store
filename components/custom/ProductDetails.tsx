@@ -9,13 +9,14 @@ import { toast } from "sonner";
 import { FrontendProduct } from "@/lib/api"; // Ensure this is exported
 import { formatPrice } from "@/lib/utils";
 
-interface ProductDetailsProps {
+export interface ProductDetailsProps {
   product: FrontendProduct;
 }
 
+type VariantType = FrontendProduct["variants"][number];
+
 export default function ProductDetails({ product }: ProductDetailsProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedVariant, setSelectedVariant] = useState<any>(null); // Variant state
+  const [selectedVariant, setSelectedVariant] = useState<VariantType | null>(null); // Variant state
   const [quantity, setQuantity] = useState(1);
 
   const addToCart = useCartStore((state) => state.addItem);
@@ -121,7 +122,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     </div>
                   )}
                 </button>
-                {product.variants.map((variant: any) => (
+                {product.variants.map((variant: VariantType) => (
                   <button
                     key={variant.id}
                     onClick={() => setSelectedVariant(variant)}

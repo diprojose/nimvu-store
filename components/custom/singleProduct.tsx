@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react"
+import React, { FC, ReactElement, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FrontendProduct } from "@/lib/api";
@@ -10,15 +10,19 @@ import { toast } from "sonner"
 import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
 
-const ProductItem = ({ item }: { item: FrontendProduct }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const addToCart = useCartStore((state) => state.addItem);
+export interface ProductItemProps {
+  item: FrontendProduct;
+}
 
-  const handleAddToCart = () => {
+const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactElement => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const addToCart: (product: FrontendProduct, variantId: string, quantity: number) => void = useCartStore((state: any) => state.addItem);
+
+  const handleAddToCart = (): void => {
     // Add logic to select variant if needed, for now default to first or product ID
-    const variantId = item.variants?.[0]?.id || item.id;
+    const variantId: string = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, 1);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center" })
+    toast.success("¡Producto agregado al carrito!", { position: "top-center" });
   };
 
   return (
@@ -63,7 +67,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
           <button className="bg-white rounded-full cursor-pointer" onClick={handleAddToCart}>
             <ShoppingCart className="m-2 w-5 h-5" />
           </button>
-          <button className="bg-white rounded-full cursor-pointer" onClick={() => setIsModalOpen(true)}>
+          <button className="bg-white rounded-full cursor-pointer" onClick={(): void => setIsModalOpen(true)}>
             <Eye className="m-2 w-5 h-5" />
           </button>
         </div>
@@ -96,7 +100,7 @@ const ProductItem = ({ item }: { item: FrontendProduct }) => {
       </button>
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={(): void => setIsModalOpen(false)}
         title={item.title}
       >
         <QuickView item={item} />

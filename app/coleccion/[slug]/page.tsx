@@ -1,8 +1,4 @@
-
-"use client"
 import { collections, FrontendProduct } from "@/lib/api"
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import ProductItem from "@/components/custom/singleProduct"
 
 // Define interface for the collection data we use
@@ -15,38 +11,20 @@ interface CollectionData {
   products: FrontendProduct[];
 }
 
-export default function CollectionPage() {
-  const params = useParams()
-  const slug = params.slug as string
-  const [collection, setCollection] = useState<CollectionData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> | { slug: string } }) {
+  // Await params safely for Next.js 15+ 
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  
+  let collection: CollectionData | null = null;
+  let error: string | null = null;
 
-  useEffect(() => {
-    async function fetchCollection() {
-      if (!slug) return
-
-      try {
-        setLoading(true)
-        const data = await collections.retrieveBySlug(slug)
-        setCollection(data as unknown as CollectionData)
-      } catch (err) {
-        console.error(err)
-        setError("No se pudo cargar la colección. Intenta nuevamente.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCollection()
-  }, [slug])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <p className="text-xl">Cargando...</p>
-      </div>
-    )
+  try {
+    const data = await collections.retrieveBySlug(slug);
+    collection = data as unknown as CollectionData;
+  } catch (err) {
+    console.error(err);
+    error = "No se pudo cargar la colección. Intenta nuevamente.";
   }
 
   if (error || !collection) {

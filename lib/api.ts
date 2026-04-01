@@ -9,6 +9,22 @@ export const api = axios.create({
   },
 });
 
+// Helper de `fetch` nativo de Next.js para activar la caché y Revalidación (ISR)
+const fetchWrapper = async <T>(endpoint: string, options?: RequestInit): Promise<T> => {
+  const url = `${API_URL}${endpoint}`;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}: ${res.statusText}`);
+  }
+  return res.json();
+};
+
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const storage = localStorage.getItem('nimvu-auth-storage');
@@ -134,13 +150,13 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
 
 export const products = {
   list: async (isB2BContext?: boolean) => {
-    const url = isB2BContext ? "/products?isB2B=true" : "/products";
-    const response = await api.get<BackendProduct[]>(url);
-    return response.data.map(adaptProduct);
+    const endpoint = isB2BContext ? "/products?isB2B=true" : "/products";
+    const data = await fetchWrapper<BackendProduct[]>(endpoint, { next: { revalidate: 300 } });
+    return data.map(adaptProduct);
   },
   retrieve: async (term: string) => {
-    const response = await api.get<BackendProduct>(`/products/${term}`);
-    return { product: adaptProduct(response.data) };
+    const data = await fetchWrapper<BackendProduct>(`/products/${term}`, { next: { revalidate: 300 } });
+    return { product: adaptProduct(data) };
   },
 };
 
@@ -223,8 +239,8 @@ export const addresses = {
 
 export const categories = {
   list: async () => {
-    const response = await api.get<BackendCategory[]>("/categories");
-    return response.data;
+    const data = await fetchWrapper<BackendCategory[]>("/categories", { next: { revalidate: 300 } });
+    return data;
   }
 };
 
@@ -244,17 +260,17 @@ export const discounts = {
 
 export const collections = {
   retrieve: async (id: string) => {
-    const response = await api.get<BackendCollection>(`/collections/${id}`);
+    const data = await fetchWrapper<BackendCollection>(`/collections/${id}`, { next: { revalidate: 300 } });
     return {
-      ...response.data,
-      products: response.data.products.map(adaptProduct)
+      ...data,
+      products: data.products.map(adaptProduct)
     };
   },
   retrieveBySlug: async (slug: string) => {
-    const response = await api.get<BackendCollection>(`/collections/slug/${slug}`);
+    const data = await fetchWrapper<BackendCollection>(`/collections/slug/${slug}`, { next: { revalidate: 300 } });
     return {
-      ...response.data,
-      products: response.data.products.map(adaptProduct)
+      ...data,
+      products: data.products.map(adaptProduct)
     };
   }
 };

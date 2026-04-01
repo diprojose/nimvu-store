@@ -1,59 +1,43 @@
-"use client";
-import { useEffect, useState, useMemo, Suspense } from "react";
 import { products as apiProducts, categories as apiCategories, FrontendProduct, BackendCategory } from "@/lib/api";
 import ProductItem from "@/components/custom/singleProduct";
-import { Loader2, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import categoryImages from "@/data/categoryImages.json";
 
-function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string }) {
-  const [products, setProducts] = useState<FrontendProduct[]>([]);
-  const [categories, setCategories] = useState<BackendCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function ShopPage(props: { initialCategorySlug?: string; searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined } }) {
+  // Await searchParams and combine logic gracefully
+  const resolvedSearchParams = props.searchParams ? await props.searchParams : {};
+  const queryCategory = resolvedSearchParams.category as string | undefined;
+  
+  const selectedCategorySlug = props.initialCategorySlug || queryCategory;
 
-  const isCategoryPage = Boolean(initialCategorySlug);
-  const searchParams = useSearchParams();
-  const selectedCategorySlug = initialCategorySlug || searchParams.get("category");
-  const router = useRouter();
+  let products: FrontendProduct[] = [];
+  let categories: BackendCategory[] = [];
+  let error: string | null = null;
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [productList, categoryList] = await Promise.all([
-          apiProducts.list(),
-          apiCategories.list()
-        ]);
-        setProducts(productList);
-        setCategories(categoryList);
-      } catch (err) {
-        setError("Error loading products");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  try {
+    const [productList, categoryList] = await Promise.all([
+      apiProducts.list(),
+      apiCategories.list()
+    ]);
+    products = productList;
+    categories = categoryList;
+  } catch (err) {
+    console.error(err);
+    error = "Error loading products";
+  }
 
-  const filteredProducts = useMemo(() => {
-    if (!selectedCategorySlug) return products;
-    return products.filter(p => p.category?.slug === selectedCategorySlug);
-  }, [products, selectedCategorySlug]);
+  const filteredProducts = selectedCategorySlug 
+    ? products.filter(p => p.category?.slug === selectedCategorySlug) 
+    : products;
 
-  const activeCategory = useMemo(() => {
-    return categories.find(c => c.slug === selectedCategorySlug);
-  }, [categories, selectedCategorySlug]);
-
+  const activeCategory = categories.find(c => c.slug === selectedCategorySlug);
   const headerTitle = activeCategory ? activeCategory.name : "Tienda";
   const headerDescription = activeCategory?.description || "Explora nuestra colección de objetos diseñados para elevar tu espacio.";
   
-  // Typecast to avoid TS error if slug isn't in JSON
   const mappedImage = activeCategory && selectedCategorySlug 
     ? (categoryImages as Record<string, string>)[selectedCategorySlug]
     : undefined;
@@ -101,19 +85,10 @@ function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string
         />
         <div className="absolute inset-0 bg-black/40 z-10"></div>
         <div className="relative z-20 flex flex-col items-center">
-          {loading && selectedCategorySlug ? (
-            <>
-              <Skeleton className="h-[48px] md:h-[60px] w-64 md:w-96 mb-4 bg-white/20" />
-              <Skeleton className="h-4 w-[280px] md:w-[480px] mx-auto bg-white/20" />
-            </>
-          ) : (
-            <>
-              <h1 className="text-5xl md:text-6xl font-italiana mb-4 drop-shadow-md">{headerTitle}</h1>
-              <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
-                {headerDescription}
-              </p>
-            </>
-          )}
+           <h1 className="text-5xl md:text-6xl font-italiana mb-4 drop-shadow-md">{headerTitle}</h1>
+           <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
+             {headerDescription}
+           </p>
         </div>
       </header>
 
@@ -121,7 +96,7 @@ function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string
         {/* Mobile Filter */}
         <div className="md:hidden flex justify-between items-center mb-6">
           <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-          {!isCategoryPage && (
+          {!selectedCategorySlug && (
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -138,7 +113,7 @@ function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string
         </div>
 
         {/* Desktop Sidebar */}
-        {!isCategoryPage && (
+        {!selectedCategorySlug && (
           <aside className="hidden md:block w-64 flex-shrink-0">
             <CategorySidebar />
           </aside>
@@ -146,17 +121,12 @@ function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string
 
         {/* Product Grid */}
         <main className="flex-1">
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="text-center text-red-500 py-12">{error}</div>
           ) : (
             <>
               <div className="hidden md:flex justify-between items-center mb-8">
                 <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-                {/* Sorting could go here */}
               </div>
 
               {filteredProducts.length === 0 ? (
@@ -176,17 +146,5 @@ function ProductsContent({ initialCategorySlug }: { initialCategorySlug?: string
         </main>
       </div>
     </div>
-  );
-}
-
-export default function ShopPage({ initialCategorySlug }: { initialCategorySlug?: string }) {
-  return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center h-screen bg-white">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-900" />
-      </div>
-    }>
-      <ProductsContent initialCategorySlug={initialCategorySlug} />
-    </Suspense>
   );
 }

@@ -1,34 +1,40 @@
 "use client";
+import React, { FC, ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { useCartStore } from '@/store/cart';
+import { useCartStore, CartState, CartItem } from '@/store/cart';
 import { Minus, Plus, X } from "lucide-react";
-import { toast } from "sonner"
-import { CartItem } from "@/store/cart";
+import { toast } from "sonner";
 
-const CartProductItem = ({ item, cart, isB2BContext }: { item: CartItem, cart: boolean, isB2BContext?: boolean }) => {
+export interface CartProductItemProps {
+  item: CartItem;
+  cart: boolean;
+  isB2BContext?: boolean;
+}
 
-  const removeItem = useCartStore((state) => state.removeItem);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
+const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }: CartProductItemProps): ReactElement => {
 
-  const handleRemoveFromCart = () => {
+  const removeItem: (itemId: string) => void = useCartStore((state: CartState) => state.removeItem);
+  const updateQuantity: (itemId: string, quantity: number) => void = useCartStore((state: CartState) => state.updateQuantity);
+
+  const handleRemoveFromCart = (): void => {
     removeItem(item.id);
-    toast.error("Producto removido del carrito", { position: "top-center" })
+    toast.error("Producto removido del carrito", { position: "top-center" });
   };
 
-  const handleIncreaseQuantity = () => {
+  const handleIncreaseQuantity = (): void => {
     updateQuantity(item.id, item.quantity + 1);
-    toast.success(`${item.title} actualizado`, { position: "top-center" })
+    toast.success(`${item.title} actualizado`, { position: "top-center" });
   };
 
-  const handleDecreaseQuantity = () => {
+  const handleDecreaseQuantity = (): void => {
     updateQuantity(item.id, item.quantity - 1);
-    toast.error(`${item.title} actualizado`, { position: "top-center" })
+    toast.error(`${item.title} actualizado`, { position: "top-center" });
   };
 
-  let displayPrice = item.unit_price || item.price;
-  let originalPrice = item.originalPrice;
+  let displayPrice: number = item.unit_price || item.price;
+  let originalPrice: number | undefined = item.originalPrice;
 
   // Renderizar la visual del flotante B2B usando las reglas matemáticas globales
   if (isB2BContext) {
@@ -89,7 +95,7 @@ const CartProductItem = ({ item, cart, isB2BContext }: { item: CartItem, cart: b
         {cart ? (
           <div className="flex items-center border border-gray-300 rounded-md w-fit">
             <button
-              onClick={() => handleDecreaseQuantity()}
+              onClick={(): void => handleDecreaseQuantity()}
               className="p-2 hover:bg-gray-50 transition-colors"
               aria-label="Decrease quantity"
             >
@@ -97,7 +103,7 @@ const CartProductItem = ({ item, cart, isB2BContext }: { item: CartItem, cart: b
             </button>
             <span className="w-8 text-center font-medium">{item.quantity}</span>
             <button
-              onClick={() => handleIncreaseQuantity()}
+              onClick={(): void => handleIncreaseQuantity()}
               className="p-2 hover:bg-gray-50 transition-colors"
               aria-label="Increase quantity"
             >

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -18,6 +17,13 @@ interface WompiButtonProps {
   cart: WompiCart
   address: Address
   customer: Customer
+}
+
+interface WompiTransactionResult {
+  transaction: {
+    id: string;
+    status: string;
+  }
 }
 
 export default function WompiButton({ cart, address, customer }: WompiButtonProps) {
@@ -83,7 +89,7 @@ export default function WompiButton({ cart, address, customer }: WompiButtonProp
 
       const checkout = new window.WidgetCheckout(checkoutOptions)
 
-      checkout.open((result: any) => {
+      checkout.open((result: WompiTransactionResult) => {
         const transaction = result.transaction
         setLoadingPayment(false)
         if (transaction.status === 'APPROVED') {
@@ -129,6 +135,7 @@ export default function WompiButton({ cart, address, customer }: WompiButtonProp
 
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     WidgetCheckout: any;
   }
 }
