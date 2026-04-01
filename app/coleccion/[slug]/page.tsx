@@ -1,5 +1,6 @@
 import { collections, FrontendProduct } from "@/lib/api"
 import ProductItem from "@/components/custom/singleProduct"
+import collectionImages from "@/data/collectionImages.json"
 
 // Define interface for the collection data we use
 interface CollectionData {
@@ -37,27 +38,24 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     )
   }
 
-  return (
-    <div className="flex items-center justify-center font-sans dark:bg-black">
-      <main className="w-full flex flex-col items-center bg-white dark:bg-black sm:max-w-full md:max-w-350 px-5 md:px-16">
-        {/* Banner Section */}
-        <div className="w-full relative h-[300px] flex flex-col items-center justify-center text-center mb-10 overflow-hidden">
-          {collection.image ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={collection.image} alt={collection.name} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40" />
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-gray-100 dark:bg-zinc-800 rounded-md" />
-          )}
+  const mappedImage = (collectionImages as Record<string, string>)[slug];
+  const finalImage = collection.image || mappedImage || "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=1920&q=80";
 
-          <div className="relative z-10 px-4 max-w-4xl">
-            <h1 className={`font-italiana text-4xl md:text-5xl mb-4 capitalize ${collection.image ? 'text-white' : 'text-purple-950 dark:text-white'}`}>
+  return (
+    <div className="flex justify-center font-sans dark:bg-black bg-white">
+      <main className="w-full flex flex-col items-center sm:max-w-full md:max-w-350 px-5 md:px-16 py-16">
+        {/* Boxed Banner Section */}
+        <div className="w-full relative h-[300px] flex flex-col items-center justify-center text-center mb-12 overflow-hidden rounded-md">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={finalImage} alt={collection.name} className="absolute inset-0 w-full h-full object-cover z-0" />
+          <div className="absolute inset-0 bg-black/40 z-10" />
+
+          <div className="relative z-20 flex flex-col items-center px-4">
+            <h1 className="font-italiana text-4xl md:text-5xl mb-4 capitalize text-white drop-shadow-md">
               {collection.name}
             </h1>
             {collection.description && (
-              <p className={`text-lg max-w-2xl mx-auto ${collection.image ? 'text-gray-100' : 'text-gray-600 dark:text-gray-300'}`}>
+              <p className="text-sm md:text-lg max-w-2xl mx-auto text-gray-200 drop-shadow-md">
                 {collection.description}
               </p>
             )}
@@ -65,7 +63,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         </div>
 
         {/* Products Grid */}
-        <div className="w-full pb-16 max-w-[1440px]">
+        <div className="w-full max-w-[1440px] pb-16">
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {collection.products.length > 0 ? (
               collection.products.map((product) => (

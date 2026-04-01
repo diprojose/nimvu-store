@@ -72,25 +72,27 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
   );
 
   return (
-    <div className="bg-white text-black font-sans min-h-screen">
-      {/* Header */}
-      <header className="relative py-32 px-6 md:px-16 text-center text-white overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          src={headerImage}
-          alt={headerTitle}
-          className="object-cover absolute inset-0 z-0 w-full h-full"
-        />
-        <div className="absolute inset-0 bg-black/40 z-10"></div>
-        <div className="relative z-20 flex flex-col items-center">
-           <h1 className="text-5xl md:text-6xl font-italiana mb-4 drop-shadow-md">{headerTitle}</h1>
-           <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
-             {headerDescription}
-           </p>
+    <div className="flex justify-center bg-white font-sans min-h-screen dark:bg-black">
+      <main className="w-full max-w-7xl flex flex-col px-5 md:px-16 py-16 sm:max-w-full md:max-w-350">
+        
+        {/* Boxed Banner */}
+        <div className="w-full relative h-[300px] flex flex-col items-center justify-center text-center text-white overflow-hidden rounded-md mb-12">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={headerImage}
+            alt={headerTitle}
+            className="object-cover absolute inset-0 z-0 w-full h-full"
+          />
+          <div className="absolute inset-0 bg-black/40 z-10"></div>
+          <div className="relative z-20 flex flex-col items-center px-4">
+             <h1 className="text-5xl md:text-6xl font-italiana mb-4 drop-shadow-md">{headerTitle}</h1>
+             <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
+               {headerDescription}
+             </p>
+          </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 py-12 flex flex-col md:flex-row gap-12">
+        <div className="w-full flex flex-col md:flex-row gap-12">
         {/* Mobile Filter */}
         <div className="md:hidden flex justify-between items-center mb-6">
           <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
@@ -118,7 +120,7 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
         )}
 
         {/* Product Grid */}
-        <main className="flex-1">
+        <div className="flex-1">
           {error ? (
             <div className="text-center text-red-500 py-12">{error}</div>
           ) : (
@@ -141,8 +143,9 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
               )}
             </>
           )}
-        </main>
-      </div>
+        </div>
+        </div>
+      </main>
     </div>
   );
 }
