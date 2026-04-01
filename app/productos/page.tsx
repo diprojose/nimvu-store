@@ -2,7 +2,6 @@ import { products as apiProducts, categories as apiCategories, FrontendProduct, 
 import ProductItem from "@/components/custom/singleProduct";
 import { Filter } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import categoryImages from "@/data/categoryImages.json";
@@ -76,6 +75,7 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
     <div className="bg-white text-black font-sans min-h-screen">
       {/* Header */}
       <header className="relative py-32 px-6 md:px-16 text-center text-white overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={headerImage}
           alt={headerTitle}
