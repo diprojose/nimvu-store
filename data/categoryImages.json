@@ -1,3 +1,8 @@
 {
-  "ejemplo-categoria": "/category-heroes/imagen-de-ejemplo.jpg"
+  "gaming-y-setup": "/category-banners/Gaming.jpg",
+  "portavasos": "/category-banners/Portavasos.jpg",
+  "decoracin-y-arte": "/category-banners/arte-y-decoracion.jpg",
+  "exhibidores": "/category-banners/exhibidores.jpg",
+  "lifestyle-y-organizacin": "/category-banners/lifestyle-y-organizacion.jpg",
+  "mesa-y-comedor": "/category-banners/mesa-y-comedor.jpg"
 }

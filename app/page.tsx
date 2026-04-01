@@ -11,11 +11,12 @@ import ProductItem from "@/components/custom/singleProduct";
 import TestimonialItem from "@/components/custom/testimonialItem";
 import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
+import { Truck, ShieldCheck, Leaf, HeartHandshake } from "lucide-react";
 
 export default async function Home() {
   let products: FrontendProduct[] = [];
   let error: string | null = null;
-  
+
   try {
     // Intentamos cargar la colección por ID usando fetch con caché (ISR)
     const bestSellers = await collections.retrieve("ec6d6793-e160-4858-b231-561cb035ff9f");
@@ -27,7 +28,7 @@ export default async function Home() {
       products = allProducts.slice(0, 8); // Mostramos hasta 8 en el carousel
     } catch (e) {
       if (e instanceof Error) {
-        error = e.message === "Network Error" 
+        error = e.message === "Network Error"
           ? "Failed to fetch. Ensure your NestJS backend is running."
           : e.message;
       } else {
@@ -49,7 +50,7 @@ export default async function Home() {
             <Link href="/productos" className="bg-black text-white py-2 px-4">Ver más</Link>
           </div>
         </section>
-        
+
         <section className="top-products-section w-full pb-[100px]">
           <h2 className="text-4xl font-italiana">Nuestros productos más populares</h2>
           <p className="pb-[50px]">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
@@ -107,7 +108,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        
+
         <section className="testimonials w-full">
           <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
           <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
