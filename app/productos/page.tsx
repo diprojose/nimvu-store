@@ -76,12 +76,10 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
     <div className="bg-white text-black font-sans min-h-screen">
       {/* Header */}
       <header className="relative py-32 px-6 md:px-16 text-center text-white overflow-hidden">
-        <Image 
+        <img 
           src={headerImage}
           alt={headerTitle}
-          fill
-          className="object-cover absolute inset-0 z-0"
-          priority
+          className="object-cover absolute inset-0 z-0 w-full h-full"
         />
         <div className="absolute inset-0 bg-black/40 z-10"></div>
         <div className="relative z-20 flex flex-col items-center">
