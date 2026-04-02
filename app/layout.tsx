@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.somosnimvu.com'),
   title: "Nimvu | Diseño que acompaña tus momentos",
   description: "Diseño que acompaña tus momentos",
+  other: {
+    "facebook-domain-verification": "r1kt04n5tvsbu5t4hn7hq7dao0p01a",
+  },
 };
 
 export default function RootLayout({
