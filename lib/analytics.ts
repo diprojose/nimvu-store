@@ -40,3 +40,43 @@ export function trackAddToCart(
     },
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PurchaseItem {
+  item_id: string;
+  item_name: string;
+  item_category?: string;
+  price: number;
+  quantity: number;
+}
+
+export interface PurchasePayload {
+  /** Internal order ID (e.g. from backend response) */
+  orderId: string;
+  /** Total amount paid by the customer (after discounts + shipping) */
+  value: number;
+  items: PurchaseItem[];
+}
+
+/**
+ * Fires a custom_purchase event to window.dataLayer (Google Tag Manager).
+ * GTM escucha este evento y dispara la etiqueta de Facebook Pixel con Purchase.
+ *
+ * IMPORTANT: Call this ONLY ONCE per order. Use a sessionStorage guard in the
+ * caller to prevent duplicate fires on page reload.
+ */
+export function trackPurchase({ orderId, value, items }: PurchasePayload): void {
+  if (typeof window === "undefined") return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "custom_purchase",
+    ecommerce: {
+      transaction_id: orderId,
+      currency: "COP",
+      value,
+      items,
+    },
+  });
+}

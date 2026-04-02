@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { trackPurchase } from '@/lib/analytics'
+import type { CartItem } from '@/store/cart'
 
 function OrderConfirmedContent() {
   const searchParams = useSearchParams()
@@ -16,6 +18,49 @@ function OrderConfirmedContent() {
   const [internalOrder, setInternalOrder] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // ── Purchase tracking ───────────────────────────────────────────────────────
+  // Fires custom_purchase ONCE per order. The guard key prevents re-firing
+  // if the user reloads the confirmation page.
+  useEffect(() => {
+    if (!internalOrder?.id) return;
+
+    const guardKey = `purchase_tracked_${internalOrder.id}`;
+    if (sessionStorage.getItem(guardKey)) return; // Already tracked
+
+    // Reconstruct items from purchaseItems snapshot (saved before pendingOrder is cleared)
+    // or fall back to the still-available pendingOrder (COD flow, first render).
+    const snapshotJson = sessionStorage.getItem('purchaseItems') ||
+                         sessionStorage.getItem('pendingOrder');
+    let purchaseItems = [];
+    let orderTotal = internalOrder.total ?? 0;
+
+    try {
+      if (snapshotJson) {
+        const snapshot = JSON.parse(snapshotJson);
+        const rawItems = snapshot.items || [];
+        purchaseItems = rawItems.map((item: CartItem) => ({
+          item_id: item.productId,
+          item_name: item.title,
+          price: item.price,
+          quantity: item.quantity,
+        }));
+        if (!internalOrder.total && snapshot.total) orderTotal = snapshot.total;
+      }
+    } catch (_) {
+      // fallback: fire without items detail
+    }
+
+    trackPurchase({
+      orderId: internalOrder.id,
+      value: orderTotal,
+      items: purchaseItems,
+    });
+
+    sessionStorage.setItem(guardKey, '1');
+    sessionStorage.removeItem('purchaseItems'); // cleanup
+  }, [internalOrder?.id, internalOrder?.total]);
+  // ────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const createOrderFromTransaction = async () => {
@@ -36,6 +81,12 @@ function OrderConfirmedContent() {
             };
 
             const newOrder = await import("@/lib/api").then(mod => mod.orders.create(orderPayload));
+
+            // Save item data for purchase tracking BEFORE clearing pendingOrder
+            sessionStorage.setItem('purchaseItems', JSON.stringify({
+              items: pendingOrder.items || [],
+              total: pendingOrder.total ?? 0,
+            }));
 
             setInternalOrder(newOrder);
             clearCart();
