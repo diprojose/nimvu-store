@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "Nimvu | Diseño que acompaña tus momentos",
   description: "Diseño que acompaña tus momentos",
   other: {
-    "facebook-domain-verification": "r1kt04n5tvsbu5t4hn7hq7dao0p01a",
+    "facebook-domain-verification": "p9ko6vka6h2j2opknphnibq6ad2jym",
   },
 };
 
