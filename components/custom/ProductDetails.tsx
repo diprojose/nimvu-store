@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cart';
 import { toast } from "sonner";
 import { FrontendProduct } from "@/lib/api"; // Ensure this is exported
 import { formatPrice } from "@/lib/utils";
+import { trackAddToCart } from "@/lib/analytics";
 
 export interface ProductDetailsProps {
   product: FrontendProduct;
@@ -29,6 +30,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     // Use selected variant or fallback to first or product ID
     const variantId = selectedVariant?.id || product?.variants?.[0]?.id || product.id;
     addToCart(product, variantId, quantity);
+    trackAddToCart(product, quantity);
     toast.success("¡Producto agregado al carrito!", { position: "top-center" });
   };
 

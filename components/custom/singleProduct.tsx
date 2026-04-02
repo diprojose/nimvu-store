@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/cart';
 import { toast } from "sonner"
 import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
+import { trackAddToCart } from "@/lib/analytics";
 
 export interface ProductItemProps {
   item: FrontendProduct;
@@ -22,6 +23,7 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
     // Add logic to select variant if needed, for now default to first or product ID
     const variantId: string = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, 1);
+    trackAddToCart(item, 1);
     toast.success("¡Producto agregado al carrito!", { position: "top-center" });
   };
 
