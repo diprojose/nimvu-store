@@ -7,7 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import ProductItem from "@/components/custom/singleProduct";
+import HomeProductCarousel from "@/components/custom/HomeProductCarousel";
 import TestimonialItem from "@/components/custom/testimonialItem";
 import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
@@ -44,7 +44,7 @@ export default async function Home() {
         <section className="banner-section w-full pb-[100px]">
           <div className="call-to-action bg-[url(/banner-mobile.jpg)] md:bg-[url(/BANNER-1.jpg)] md:max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-start pt-32 md:justify-center md:pt-10 rounded-md">
             <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
-            <p className="text-sm md:text-base mb-6 max-w-2xl text-gray-800 dark:text-gray-200">
+            <p className="text-sm md:text-base mb-6 max-w-[55%] md:max-w-2xl text-gray-800 dark:text-gray-200">
               Para quienes aman cuidar y organizar sus espacios
             </p>
             <Link href="/productos" className="bg-black text-white py-2 px-4">Ver más</Link>
@@ -62,23 +62,7 @@ export default async function Home() {
             )}
 
             {!error && products.length > 0 && (
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {products.map((product: FrontendProduct) => (
-                    <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4 p-5">
-                      <ProductItem item={product}></ProductItem>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="hidden md:flex" />
-                <CarouselNext className="hidden md:flex" />
-              </Carousel>
+              <HomeProductCarousel products={products} />
             )}
           </div>
         </section>

@@ -6,9 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useCartStore } from '@/store/cart';
 import { toast } from "sonner";
-import { FrontendProduct } from "@/lib/api"; // Ensure this is exported
+import { FrontendProduct } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { trackAddToCart } from "@/lib/analytics";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { useEffect, useCallback } from "react";
 
 export interface ProductDetailsProps {
   product: FrontendProduct;
@@ -17,8 +24,11 @@ export interface ProductDetailsProps {
 type VariantType = FrontendProduct["variants"][number];
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
-  const [selectedVariant, setSelectedVariant] = useState<VariantType | null>(null); // Variant state
+  const [selectedVariant, setSelectedVariant] = useState<VariantType | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideCount, setSlideCount] = useState(0);
 
   const addToCart = useCartStore((state) => state.addItem);
 
@@ -27,12 +37,25 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   };
 
   const handleAddToCart = () => {
-    // Use selected variant or fallback to first or product ID
     const variantId = selectedVariant?.id || product?.variants?.[0]?.id || product.id;
     addToCart(product, variantId, quantity);
     trackAddToCart(product, quantity);
     toast.success("¡Producto agregado al carrito!", { position: "top-center" });
   };
+
+  // Sync carousel dot indicators
+  const onSelect = useCallback((api: CarouselApi) => {
+    if (!api) return;
+    setCurrentSlide(api.selectedScrollSnap());
+    setSlideCount(api.scrollSnapList().length);
+  }, []);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    onSelect(carouselApi);
+    carouselApi.on("select", () => onSelect(carouselApi));
+    return () => { carouselApi.off("select", () => onSelect(carouselApi)); };
+  }, [carouselApi, onSelect]);
 
   // Determine images to show
   const currentImages = (selectedVariant?.images && selectedVariant.images.length > 0)
@@ -51,24 +74,78 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   return (
     <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-        {/* Left Side: Images (Vertical Stack) */}
-        <div className="flex flex-col gap-8">
-          {currentImages?.map((img: { id: string; url: string }) => (
-            <div key={img.id} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
-              <Image
-                src={img.url}
-                alt={product.title}
-                fill
-                className="object-cover"
-                unoptimized={img.url.startsWith("http") || img.url.includes("supabase.co")}
-              />
-            </div>
-          ))}
-          {(!currentImages || currentImages.length === 0) && (
-            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-gray-400">
-              No Images
-            </div>
-          )}
+        {/* Left Side: Images */}
+        <div>
+          {/* ── Mobile: Carrusel ──────────────────────────────────────── */}
+          <div className="block md:hidden">
+            {currentImages && currentImages.length > 0 ? (
+              <>
+                <Carousel
+                  setApi={setCarouselApi}
+                  opts={{ align: "start", loop: false }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {currentImages.map((img: { id: string; url: string }) => (
+                      <CarouselItem key={img.id}>
+                        <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                          <Image
+                            src={img.url}
+                            alt={product.title}
+                            fill
+                            className="object-cover"
+                            unoptimized={img.url.startsWith("http") || img.url.includes("supabase.co")}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+
+                {/* Dot indicators */}
+                {slideCount > 1 && (
+                  <div className="flex justify-center gap-2 mt-3">
+                    {Array.from({ length: slideCount }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => carouselApi?.scrollTo(i)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          i === currentSlide
+                            ? "bg-black scale-125"
+                            : "bg-gray-300"
+                        }`}
+                        aria-label={`Ir a imagen ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-gray-400 rounded-lg">
+                No Images
+              </div>
+            )}
+          </div>
+
+          {/* ── Desktop: Stack vertical ────────────────────────────────── */}
+          <div className="hidden md:flex flex-col gap-8">
+            {currentImages?.map((img: { id: string; url: string }) => (
+              <div key={img.id} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <Image
+                  src={img.url}
+                  alt={product.title}
+                  fill
+                  className="object-cover"
+                  unoptimized={img.url.startsWith("http") || img.url.includes("supabase.co")}
+                />
+              </div>
+            ))}
+            {(!currentImages || currentImages.length === 0) && (
+              <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-gray-400">
+                No Images
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Side: Info (Sticky) */}
