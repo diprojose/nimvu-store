@@ -402,7 +402,7 @@ function ProfileContent() {
               <Package className="w-12 h-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900">Historial de Pedidos</h3>
               <p className="text-gray-500">No has realizado ningún pedido aún.</p>
-              <Link href="/category" className="mt-4">
+              <Link href="/productos" className="mt-4">
                 <Button>Ir a comprar</Button>
               </Link>
             </div>
