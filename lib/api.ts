@@ -165,8 +165,16 @@ export const orders = {
     const response = await api.post("/orders", data);
     return response.data;
   },
+  createGuest: async (data: any) => {
+    const response = await api.post("/orders/guest", data);
+    return response.data;
+  },
   list: async () => {
     const response = await api.get("/orders");
+    return response.data;
+  },
+  update: async (id: string, data: any) => {
+    const response = await api.patch(`/orders/${id}`, data);
     return response.data;
   }
 };

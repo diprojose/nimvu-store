@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { MapPin, Plus } from "lucide-react";
+import { MapPin, Plus, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export interface CheckoutAddressProps {
@@ -17,6 +17,8 @@ export interface CheckoutAddressProps {
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
   loading: boolean;
+  isGuest?: boolean;
+  guestAddress?: Address | null;
 }
 
 export const CheckoutAddress: FC<CheckoutAddressProps> = ({
@@ -26,10 +28,14 @@ export const CheckoutAddress: FC<CheckoutAddressProps> = ({
   onSaveNew,
   isModalOpen,
   setIsModalOpen,
-  loading
+  loading,
+  isGuest,
+  guestAddress
 }): ReactElement => {
+  const isDisabled = !customer && !isGuest;
+
   return (
-    <Card className={`shadow-sm border-0 ring-1 ring-gray-200 ${!customer ? 'opacity-50 pointer-events-none' : ''}`}>
+    <Card className={`shadow-sm border-0 ring-1 ring-gray-200 ${isDisabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MapPin className="w-5 h-5" />
@@ -57,31 +63,53 @@ export const CheckoutAddress: FC<CheckoutAddressProps> = ({
               </div>
             ))}
           </RadioGroup>
+        ) : isGuest && guestAddress ? (
+          <div className="relative flex items-start space-x-3 space-y-0 rounded-md border border-black ring-1 ring-black bg-gray-50 p-4 transition-all">
+            <RadioGroup value="guest" className="grid grid-cols-1 gap-3">
+              <RadioGroupItem value="guest" id="guest-addr" className="mt-1" checked />
+            </RadioGroup>
+            <div className="w-full font-normal">
+              <div className="font-medium text-base">
+                {guestAddress.first_name} {guestAddress.last_name} <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded ml-2">{guestAddress.company || "Casa"}</span>
+              </div>
+              <div className="text-gray-500 text-sm mt-1">{guestAddress.address_1}, {guestAddress.city}</div>
+              <div className="text-gray-500 text-sm">{guestAddress.province}, {guestAddress.postal_code}</div>
+              <div className="text-gray-500 text-sm mt-1">📞 {guestAddress.phone}</div>
+              <Button variant="link" className="px-0 h-auto mt-2 text-blue-600 flex items-center gap-1" onClick={() => setIsModalOpen(true)}>
+                <Edit className="w-3 h-3"/> Editar dirección
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="text-center py-6 bg-gray-50 rounded border border-dashed">
-            <p className="text-gray-500 mb-2">No tienes direcciones guardadas.</p>
+            <p className="text-gray-500 mb-2">
+              {isGuest ? 'Por favor, ingresa tu dirección de envío.' : 'No tienes direcciones guardadas.'}
+            </p>
           </div>
         )}
 
-        <div className="pt-2">
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2 border-black text-black hover:bg-gray-100" onClick={() => setIsModalOpen(true)}>
-                <Plus className="w-4 h-4" /> Agregar otra dirección
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader className="md:col-span-2">
-                <DialogTitle>Nueva Dirección</DialogTitle>
-              </DialogHeader>
-              <AddressForm
-                onSubmit={onSaveNew}
-                loading={loading}
-                onCancel={() => setIsModalOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+        {(!isGuest || (isGuest && !guestAddress)) && (
+          <div className="pt-2">
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2 border-black text-black hover:bg-gray-100" onClick={() => setIsModalOpen(true)}>
+                  <Plus className="w-4 h-4" /> {isGuest && !guestAddress ? 'Ingresar dirección' : 'Agregar otra dirección'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="md:col-span-2">
+                  <DialogTitle>{isGuest && !guestAddress ? 'Dirección de envío' : 'Nueva Dirección'}</DialogTitle>
+                </DialogHeader>
+                <AddressForm
+                  initialData={guestAddress || undefined}
+                  onSubmit={onSaveNew}
+                  loading={loading}
+                  onCancel={() => setIsModalOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

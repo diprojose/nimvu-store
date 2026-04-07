@@ -40,6 +40,10 @@ export default function CheckoutPage() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestAddress, setGuestAddress] = useState<Address | null>(null);
+  const isGuest = !customer && guestEmail !== "";
+  
   const [shippingCost, setShippingCost] = useState(15000);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
@@ -121,6 +125,26 @@ export default function CheckoutPage() {
   }, [customer?.addresses, selectedAddressId]);
 
   const handleSaveAddress = async (data: AddressFormData) => {
+    if (isGuest) {
+      const mockAddress: Address = {
+        id: "guest-addr",
+        address_1: data.address_1,
+        city: data.city,
+        province: data.province,
+        postal_code: data.postal_code,
+        country: "Colombia",
+        phone: data.phone,
+        company: data.company || "",
+        first_name: data.first_name,
+        last_name: data.last_name,
+      } as unknown as Address;
+      setGuestAddress(mockAddress);
+      setSelectedAddress(mockAddress);
+      setSelectedAddressId("guest-addr");
+      setIsAddressModalOpen(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const newAddr = await addresses.create(data);
@@ -165,8 +189,9 @@ export default function CheckoutPage() {
   };
 
   const handleWompiPayment = async () => {
-    if (!customer?.id) return toast.error("Debes iniciar sesión");
-    if (!selectedAddressId) return toast.error("Selecciona una dirección de envío");
+    if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
+    const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
+    if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
     if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
     if (!window.WidgetCheckout) return toast.error("Error: La pasarela de pagos no cargó correctamente. Recarga la página.");
 
@@ -191,20 +216,36 @@ export default function CheckoutPage() {
       const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
       if (!publicKey) return setLoading(false);
 
-      const orderDraft = {
-        userId: customer.id,
+      const activeAddress = isGuest ? guestAddress : customer.addresses?.find((a: Address) => a.id === selectedAddressId);
+
+      // --- GUARDE LA ORDEN ANTES DE ABRIR WOMPI ---
+      const orderPayload = {
+        userId: isGuest ? undefined : customer.id,
+        email: isGuest ? guestEmail : undefined,
         items: items.map(item => ({
           productId: item.productId,
           variantId: item.variantId === item.productId ? undefined : item.variantId,
           quantity: item.quantity,
           price: item.price
         })),
-        total,
-        status: "PENDING",
-        shippingAddress: customer.addresses?.find((a: Address) => a.id === selectedAddressId),
-        paymentReference: reference
+        paymentMethod: "WOMPI",
+        shippingAddress: activeAddress,
+        shippingCost
       };
-      sessionStorage.setItem('pendingOrder', JSON.stringify(orderDraft));
+
+      const api = await import("@/lib/api");
+      const newOrder = isGuest
+        ? await api.orders.createGuest(orderPayload)
+        : await api.orders.create(orderPayload);
+      
+      // Save item data for tracking before redirect
+      sessionStorage.setItem('purchaseItems', JSON.stringify({
+        items: items,
+        total: total,
+      }));
+
+      // No guardaremos pendingOrder local, ya está en DB.
+      const redirectUrl = `${window.location.origin}/order?internalOrderId=${newOrder.id}`;
 
       const checkoutOptions = {
         currency,
@@ -213,9 +254,9 @@ export default function CheckoutPage() {
         publicKey,
         signature: { integrity: signature },
         taxInCents: { vat: 0, consumption: 0 },
-        redirectUrl: "https://www.somosnimvu.com/order",
+        redirectUrl: redirectUrl, // En caso de que Wompi obligue full redirect
         customerData: {
-          email: customer.email,
+          email: isGuest ? guestEmail : customer.email,
           fullName: receiverData.fullName,
           phoneNumber: receiverData.phone,
           phoneNumberPrefix: '+57',
@@ -230,32 +271,41 @@ export default function CheckoutPage() {
       checkout.open((result: any) => {
         const transaction = result.transaction;
         if (transaction.status === 'APPROVED') {
-          toast.success("Pago Aprobado! Creando orden...");
-          window.location.href = `/order?id=${transaction.id}&ref=${reference}`;
+          toast.success("Pago Aprobado! Confirmando orden...");
+          // Callback JS redirect
+          window.location.href = `/order?id=${transaction.id}&internalOrderId=${newOrder.id}`;
         } else if (transaction.status === 'DECLINED') {
           toast.error("Pago rechazado");
           setLoading(false);
         } else if (transaction.status === 'ERROR') {
           toast.error("Error en la transacción");
           setLoading(false);
+        } else {
+           // En caso de que el usuario cierre el iframe de wompi sin pagar
+           setLoading(false);
+           toast.info("Pago cancelado. Puedes reintentar.");
         }
       });
     } catch (err) {
       console.error(err);
-      toast.error("Error iniciando el pago");
+      toast.error("Error iniciando el pago. Intenta de nuevo.");
       setLoading(false);
     }
   };
 
   const handlePlaceOrder = async (isCod: boolean = false) => {
-    if (!customer?.id) return toast.error("Debes iniciar sesión");
-    if (!selectedAddressId) return toast.error("Selecciona una dirección de envío");
+    if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
+    const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
+    if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
     if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
 
     setLoading(true);
     try {
+      const activeAddress = isGuest ? guestAddress : customer.addresses?.find((a: Address) => a.id === selectedAddressId);
+      
       const orderData = {
-        userId: customer.id,
+        userId: isGuest ? undefined : customer.id,
+        email: isGuest ? guestEmail : undefined,
         items: items.map(item => ({
           productId: item.productId,
           variantId: item.variantId === item.productId ? undefined : item.variantId,
@@ -265,10 +315,12 @@ export default function CheckoutPage() {
         total,
         status: "PENDING",
         paymentMethod: isCod ? "CASH_ON_DELIVERY" : "WOMPI",
-        shippingAddress: customer.addresses?.find((a: Address) => a.id === selectedAddressId),
+        shippingAddress: activeAddress,
+        shippingCost,
       };
 
-      const newOrder = await orders.create(orderData);
+      const newOrder = isGuest ? await orders.createGuest(orderData) : await orders.create(orderData);
+      
       clearCart();
       sessionStorage.removeItem('pendingOrder');
 
@@ -303,7 +355,7 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* === COLUMNA IZQUIERDA (PASOS) === */}
           <div className="lg:col-span-8 space-y-6">
-            <CheckoutAccount customer={customer} />
+            <CheckoutAccount customer={customer} guestEmail={guestEmail} setGuestEmail={setGuestEmail} />
             
             <CheckoutAddress 
               customer={customer}
@@ -313,6 +365,8 @@ export default function CheckoutPage() {
               isModalOpen={isAddressModalOpen}
               setIsModalOpen={setIsAddressModalOpen}
               loading={loading}
+              isGuest={isGuest}
+              guestAddress={guestAddress}
             />
             
             <CheckoutReceiver 
