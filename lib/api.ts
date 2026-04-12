@@ -204,7 +204,15 @@ export const auth = {
     // Placeholder for profile update
     const response = await api.patch("/users/me", data);
     return response.data;
-  }
+  },
+  forgotPassword: async (email: string) => {
+    const response = await api.post("/auth/forgot-password", { email });
+    return response.data;
+  },
+  resetPassword: async (token: string, password: string) => {
+    const response = await api.post("/auth/reset-password", { token, password });
+    return response.data;
+  },
 };
 
 export const addresses = {
