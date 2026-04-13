@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
 import { orders, addresses, shipping, discounts } from "@/lib/api";
+import { trackPurchase } from "@/lib/analytics";
 import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
@@ -272,6 +273,25 @@ export default function CheckoutPage() {
         const transaction = result.transaction;
         if (transaction.status === 'APPROVED') {
           toast.success("Pago Aprobado! Confirmando orden...");
+
+          // Disparar evento purchase inmediatamente cuando Wompi confirma el pago,
+          // antes de cualquier redirect o llamada al backend. Así Meta recibe el
+          // evento aunque falle algo posterior (P2024, error de red, etc.)
+          const guardKey = `purchase_tracked_${newOrder.id}`;
+          if (!sessionStorage.getItem(guardKey)) {
+            trackPurchase({
+              orderId: newOrder.id,
+              value: total,
+              items: items.map(item => ({
+                item_id: item.productId,
+                item_name: item.title,
+                price: item.price,
+                quantity: item.quantity,
+              })),
+            });
+            sessionStorage.setItem(guardKey, '1');
+          }
+
           // Callback JS redirect
           window.location.href = `/order?id=${transaction.id}&internalOrderId=${newOrder.id}`;
         } else if (transaction.status === 'DECLINED') {
