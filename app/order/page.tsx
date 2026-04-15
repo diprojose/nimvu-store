@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { trackPurchase } from '@/lib/analytics'
 import type { CartItem } from '@/store/cart'
 
@@ -17,8 +17,6 @@ function OrderConfirmedContent() {
 
   const { clearCart } = useCartStore()
   const [internalOrder, setInternalOrder] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
 
   // ── Purchase tracking ───────────────────────────────────────────────────────
   // Fires custom_purchase ONCE per order. The guard key prevents re-firing
@@ -64,63 +62,20 @@ function OrderConfirmedContent() {
   // ────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const confirmPreCreatedOrder = async () => {
-      // CASE A: User returned from Wompi and we have an internalOrderId
-      if (orderId && internalOrderIdParam && methodParam !== 'cod' && !internalOrder) {
-        setLoading(true);
-        try {
-          const lastProcessed = sessionStorage.getItem('lastProcessedRef');
-          if (lastProcessed !== orderId) {
-            // Update internal PENDING order to PROCESSING with the Wompi payment ID
-            const api = await import("@/lib/api");
-            const updatedOrder = await api.orders.update(internalOrderIdParam, {
-              status: "PROCESSING",
-              paymentId: orderId,
-            });
+    if (internalOrder) return;
 
-            setInternalOrder(updatedOrder);
-            clearCart();
-            sessionStorage.setItem('lastProcessedRef', orderId); // Prevent duplicate creation
-          } else {
-            // Already processed by react strict mode or reload
-            setInternalOrder({ id: internalOrderIdParam, status: "PROCESSING", paymentId: orderId });
-          }
-        } catch (err) {
-          console.error("Error confirmando orden Wompi:", err);
-          setError("Hubo un error confirmando tu pago. Si pagaste, se registró manualmente en nuestro sistema bajo el id de transacción: " + orderId);
-        } finally {
-          setLoading(false);
-        }
-      }
-      // CASE B: COD or Direct Internal Link (no pending order to process via Wompi)
-      else if (orderId && !internalOrderIdParam && !internalOrder) {
-        setInternalOrder({ id: orderId, status: "CONFIRMED" });
-      }
-    };
-
-    confirmPreCreatedOrder();
+    if (orderId && internalOrderIdParam && methodParam !== 'cod') {
+      // Wompi flow: el webhook de Wompi actualiza el estado en el backend de forma
+      // asíncrona. Aquí solo mostramos la confirmación y limpiamos el carrito.
+      // No llamamos al backend desde el frontend para evitar problemas de autenticación
+      // con usuarios invitados y condiciones de carrera con el webhook.
+      clearCart();
+      setInternalOrder({ id: internalOrderIdParam, status: "PROCESSING", paymentId: orderId });
+    } else if (orderId && !internalOrderIdParam) {
+      // COD flow
+      setInternalOrder({ id: orderId, status: "CONFIRMED" });
+    }
   }, [orderId, internalOrderIdParam, clearCart, internalOrder, methodParam]);
-
-  if (loading) {
-    return (
-      <div className="min-h-[80vh] py-32 flex flex-col items-center justify-center text-center px-4">
-        <Loader2 className="w-16 h-16 text-gray-400 animate-spin mb-4" />
-        <h2 className="text-2xl font-bold">Procesando tu pedido...</h2>
-        <p className="text-gray-500">Estamos verificando el pago con Wompi.</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[80vh] py-32 flex flex-col items-center justify-center text-center px-4">
-        <XCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold">Error</h2>
-        <p className="text-gray-600 max-w-md">{error}</p>
-        <Link href="/" className="underline text-gray-500 mt-4">Volver al inicio</Link>
-      </div>
-    );
-  }
 
   if (!orderId) {
     return (
