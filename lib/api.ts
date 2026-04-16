@@ -151,11 +151,15 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
 export const products = {
   list: async (isB2BContext?: boolean) => {
     const endpoint = isB2BContext ? "/products?isB2B=true" : "/products";
-    const data = await fetchWrapper<BackendProduct[]>(endpoint, { next: { revalidate: 300 } });
+    const data = await fetchWrapper<BackendProduct[]>(endpoint, {
+      next: { revalidate: 300, tags: ['products'] },
+    });
     return data.map(adaptProduct);
   },
   retrieve: async (term: string) => {
-    const data = await fetchWrapper<BackendProduct>(`/products/${term}`, { next: { revalidate: 300 } });
+    const data = await fetchWrapper<BackendProduct>(`/products/${term}`, {
+      next: { revalidate: 300, tags: ['products', `product-${term}`] },
+    });
     return { product: adaptProduct(data) };
   },
 };
@@ -255,7 +259,9 @@ export const addresses = {
 
 export const categories = {
   list: async () => {
-    const data = await fetchWrapper<BackendCategory[]>("/categories", { next: { revalidate: 300 } });
+    const data = await fetchWrapper<BackendCategory[]>("/categories", {
+      next: { revalidate: 300, tags: ['categories'] },
+    });
     return data;
   }
 };
@@ -276,14 +282,18 @@ export const discounts = {
 
 export const collections = {
   retrieve: async (id: string) => {
-    const data = await fetchWrapper<BackendCollection>(`/collections/${id}`, { next: { revalidate: 300 } });
+    const data = await fetchWrapper<BackendCollection>(`/collections/${id}`, {
+      next: { revalidate: 300, tags: ['collections'] },
+    });
     return {
       ...data,
       products: data.products.map(adaptProduct)
     };
   },
   retrieveBySlug: async (slug: string) => {
-    const data = await fetchWrapper<BackendCollection>(`/collections/slug/${slug}`, { next: { revalidate: 300 } });
+    const data = await fetchWrapper<BackendCollection>(`/collections/slug/${slug}`, {
+      next: { revalidate: 300, tags: ['collections'] },
+    });
     return {
       ...data,
       products: data.products.map(adaptProduct)
