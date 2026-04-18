@@ -203,23 +203,10 @@ export default function CheckoutPage() {
     try {
       const amountInCents = Math.floor(total * 100);
       const currency = "COP";
-      const reference = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-      const response = await fetch('/api/wompi/signature', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference, amountInCents, currency })
-      });
-
-      if (!response.ok) throw new Error(`Error al obtener firma: ${response.status}`);
-      const { signature } = await response.json();
-
-      const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
-      if (!publicKey) return setLoading(false);
 
       const activeAddress = isGuest ? guestAddress : customer.addresses?.find((a: Address) => a.id === selectedAddressId);
 
-      // --- GUARDE LA ORDEN ANTES DE ABRIR WOMPI ---
+      // --- CREAR LA ORDEN PRIMERO para usar su ID como reference de Wompi ---
       const orderPayload = {
         userId: isGuest ? undefined : customer.id,
         email: isGuest ? guestEmail : undefined,
@@ -238,14 +225,28 @@ export default function CheckoutPage() {
       const newOrder = isGuest
         ? await api.orders.createGuest(orderPayload)
         : await api.orders.create(orderPayload);
-      
+
+      // Usar el ID de la orden como reference de Wompi — así el webhook lo encuentra directamente
+      const reference = newOrder.id;
+
+      const response = await fetch('/api/wompi/signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference, amountInCents, currency })
+      });
+
+      if (!response.ok) throw new Error(`Error al obtener firma: ${response.status}`);
+      const { signature } = await response.json();
+
+      const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
+      if (!publicKey) return setLoading(false);
+
       // Save item data for tracking before redirect
       sessionStorage.setItem('purchaseItems', JSON.stringify({
         items: items,
         total: total,
       }));
 
-      // No guardaremos pendingOrder local, ya está en DB.
       const redirectUrl = `${window.location.origin}/order?internalOrderId=${newOrder.id}`;
 
       const checkoutOptions = {
@@ -291,6 +292,9 @@ export default function CheckoutPage() {
             });
             sessionStorage.setItem(guardKey, '1');
           }
+
+          // Limpiar carrito antes del redirect para que no se pierda si cierra la pestaña
+          clearCart();
 
           // Callback JS redirect
           window.location.href = `/order?id=${transaction.id}&internalOrderId=${newOrder.id}`;
