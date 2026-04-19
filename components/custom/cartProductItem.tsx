@@ -80,6 +80,7 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
       </div>
       <div className="right-side grow-4 w-full pr-1">
         <Link href={`/productos/${item.id}`}><span className="font-medium">{item.title}</span></Link>
+        {item.variantName && <span className="text-xs text-gray-500">{item.variantName}</span>}
         <p className="flex gap-2 font-medium items-center">
           {originalPrice && originalPrice > displayPrice ? (
             <>

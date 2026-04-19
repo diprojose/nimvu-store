@@ -6,6 +6,7 @@ export interface CartItem {
   variantId: string;
   productId: string;
   title: string;
+  variantName?: string;
   thumbnail: string;
   price: number;
   originalPrice?: number;
@@ -67,7 +68,8 @@ export const useCartStore = create<CartState>()(
                 variantId,
                 productId: product.id,
                 title: product.title,
-                thumbnail: product.thumbnail,
+                variantName: variant?.title || variant?.name,
+                thumbnail: (variant?.images?.[0]) || product.thumbnail,
                 price: finalPrice,
                 originalPrice: hasDiscount ? basePrice : undefined,
                 discountPrice: hasDiscount ? discount : undefined,

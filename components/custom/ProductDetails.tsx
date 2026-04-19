@@ -37,7 +37,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   };
 
   const handleAddToCart = () => {
-    const variantId = selectedVariant?.id || product?.variants?.[0]?.id || product.id;
+    const variantId = selectedVariant?.id || product.id;
     addToCart(product, variantId, quantity);
     trackAddToCart(product, quantity);
     toast.success("¡Producto agregado al carrito!", { position: "top-center" });
