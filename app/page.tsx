@@ -67,7 +67,54 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="kpop-banner w-full pb-[100px]">
+        <section className="lamparas-banner w-full pb-[100px]">
+          <div className="relative w-full rounded-md overflow-hidden">
+            {/* Mobile Image */}
+            <img src="/banner-lamparas-mobile.jpg" alt="Colección Iluminación Nimvu Mobile" className="block md:hidden w-full h-auto" />
+
+            {/* Desktop Image */}
+            <img src="/banner-lamparas.jpg" alt="Colección Iluminación Nimvu Desktop" className="hidden md:block w-full h-auto" />
+
+            {/* Content Overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
+              <h2 className="font-italiana text-3xl md:text-6xl mb-2 text-black leading-tight">
+                Aura. Duna. Cala.
+              </h2>
+              <p className="text-xs md:text-lg mb-6 md:max-w-md text-black/80 font-medium">
+                La primera colección de iluminación Nimvu
+              </p>
+              <a href="/coleccion/lamparas-decorativas" className="bg-black text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest hover:opacity-90 transition-opacity uppercase">
+                Ver colección
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="testimonials w-full pb-[100px]">
+          <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
+          <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
+          <div className="carousel-container">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {testimonials.map((user: TestimonialsModel) => (
+                  <CarouselItem key={user.id} className="md:basis-1/2 lg:basis-1/4 p-5">
+                    <TestimonialItem item={user} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+          </div>
+        </section>
+
+        <section className="kpop-banner w-full">
           <div className="relative w-full rounded-md overflow-hidden">
             {/* Mobile Image */}
             <img src="/bts21-3.jpg" alt="Colección K-POP Mobile" className="block md:hidden w-full h-auto" />
@@ -90,30 +137,6 @@ export default async function Home() {
                 Ver Modelos
               </a>
             </div>
-          </div>
-        </section>
-
-        <section className="testimonials w-full">
-          <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
-          <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
-          <div className="carousel-container">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {testimonials.map((user: TestimonialsModel) => (
-                  <CarouselItem key={user.id} className="md:basis-1/2 lg:basis-1/4 p-5">
-                    <TestimonialItem item={user} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
           </div>
         </section>
       </main>
