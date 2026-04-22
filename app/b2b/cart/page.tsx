@@ -108,6 +108,7 @@ export default function B2BCartPage() {
                         alt={item.title}
                         fill
                         className="object-cover"
+                        unoptimized
                       />
                     </div>
 

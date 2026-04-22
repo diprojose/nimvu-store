@@ -211,7 +211,7 @@ export default function B2BCheckoutPage() {
               {items.map(item => (
                 <div key={item.id} className="flex gap-4">
                   <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex-shrink-0 overflow-hidden relative">
-                    <Image src={item.thumbnail || '/placeholder.jpg'} alt={item.title} fill className="object-cover" />
+                    <Image src={item.thumbnail || '/placeholder.jpg'} alt={item.title} fill className="object-cover" unoptimized />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-gray-900 text-sm truncate">{item.title}</h4>

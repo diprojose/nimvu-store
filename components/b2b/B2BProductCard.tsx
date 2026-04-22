@@ -51,6 +51,7 @@ export function B2BProductCard({ product }: B2BProductCardProps) {
           alt={product.title}
           fill
           className="object-cover"
+          unoptimized
         />
         <div className="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded">
           PRECIOS POR VOLUMEN
