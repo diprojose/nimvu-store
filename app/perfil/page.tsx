@@ -357,7 +357,11 @@ function ProfileContent() {
                           }`}>
                           {order.status === 'CONFIRMED' ? 'Confirmado' :
                             order.status === 'PENDING' ? 'Pendiente' :
-                              order.status === 'PROCESSING' ? 'Procesando' : order.status}
+                              order.status === 'PROCESSING' ? 'Procesando' :
+                                order.status === 'PACKED' ? 'Empacado' :
+                                  order.status === 'SHIPPED' ? 'En camino' :
+                                    order.status === 'DELIVERED' ? 'Entregado' :
+                                      order.status === 'CANCELLED' ? 'Cancelado' : order.status}
                         </div>
                         <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>Ver Detalles</Button>
                       </div>

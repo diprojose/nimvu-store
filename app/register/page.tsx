@@ -57,13 +57,11 @@ export default function AuthPage() {
       await login(email, password);
       router.push("/perfil");
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An error occurred during registration");
-      }
+      const backendMsg = error?.response?.data?.message;
+      const msg = Array.isArray(backendMsg) ? backendMsg.join(', ') : backendMsg;
+      setError(msg || error?.message || "Ocurrió un error durante el registro");
     } finally {
       setLoading(false)
     }

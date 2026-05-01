@@ -18,6 +18,7 @@ import { CheckoutAddress } from "@/components/custom/checkout/CheckoutAddress";
 import { CheckoutReceiver, ReceiverData } from "@/components/custom/checkout/CheckoutReceiver";
 import { CheckoutPayment } from "@/components/custom/checkout/CheckoutPayment";
 import { CheckoutSummary, DiscountCoupon } from "@/components/custom/checkout/CheckoutSummary";
+import { InAppBrowserNotice } from "@/components/custom/checkout/InAppBrowserNotice";
 import { AddressFormData } from "@/components/custom/AddressForm";
 
 declare global {
@@ -375,6 +376,10 @@ export default function CheckoutPage() {
           <ArrowLeft className="w-5 h-5 mr-1" /> Volver
         </Link>
         <h1 className="text-3xl font-italiana font-bold mb-8">Finalizar Compra</h1>
+
+        <div className="mb-6">
+          <InAppBrowserNotice />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* === COLUMNA IZQUIERDA (PASOS) === */}
