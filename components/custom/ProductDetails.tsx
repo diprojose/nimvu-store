@@ -32,11 +32,27 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   const addToCart = useCartStore((state) => state.addItem);
 
+  // Stock disponible según la variante seleccionada (o el producto base)
+  const currentStock = selectedVariant
+    ? selectedVariant.inventory_quantity
+    : product.stock;
+  const isOutOfStock = currentStock <= 0;
+
   const handleQuantityChange = (delta: number) => {
-    setQuantity((prev) => Math.max(1, prev + delta));
+    setQuantity((prev) => {
+      const next = prev + delta;
+      const max = currentStock > 0 ? currentStock : 1;
+      return Math.min(max, Math.max(1, next));
+    });
   };
 
+  // Resetear cantidad a 1 al cambiar de variante para no quedar arriba del stock
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
+
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     const variantId = selectedVariant?.id || product.id;
     addToCart(product, variantId, quantity);
     trackAddToCart(product, quantity);
@@ -151,7 +167,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         {/* Right Side: Info (Sticky) */}
         <div className="md:sticky md:top-24 h-fit flex flex-col gap-8">
           <div>
-            <h1 className="text-4xl font-italiana font-bold mb-4 dark:text-white">{product.title}</h1>
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <h1 className="text-4xl font-italiana font-bold dark:text-white">{product.title}</h1>
+              {isOutOfStock && (
+                <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700 rounded">
+                  Agotado
+                </span>
+              )}
+            </div>
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
               {product.description || "No description available."}
             </p>
@@ -232,31 +255,41 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           )}
 
           {/* Quantity and Add to Cart */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-            <div className="flex items-center border border-gray-300 rounded-md w-fit bg-white text-black">
-              <button
-                onClick={() => handleQuantityChange(-1)}
-                className="p-3 hover:bg-gray-50 transition-colors"
-                aria-label="Decrease quantity"
+          <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className={`flex items-center border border-gray-300 rounded-md w-fit bg-white text-black ${isOutOfStock ? 'opacity-50' : ''}`}>
+                <button
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={isOutOfStock}
+                  className="p-3 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-12 text-center font-medium">{quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={isOutOfStock || quantity >= currentStock}
+                  className="p-3 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <Button
+                onClick={handleAddToCart}
+                disabled={isOutOfStock}
+                className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
               >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="w-12 text-center font-medium">{quantity}</span>
-              <button
-                onClick={() => handleQuantityChange(1)}
-                className="p-3 hover:bg-gray-50 transition-colors"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+                <ShoppingCart className="mr-2 w-5 h-5" />
+                {isOutOfStock ? 'Agotado' : 'Agregar al Carrito'}
+              </Button>
             </div>
-            <Button
-              onClick={handleAddToCart}
-              className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-200"
-            >
-              <ShoppingCart className="mr-2 w-5 h-5" />
-              Agregar al Carrito
-            </Button>
+            {!isOutOfStock && currentStock <= 5 && (
+              <p className="text-xs text-orange-600 font-medium">
+                Solo quedan {currentStock} {currentStock === 1 ? 'unidad' : 'unidades'} disponibles
+              </p>
+            )}
           </div>
 
           {/* Data Table (Dimensions) */}

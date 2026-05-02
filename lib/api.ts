@@ -99,6 +99,7 @@ export interface FrontendProduct {
   thumbnail: string;
   price: number;
   discountPrice?: number;
+  stock: number;
   images: { id: string; url: string }[];
   variants: { id: string; title: string; sku: string; inventory_quantity: number; price?: number; discountPrice?: number; images?: string[] }[];
   category?: { id: string; name: string; slug: string };
@@ -119,6 +120,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     thumbnail: product.images[0] || "",
     price: product.price,
     discountPrice: product.discountPrice,
+    stock: product.stock,
     images: product.images.map((url, index) => ({
       id: `${product.id}-img-${index}`,
       url: url,
