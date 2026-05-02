@@ -191,6 +191,7 @@ export default function CheckoutPage() {
   };
 
   const handleWompiPayment = async () => {
+    if (items.length === 0) return toast.error("Tu carrito está vacío. Agrega productos antes de pagar.");
     if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
@@ -319,6 +320,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async (isCod: boolean = false) => {
+    if (items.length === 0) return toast.error("Tu carrito está vacío. Agrega productos antes de pagar.");
     if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
