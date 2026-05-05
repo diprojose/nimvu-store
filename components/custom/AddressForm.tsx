@@ -45,7 +45,6 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
   const [formData, setFormData] = useState<AddressFormData>({
     first_name: "",
     last_name: "",
-    address_1: "",
     company: "",
     postal_code: "",
     city: "",
@@ -53,7 +52,7 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
     province: "",
     phone: "",
     ...(initialData || {}), // Override defaults with initialData si existe
-    address_1: initialSplit.main, // Solo la calle principal en el input
+    address_1: initialSplit.main, // Solo la calle principal en el input (sin apto/casa)
   });
 
   const [unitDetails, setUnitDetails] = useState(initialSplit.unit);
