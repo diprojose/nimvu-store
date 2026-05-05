@@ -27,7 +27,21 @@ export interface AddressFormProps {
   submitLabel?: string;
 }
 
+// Separa el address_1 guardado en (calle principal, apto/casa) usando la última coma.
+// Permite editar direcciones existentes con el detalle ya en una línea.
+const splitAddressUnit = (full: string): { main: string; unit: string } => {
+  if (!full) return { main: "", unit: "" };
+  const idx = full.lastIndexOf(",");
+  if (idx === -1) return { main: full, unit: "" };
+  return {
+    main: full.substring(0, idx).trim(),
+    unit: full.substring(idx + 1).trim(),
+  };
+};
+
 export default function AddressForm({ initialData, onSubmit, onCancel, loading, submitLabel = "Guardar Dirección" }: AddressFormProps) {
+  const initialSplit = splitAddressUnit(initialData?.address_1 || "");
+
   const [formData, setFormData] = useState<AddressFormData>({
     first_name: "",
     last_name: "",
@@ -38,9 +52,11 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
     country_code: "Colombia",
     province: "",
     phone: "",
-    ...(initialData || {}) // Override defaults with initialData si existe
+    ...(initialData || {}), // Override defaults with initialData si existe
+    address_1: initialSplit.main, // Solo la calle principal en el input
   });
 
+  const [unitDetails, setUnitDetails] = useState(initialSplit.unit);
   const [cities, setCities] = useState<string[]>([]);
 
   // Update cities when province changes
@@ -65,7 +81,10 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const main = formData.address_1.trim();
+    const unit = unitDetails.trim();
+    const combinedAddress = unit ? `${main}, ${unit}` : main;
+    onSubmit({ ...formData, address_1: combinedAddress });
   };
 
   // Sort departments alphabetically
@@ -95,9 +114,24 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Dirección *</Label>
-        <Input required placeholder="Calle 123 # 45 - 67" value={formData.address_1} onChange={(e) => handleChange("address_1", e.target.value)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Dirección *</Label>
+          <Input
+            required
+            placeholder="Calle 123 # 45 - 67"
+            value={formData.address_1}
+            onChange={(e) => handleChange("address_1", e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Apto / Casa / Local</Label>
+          <Input
+            placeholder="Apartamento, Casa, Local u Oficina"
+            value={unitDetails}
+            onChange={(e) => setUnitDetails(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
