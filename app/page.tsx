@@ -11,7 +11,6 @@ import HomeProductCarousel from "@/components/custom/HomeProductCarousel";
 import TestimonialItem from "@/components/custom/testimonialItem";
 import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
-import { Truck, ShieldCheck, Leaf, HeartHandshake } from "lucide-react";
 
 export default async function Home() {
   let products: FrontendProduct[] = [];
@@ -42,12 +41,42 @@ export default async function Home() {
     <div className="flex items-center justify-center font-sans dark:bg-black">
       <main className="flex sm:max-w-full md:max-w-350 w-full flex-col items-center py-16 px-5 md:px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
-          <div className="call-to-action bg-[url(/banner-mobile.jpg)] md:bg-[url(/BANNER-1.jpg)] md:max-h-500 w-full bg-cover h-[600px] p-10 flex items-baseline grid-cols-1 flex-col justify-start pt-32 md:justify-center md:pt-10 rounded-md">
-            <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
-            <p className="text-sm md:text-base mb-6 max-w-[55%] md:max-w-2xl text-gray-800 dark:text-gray-200">
-              Para quienes aman cuidar y organizar sus espacios
+          <div className="call-to-action font-inter relative bg-[url(/banner-web-2.jpg)] md:max-h-500 w-full bg-cover bg-left md:bg-center h-[600px] px-6 py-10 md:p-10 flex items-start grid-cols-1 flex-col justify-start pt-24 md:justify-center md:pt-10 rounded-md">
+            <span
+              className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3"
+              style={{ color: '#D63A2F' }}
+            >
+              Día de la Madre
+            </span>
+
+            <h1
+              className="font-fraunces font-semibold text-[2.5rem] md:text-6xl leading-[1.05] tracking-tight max-w-[85%] md:max-w-xl text-gray-900"
+            >
+              Para la mujer<br />
+              que siempre<br />
+              cuida tu mesa.
+            </h1>
+
+            <span
+              className="block my-5 md:my-6"
+              style={{ width: '60px', height: '2px', backgroundColor: '#D63A2F' }}
+              aria-hidden="true"
+            />
+
+            <p className="font-inter text-sm md:text-base mb-6 max-w-[80%] md:max-w-md text-gray-700 dark:text-gray-200">
+              Esta vez, regálale algo que también cuide la suya.
             </p>
-            <Link href="/productos" className="bg-black text-white py-2 px-4">Ver más</Link>
+
+            <Link
+              href="/productos"
+              className="font-inter font-medium text-white bg-[#D63A2F] hover:bg-[#B82E26] py-3 px-6 text-sm tracking-wide transition-colors w-fit self-start inline-block"
+            >
+              Ver regalos para mamá →
+            </Link>
+
+            <p className="font-inter absolute bottom-10 md:bottom-8 left-6 right-6 md:left-10 md:right-10 text-xs md:text-sm italic max-w-[85%] md:max-w-md text-gray-600 dark:text-gray-300">
+              *Síguenos en redes y descubre un descuento para mamá.
+            </p>
           </div>
         </section>
 
