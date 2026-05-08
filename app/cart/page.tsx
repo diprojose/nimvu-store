@@ -40,7 +40,7 @@ export default function CartPage() {
     <div className="container mx-auto max-w-7xl px-4 py-20 min-h-[80vh]">
 
       {/* TÍTULO */}
-      <h1 className="text-3xl md:text-4xl font-italiana text-gray-900 mb-6">
+      <h1 className="text-3xl md:text-4xl font-fraunces font-semibold text-gray-900 mb-6">
         Carrito de Compras
       </h1>
 
@@ -70,7 +70,7 @@ export default function CartPage() {
           {/* COLUMNA DERECHA: RESUMEN (33% del ancho) */}
           <div className="lg:col-span-4">
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-24">
-              <h2 className="text-lg font-bold uppercase tracking-wider mb-4 font-italiana text-gray-900">
+              <h2 className="text-lg font-bold uppercase tracking-wider mb-4 font-fraunces font-semibold text-gray-900">
                 Resumen del Pedido
               </h2>
 

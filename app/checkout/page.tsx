@@ -377,7 +377,7 @@ export default function CheckoutPage() {
         <Link href="/cart" className="flex pb-4 text-gray-500 hover:text-black transition-colors">
           <ArrowLeft className="w-5 h-5 mr-1" /> Volver
         </Link>
-        <h1 className="text-3xl font-italiana font-bold mb-8">Finalizar Compra</h1>
+        <h1 className="text-3xl font-fraunces font-semibold font-bold mb-8">Finalizar Compra</h1>
 
         <div className="mb-6">
           <InAppBrowserNotice />

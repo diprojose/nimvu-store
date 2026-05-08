@@ -168,7 +168,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <div className="md:sticky md:top-24 h-fit flex flex-col gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-italiana font-bold dark:text-white">{product.title}</h1>
+              <h1 className="text-4xl font-fraunces font-semibold font-bold dark:text-white">{product.title}</h1>
               {isOutOfStock && (
                 <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700 rounded">
                   Agotado
@@ -324,7 +324,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           {/* Long Description (HTML) */}
           {product.longDescription && (
             <div className="mt-4 pt-6 border-t w-full dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4 font-italiana dark:text-white">Detalles del Producto</h3>
+              <h3 className="text-xl font-bold mb-4 font-fraunces font-semibold dark:text-white">Detalles del Producto</h3>
               <div
                 className="prose prose-sm sm:prose-base dark:prose-invert max-w-none
                   prose-p:mb-4 prose-p:leading-relaxed prose-p:text-gray-600 dark:prose-p:text-gray-300

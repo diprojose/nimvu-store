@@ -184,7 +184,7 @@ function ProfileContent() {
     <div className="max-w-350 mx-auto py-20 px-16 space-y-8 min-h-[80vh]">
 
       <div className="mb-6">
-        <h1 className="text-3xl font-italiana font-bold">Mi Cuenta</h1>
+        <h1 className="text-3xl font-fraunces font-semibold font-bold">Mi Cuenta</h1>
         <p className="text-gray-500">Gestiona tu información personal y pedidos.</p>
       </div>
 

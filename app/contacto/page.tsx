@@ -23,7 +23,7 @@ export default function ContactPage() {
   if (submitted) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-italiana mb-6">Mensaje Enviado</h1>
+        <h1 className="text-4xl font-fraunces font-semibold mb-6">Mensaje Enviado</h1>
         <p className="text-gray-600 mb-8 max-w-md">
           Gracias por contactarnos. Hemos recibido tu mensaje y nuestro equipo te responderá lo antes posible.
         </p>
@@ -38,25 +38,25 @@ export default function ContactPage() {
     <div className="bg-white text-black font-sans min-h-screen">
       <div className="max-w-4xl mx-auto px-6 py-24">
         <header className="mb-16 text-center">
-          <h1 className="text-5xl md:text-6xl font-italiana">Contactanos</h1>
+          <h1 className="text-5xl md:text-6xl font-fraunces font-semibold">Contactanos</h1>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Contact Info */}
           <div className="space-y-8 py-4">
             <div>
-              <h3 className="font-italiana text-2xl mb-2">Oficina</h3>
+              <h3 className="font-fraunces font-semibold text-2xl mb-2">Oficina</h3>
               <p className="text-gray-600">
                 Bogotá, Colombia<br />
                 110221
               </p>
             </div>
             <div>
-              <h3 className="font-italiana text-2xl mb-2">Email</h3>
+              <h3 className="font-fraunces font-semibold text-2xl mb-2">Email</h3>
               <p className="text-gray-600">nimvustore@gmail.com</p>
             </div>
             <div>
-              <h3 className="font-italiana text-2xl mb-2">Redes Sociales</h3>
+              <h3 className="font-fraunces font-semibold text-2xl mb-2">Redes Sociales</h3>
               <div className="flex gap-4 underline text-gray-500">
                 <a href="https://www.instagram.com/nimvustore/" className="hover:text-black">Instagram</a>
                 <a href="https://www.tiktok.com/@nimvustore" className="hover:text-black">TikTok</a>

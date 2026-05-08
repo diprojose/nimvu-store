@@ -71,7 +71,7 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
         {/* Right Side: Info */}
         <div className="flex flex-col gap-8">
           <div>
-            <h1 className="text-4xl font-italiana font-bold mb-4">{item.title}</h1>
+            <h1 className="text-4xl font-fraunces font-semibold font-bold mb-4">{item.title}</h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
               {item.description || "Descripción no disponible"}
             </p>

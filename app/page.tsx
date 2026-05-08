@@ -81,8 +81,8 @@ export default async function Home() {
         </section>
 
         <section className="top-products-section w-full pb-[100px]">
-          <h2 className="text-4xl font-italiana">Nuestros productos más populares</h2>
-          <p className="pb-[50px]">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
+          <h2 className="font-fraunces font-semibold text-4xl md:text-5xl tracking-tight">Nuestros productos más populares</h2>
+          <p className="font-inter pb-[50px] mt-2 text-gray-700">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
           <div className="carousel-container">
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -106,13 +106,16 @@ export default async function Home() {
 
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
-              <h2 className="font-italiana text-3xl md:text-6xl mb-2 text-black leading-tight">
+              <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#1A1A1A]">
+                Iluminación
+              </span>
+              <h2 className="font-fraunces font-semibold text-3xl md:text-6xl mb-3 text-black leading-[1.05] tracking-tight">
                 Aura. Duna. Cala.
               </h2>
-              <p className="text-xs md:text-lg mb-6 md:max-w-md text-black/80 font-medium">
-                La primera colección de iluminación Nimvu
+              <p className="font-inter text-xs md:text-lg mb-6 md:max-w-md text-black/80 font-medium">
+                Tres formas. Una sola luz cálida para tu hogar.
               </p>
-              <a href="/coleccion/lamparas-decorativas" className="bg-black text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest hover:opacity-90 transition-opacity uppercase">
+              <a href="/coleccion/lamparas-decorativas" className="font-inter bg-[#1F4D3F] hover:bg-[#163A2F] text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest transition-colors uppercase">
                 Ver colección
               </a>
             </div>
@@ -120,8 +123,8 @@ export default async function Home() {
         </section>
 
         <section className="testimonials w-full pb-[100px]">
-          <h2 className="text-4xl font-italiana">Qué dicen nuestros clientes</h2>
-          <p className="pb-[50px]">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
+          <h2 className="font-fraunces font-semibold text-4xl md:text-5xl tracking-tight">Qué dicen nuestros clientes</h2>
+          <p className="font-inter pb-[50px] mt-2 text-gray-700">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
           <div className="carousel-container">
             <Carousel
               opts={{
@@ -153,16 +156,16 @@ export default async function Home() {
 
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-16 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
-              <span className="text-xs md:text-sm font-bold tracking-[0.2em] mb-2 text-purple-900 uppercase">
+              <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] mb-3 text-purple-900 uppercase">
                 Colección K-POP
               </span>
-              <h2 className="font-italiana text-4xl md:text-6xl mb-4 text-purple-950 leading-tight">
+              <h2 className="font-fraunces font-semibold text-4xl md:text-6xl mb-4 text-purple-950 leading-[1.05] tracking-tight">
                 Organiza <br className="md:hidden" /> tu Pasión
               </h2>
-              <p className="text-sm md:text-lg mb-8 max-w-[250px] md:max-w-md text-gray-600 font-medium">
-                Dale a tu Army Bomb el lugar que merece.
+              <p className="font-inter text-sm md:text-lg mb-8 max-w-[280px] md:max-w-md text-gray-700 font-medium">
+                Soportes de diseño para tu Army Bomb y figuras coleccionables.
               </p>
-              <a href="/coleccion/bts" className="bg-purple-900 text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest hover:opacity-90 transition-opacity uppercase">
+              <a href="/coleccion/bts" className="font-inter bg-white hover:bg-gray-50 text-[#7B5BA8] py-3 px-8 rounded-none font-bold text-xs tracking-widest transition-colors uppercase shadow-sm">
                 Ver Modelos
               </a>
             </div>

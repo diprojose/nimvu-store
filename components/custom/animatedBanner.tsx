@@ -147,7 +147,7 @@ const AnimatedBanner: FC = (): ReactElement => {
 
       {/* Overlay to ensure readability if required, preserving original styles */}
       <div className="relative z-20 flex flex-col items-baseline justify-start md:justify-center h-full max-h-500">
-        <h1 className="font-italiana text-5xl py-4">Diseño funcional que emociona</h1>
+        <h1 className="font-fraunces font-semibold text-5xl py-4">Diseño funcional que emociona</h1>
         <Link href="/productos" className="bg-black text-white py-2 px-4 hover:opacity-80 transition-opacity">
           Ver más
         </Link>
