@@ -68,7 +68,7 @@ export default async function Home() {
             </p>
 
             <Link
-              href="/productos"
+              href="/categorias/portavasos"
               className="font-inter font-medium text-white bg-[#D63A2F] hover:bg-[#B82E26] py-3 px-6 text-sm tracking-wide transition-colors w-fit self-start inline-block"
             >
               Ver regalos para mamá →
