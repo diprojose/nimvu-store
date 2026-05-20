@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +9,6 @@ import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
 import { orders, addresses, shipping, discounts } from "@/lib/api";
-import { trackPurchase } from "@/lib/analytics";
 import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
@@ -37,7 +35,8 @@ export default function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] = useState<Address | undefined>();
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
-  const [isWompiLoaded, setIsWompiLoaded] = useState(false);
+  // Mantenido para compatibilidad con CheckoutPayment; ya no dependemos del script de Wompi.
+  const [isWompiLoaded] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'cod'>('wompi');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -117,7 +116,6 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (window.WidgetCheckout) setIsWompiLoaded(true);
 
     if (customer?.addresses && customer.addresses.length > 0 && !selectedAddressId) {
       const defaultAddr = customer.addresses[0];
@@ -196,7 +194,6 @@ export default function CheckoutPage() {
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
     if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
-    if (!window.WidgetCheckout) return toast.error("Error: La pasarela de pagos no cargó correctamente. Recarga la página.");
 
     setLoading(true);
     setShowReset(false);
@@ -243,75 +240,55 @@ export default function CheckoutPage() {
       const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
       if (!publicKey) return setLoading(false);
 
-      // Save item data for tracking before redirect
+      // Guardar snapshot del carrito para que /order pueda disparar el evento
+      // custom_purchase a Meta con los detalles correctos al volver del redirect.
       sessionStorage.setItem('purchaseItems', JSON.stringify({
         items: items,
         total: total,
       }));
 
+      // URL de retorno: Wompi le agregará ?id={transactionId}&env=... al final.
+      // La página /order ya lee internalOrderId + id y dispara trackPurchase con guard key.
       const redirectUrl = `${window.location.origin}/order?internalOrderId=${newOrder.id}`;
 
-      const checkoutOptions = {
-        currency,
-        amountInCents,
-        reference,
-        publicKey,
-        signature: { integrity: signature },
-        taxInCents: { vat: 0, consumption: 0 },
-        redirectUrl: redirectUrl, // En caso de que Wompi obligue full redirect
-        customerData: {
-          email: isGuest ? guestEmail : customer.email,
-          fullName: receiverData.fullName,
-          phoneNumber: receiverData.phone,
-          phoneNumberPrefix: '+57',
-          legalId: receiverData.idNumber,
-          legalIdType: 'CC'
-        }
+      // --- Wompi Web Checkout (redirect completo via FORM submit) ---
+      // El widget modal rompía en navegadores in-app de Instagram/Facebook.
+      // El Web Checkout es una página externa que funciona en cualquier navegador.
+      //
+      // La docs de Wompi recomienda usar un FORM con method="GET" (no
+      // window.location.href). El navegador serializa los campos correctamente
+      // y aparentemente CloudFront/WAF de Wompi no responde igual a una request
+      // de window.location.href directo.
+      const customerEmail = isGuest ? guestEmail : customer.email;
+
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = 'https://checkout.wompi.co/p/';
+      form.style.display = 'none';
+
+      const addField = (name: string, value: string) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
       };
 
-      const checkout = new window.WidgetCheckout(checkoutOptions);
+      addField('public-key', publicKey);
+      addField('currency', currency);
+      addField('amount-in-cents', String(amountInCents));
+      addField('reference', reference);
+      addField('signature:integrity', signature);
+      addField('redirect-url', redirectUrl);
+      addField('customer-data:email', customerEmail);
+      addField('customer-data:full-name', receiverData.fullName);
+      addField('customer-data:phone-number', receiverData.phone);
+      addField('customer-data:phone-number-prefix', '+57');
+      addField('customer-data:legal-id', receiverData.idNumber);
+      addField('customer-data:legal-id-type', 'CC');
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      checkout.open((result: any) => {
-        const transaction = result.transaction;
-        if (transaction.status === 'APPROVED') {
-          toast.success("Pago Aprobado! Confirmando orden...");
-
-          // Disparar evento purchase inmediatamente cuando Wompi confirma el pago,
-          // antes de cualquier redirect o llamada al backend. Así Meta recibe el
-          // evento aunque falle algo posterior (P2024, error de red, etc.)
-          const guardKey = `purchase_tracked_${newOrder.id}`;
-          if (!sessionStorage.getItem(guardKey)) {
-            trackPurchase({
-              orderId: newOrder.id,
-              value: total,
-              items: items.map(item => ({
-                item_id: item.productId,
-                item_name: item.title,
-                price: item.price,
-                quantity: item.quantity,
-              })),
-            });
-            sessionStorage.setItem(guardKey, '1');
-          }
-
-          // Limpiar carrito antes del redirect para que no se pierda si cierra la pestaña
-          clearCart();
-
-          // Callback JS redirect
-          window.location.href = `/order?id=${transaction.id}&internalOrderId=${newOrder.id}`;
-        } else if (transaction.status === 'DECLINED') {
-          toast.error("Pago rechazado");
-          setLoading(false);
-        } else if (transaction.status === 'ERROR') {
-          toast.error("Error en la transacción");
-          setLoading(false);
-        } else {
-           // En caso de que el usuario cierre el iframe de wompi sin pagar
-           setLoading(false);
-           toast.info("Pago cancelado. Puedes reintentar.");
-        }
-      });
+      document.body.appendChild(form);
+      form.submit();
     } catch (err) {
       console.error(err);
       toast.error("Error iniciando el pago. Intenta de nuevo.");
@@ -363,16 +340,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-20 min-h-[80vh]">
-      <Script
-        src="https://checkout.wompi.co/widget.js"
-        strategy="lazyOnload"
-        onLoad={() => setIsWompiLoaded(true)}
-        onReady={() => { if (window.WidgetCheckout) setIsWompiLoaded(true); }}
-        onError={() => {
-          toast.error("Error cargando la pasarela de pagos. Por favor recarga la página.");
-          setLoading(false);
-        }}
-      />
       <div className="container px-4 max-w-6xl">
         <Link href="/cart" className="flex pb-4 text-gray-500 hover:text-black transition-colors">
           <ArrowLeft className="w-5 h-5 mr-1" /> Volver
