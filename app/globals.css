@@ -51,8 +51,9 @@
 
 @theme {
   --font-italiana: "Italiana", sans-serif;
-  --font-fraunces: var(--font-fraunces), Georgia, serif;
+  --font-source-serif: var(--font-source-serif), Georgia, serif;
   --font-inter: var(--font-inter), system-ui, sans-serif;
+  --color-nimvu-terracota: #B55934;
 }
 
 :root {

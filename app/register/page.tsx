@@ -98,7 +98,7 @@ export default function AuthPage() {
     <section className="min-h-[80vh] flex items-center justify-center bg-white py-20">
       <div className="w-full max-w-350 mx-auto px-16">
 
-        <h1 className="text-3xl md:text-4xl text-center mb-16 text-black font-fraunces font-semibold">
+        <h1 className="text-3xl md:text-4xl text-center mb-16 text-black font-source-serif font-semibold">
           Mi Cuenta
         </h1>
 
@@ -119,7 +119,7 @@ export default function AuthPage() {
             <TabsContent value="login">
               {/* ================= LOGIN ================= */}
               <div className="flex flex-col">
-                <h2 className="text-xl font-fraunces font-semibold tracking-wide mb-6 text-gray-900">
+                <h2 className="text-xl font-source-serif font-semibold tracking-wide mb-6 text-gray-900">
                   Iniciar Sesión
                 </h2>
 
@@ -172,7 +172,7 @@ export default function AuthPage() {
             <TabsContent value="register">
               {/* ================= REGISTRO ================= */}
               <div className="flex flex-col">
-                <h2 className="text-xl font-fraunces font-semibold tracking-wide mb-6 text-gray-900">
+                <h2 className="text-xl font-source-serif font-semibold tracking-wide mb-6 text-gray-900">
                   Registrarse
                 </h2>
 

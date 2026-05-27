@@ -57,7 +57,7 @@ function ResetPasswordForm() {
     <section className="min-h-[80vh] flex items-center justify-center bg-white py-20">
       <div className="w-full max-w-350 mx-auto px-16">
 
-        <h1 className="text-3xl md:text-4xl text-center mb-4 text-black font-fraunces font-semibold">
+        <h1 className="text-3xl md:text-4xl text-center mb-4 text-black font-source-serif font-semibold">
           Nueva Contraseña
         </h1>
 

@@ -51,7 +51,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
           <div className="absolute inset-0 bg-black/40 z-10" />
 
           <div className="relative z-20 flex flex-col items-center px-4">
-            <h1 className="font-fraunces font-semibold text-4xl md:text-5xl mb-4 capitalize text-white drop-shadow-md">
+            <h1 className="font-source-serif font-semibold text-4xl md:text-5xl mb-4 capitalize text-white drop-shadow-md">
               {collection.name}
             </h1>
             {collection.description && (

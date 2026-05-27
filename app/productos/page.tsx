@@ -46,7 +46,7 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
   const CategorySidebar = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="font-fraunces font-semibold text-xl mb-4">Categorías</h3>
+        <h3 className="font-source-serif font-semibold text-xl mb-4">Categorías</h3>
         <ul className="space-y-3 text-sm">
           <li>
             <Link
@@ -85,7 +85,7 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
           />
           <div className="absolute inset-0 bg-black/40 z-10"></div>
           <div className="relative z-20 flex flex-col items-center px-4">
-             <h1 className="text-5xl md:text-6xl font-fraunces font-semibold mb-4 drop-shadow-md">{headerTitle}</h1>
+             <h1 className="text-5xl md:text-6xl font-source-serif font-semibold mb-4 drop-shadow-md">{headerTitle}</h1>
              <p className="text-gray-200 text-sm tracking-wide max-w-lg mx-auto drop-shadow-md">
                {headerDescription}
              </p>

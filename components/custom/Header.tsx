@@ -71,10 +71,10 @@ const Header: FC = (): ReactElement | null => {
             <Link href="/" className="text-2xl font-bold tracking-tighter text-black">
               <Image
                 className="dark:invert"
-                src="/nimvu-logo.png"
+                src="/isologo-nimvu.png"
                 alt="Nimvu logo"
-                width={100}
-                height={20}
+                width={44}
+                height={44}
                 priority
               />
             </Link>

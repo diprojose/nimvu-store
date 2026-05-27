@@ -41,47 +41,36 @@ export default async function Home() {
     <div className="flex items-center justify-center font-sans dark:bg-black">
       <main className="flex sm:max-w-full md:max-w-350 w-full flex-col items-center py-16 px-5 md:px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
-          <div className="call-to-action font-inter relative bg-[url(/banner-web-2.jpg)] md:max-h-500 w-full bg-cover bg-left md:bg-center h-[600px] px-6 py-10 md:p-10 flex items-start grid-cols-1 flex-col justify-start pt-24 md:justify-center md:pt-10 rounded-md">
-            <span
-              className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3"
-              style={{ color: '#D63A2F' }}
-            >
-              Día de la Madre
+          <div className="call-to-action font-inter relative bg-[url(/banner-web-3.jpg)] md:max-h-500 w-full bg-cover bg-left md:bg-center h-[600px] px-6 py-10 md:p-10 flex items-start grid-cols-1 flex-col justify-start pt-24 md:justify-center md:pt-10 rounded-md">
+            <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#B55934]">
+              Bienvenido a Nimvu
             </span>
 
-            <h1
-              className="font-fraunces font-semibold text-[2.5rem] md:text-6xl leading-[1.05] tracking-tight max-w-[85%] md:max-w-xl text-gray-900"
-            >
-              Para la mujer<br />
-              que siempre<br />
-              cuida tu mesa.
+            <h1 className="font-source-serif font-semibold text-[2.5rem] md:text-6xl leading-[1.05] tracking-tight max-w-[85%] md:max-w-xl text-gray-900">
+              Piezas únicas para espacios que cuentan historias
             </h1>
 
             <span
-              className="block my-5 md:my-6"
-              style={{ width: '60px', height: '2px', backgroundColor: '#D63A2F' }}
+              className="block my-5 md:my-6 bg-[#B55934]"
+              style={{ width: '60px', height: '2px' }}
               aria-hidden="true"
             />
 
             <p className="font-inter text-sm md:text-base mb-6 max-w-[80%] md:max-w-md text-gray-700 dark:text-gray-200">
-              Esta vez, regálale algo que también cuide la suya.
+              Diseño moderno y funcional, hecho para durar.
             </p>
 
             <Link
-              href="/categorias/portavasos"
-              className="font-inter font-medium text-white bg-[#D63A2F] hover:bg-[#B82E26] py-3 px-6 text-sm tracking-wide transition-colors w-fit self-start inline-block"
+              href="/productos"
+              className="font-inter font-medium text-white bg-[#B55934] hover:bg-[#9A4929] py-3 px-6 text-sm tracking-wide transition-colors w-fit self-start inline-block"
             >
-              Ver regalos para mamá →
+              Explorar la tienda →
             </Link>
-
-            <p className="font-inter absolute bottom-10 md:bottom-8 left-6 right-6 md:left-10 md:right-10 text-xs md:text-sm italic max-w-[85%] md:max-w-md text-gray-600 dark:text-gray-300">
-              *Síguenos en redes y descubre un descuento para mamá.
-            </p>
           </div>
         </section>
 
         <section className="top-products-section w-full pb-[100px]">
-          <h2 className="font-fraunces font-semibold text-4xl md:text-5xl tracking-tight">Nuestros productos más populares</h2>
+          <h2 className="font-source-serif font-semibold text-4xl md:text-5xl tracking-tight">Nuestros productos más populares</h2>
           <p className="font-inter pb-[50px] mt-2 text-gray-700">Explora los favoritos en decoración moderna y accesorios de mesa. Piezas de diseño único y funcional perfectas para renovar tu hogar.</p>
           <div className="carousel-container">
             {error && (
@@ -109,7 +98,7 @@ export default async function Home() {
               <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#1A1A1A]">
                 Iluminación
               </span>
-              <h2 className="font-fraunces font-semibold text-3xl md:text-6xl mb-3 text-black leading-[1.05] tracking-tight">
+              <h2 className="font-source-serif font-semibold text-3xl md:text-6xl mb-3 text-black leading-[1.05] tracking-tight">
                 Aura. Duna. Cala.
               </h2>
               <p className="font-inter text-xs md:text-lg mb-6 md:max-w-md text-black/80 font-medium">
@@ -123,7 +112,7 @@ export default async function Home() {
         </section>
 
         <section className="testimonials w-full pb-[100px]">
-          <h2 className="font-fraunces font-semibold text-4xl md:text-5xl tracking-tight">Qué dicen nuestros clientes</h2>
+          <h2 className="font-source-serif font-semibold text-4xl md:text-5xl tracking-tight">Qué dicen nuestros clientes</h2>
           <p className="font-inter pb-[50px] mt-2 text-gray-700">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
           <div className="carousel-container">
             <Carousel
@@ -159,7 +148,7 @@ export default async function Home() {
               <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] mb-3 text-purple-900 uppercase">
                 Colección K-POP
               </span>
-              <h2 className="font-fraunces font-semibold text-4xl md:text-6xl mb-4 text-purple-950 leading-[1.05] tracking-tight">
+              <h2 className="font-source-serif font-semibold text-4xl md:text-6xl mb-4 text-purple-950 leading-[1.05] tracking-tight">
                 Organiza <br className="md:hidden" /> tu Pasión
               </h2>
               <p className="font-inter text-sm md:text-lg mb-8 max-w-[280px] md:max-w-md text-gray-700 font-medium">
