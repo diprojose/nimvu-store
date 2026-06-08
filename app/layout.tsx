@@ -6,6 +6,13 @@ import Footer from '../components/custom/Footer';
 import { Toaster } from "@/components/ui/sonner"
 import FloatingWhatsApp from '@/components/custom/FloatingWhatsApp';
 import { GoogleTagManager } from '@next/third-parties/google'
+import {
+  universes as universesApi,
+  categories as categoriesApi,
+  BackendUniverse,
+  BackendCategory,
+} from '@/lib/api';
+import { UniverseProvider } from '@/lib/universe-context';
 
 
 const geistSans = Geist({
@@ -40,11 +47,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let initialUniverses: BackendUniverse[] = [];
+  let initialCategories: BackendCategory[] = [];
+  try {
+    [initialUniverses, initialCategories] = await Promise.all([
+      universesApi.list({ activeOnly: false }),
+      categoriesApi.list(),
+    ]);
+  } catch (err) {
+    console.error('Failed to fetch universes/categories for layout', err);
+  }
+
   return (
     <html lang="en" className="overflow-y-scroll">
       <GoogleTagManager gtmId="GTM-P7JXWM9B" />
@@ -59,9 +77,11 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        <Header />
-        {children}
-        <Footer />
+        <UniverseProvider initialUniverses={initialUniverses} initialCategories={initialCategories}>
+          <Header />
+          {children}
+          <Footer />
+        </UniverseProvider>
         <Toaster />
         <FloatingWhatsApp />
       </body>

@@ -43,6 +43,52 @@ export interface BackendCategory {
   name: string;
   slug: string;
   description?: string;
+  image?: string;
+  order?: number;
+  universeId?: string;
+  universe?: BackendUniverse;
+  _count?: { products: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendUniverse {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  order: number;
+  isActive: boolean;
+  comingSoon: boolean;
+  categories?: BackendCategory[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendBanner {
+  id: string;
+  universeId?: string | null;
+  universe?: BackendUniverse | null;
+  image: string;
+  mobileImage?: string | null;
+  badge?: string | null;
+  title: string;
+  subtitle?: string | null;
+  ctaText?: string | null;
+  ctaHref?: string | null;
+  textColor?: string | null;
+  badgeColor?: string | null;
+  titleColor?: string | null;
+  subtitleColor?: string | null;
+  accentLineColor?: string | null;
+  ctaBgColor?: string | null;
+  ctaTextColor?: string | null;
+  order: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +110,8 @@ export interface BackendProduct {
   longDescription?: string;
   categoryId?: string;
   category?: BackendCategory;
+  universeId?: string;
+  universe?: BackendUniverse;
   discountEndDate?: string | null;
   variants?: BackendVariant[];
   isB2BOnly?: boolean;
@@ -151,9 +199,20 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
 };
 
 export const products = {
-  list: async (isB2BContext?: boolean) => {
-    const endpoint = isB2BContext ? "/products?isB2B=true" : "/products";
-    const data = await fetchWrapper<BackendProduct[]>(endpoint, {
+  list: async (
+    opts:
+      | { isB2BContext?: boolean; universeSlug?: string; categorySlug?: string }
+      | boolean = {},
+  ) => {
+    // Backwards-compat: previously called as products.list(isB2BContext: boolean)
+    const normalized =
+      typeof opts === 'boolean' ? { isB2BContext: opts } : opts;
+    const params = new URLSearchParams();
+    if (normalized.isB2BContext) params.set('isB2B', 'true');
+    if (normalized.universeSlug) params.set('universeSlug', normalized.universeSlug);
+    if (normalized.categorySlug) params.set('categorySlug', normalized.categorySlug);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const data = await fetchWrapper<BackendProduct[]>(`/products${qs}`, {
       next: { revalidate: 300, tags: ['products'] },
     });
     return data.map(adaptProduct);
@@ -260,12 +319,48 @@ export const addresses = {
 };
 
 export const categories = {
-  list: async () => {
-    const data = await fetchWrapper<BackendCategory[]>("/categories", {
+  list: async (opts: { universeSlug?: string } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.universeSlug) params.set('universeSlug', opts.universeSlug);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const data = await fetchWrapper<BackendCategory[]>(`/categories${qs}`, {
       next: { revalidate: 300, tags: ['categories'] },
     });
     return data;
   }
+};
+
+export const universes = {
+  list: async (opts: { activeOnly?: boolean } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.activeOnly) params.set('activeOnly', 'true');
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const data = await fetchWrapper<BackendUniverse[]>(`/universes${qs}`, {
+      next: { revalidate: 300, tags: ['universes'] },
+    });
+    return data;
+  },
+  retrieve: async (idOrSlug: string) => {
+    const data = await fetchWrapper<BackendUniverse>(`/universes/${idOrSlug}`, {
+      next: { revalidate: 300, tags: ['universes', `universe-${idOrSlug}`] },
+    });
+    return data;
+  },
+};
+
+export const banners = {
+  list: async (opts: { universeSlug?: string; universeId?: string; home?: boolean; activeOnly?: boolean } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.universeSlug) params.set('universeSlug', opts.universeSlug);
+    if (opts.universeId) params.set('universeId', opts.universeId);
+    if (opts.home) params.set('home', 'true');
+    if (opts.activeOnly) params.set('activeOnly', 'true');
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const data = await fetchWrapper<BackendBanner[]>(`/banners${qs}`, {
+      next: { revalidate: 300, tags: ['banners'] },
+    });
+    return data;
+  },
 };
 
 export const shipping = {

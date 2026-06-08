@@ -6,12 +6,27 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import categoryImages from "@/data/categoryImages.json";
 
-export default async function ShopPage(props: { initialCategorySlug?: string; searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined } }) {
+function categoryHref(universeSlug: string | undefined, slug: string): string {
+  if (!universeSlug || universeSlug === "hogar") return `/categorias/${slug}`;
+  return `/${universeSlug}/categorias/${slug}`;
+}
+
+function hasProducts(cat: BackendCategory): boolean {
+  // Show by default if the backend didn't include _count; only hide explicit zero.
+  return cat._count?.products === undefined ? true : cat._count.products > 0;
+}
+
+export async function ShopPage(props: {
+  initialCategorySlug?: string;
+  universeSlug?: string;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined };
+}) {
   // Await searchParams and combine logic gracefully
   const resolvedSearchParams = props.searchParams ? await props.searchParams : {};
   const queryCategory = resolvedSearchParams.category as string | undefined;
-  
+
   const selectedCategorySlug = props.initialCategorySlug || queryCategory;
+  const universeSlug = props.universeSlug;
 
   let products: FrontendProduct[] = [];
   let categories: BackendCategory[] = [];
@@ -19,8 +34,8 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
 
   try {
     const [productList, categoryList] = await Promise.all([
-      apiProducts.list(),
-      apiCategories.list()
+      apiProducts.list({ universeSlug, categorySlug: selectedCategorySlug }),
+      apiCategories.list({ universeSlug }),
     ]);
     products = productList;
     categories = categoryList;
@@ -29,9 +44,8 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
     error = "Error loading products";
   }
 
-  const filteredProducts = selectedCategorySlug 
-    ? products.filter(p => p.category?.slug === selectedCategorySlug) 
-    : products;
+  // Backend already filters by categorySlug when provided; no extra filtering needed.
+  const filteredProducts = products;
 
   const activeCategory = categories.find(c => c.slug === selectedCategorySlug);
   const headerTitle = activeCategory ? activeCategory.name : "Tienda";
@@ -43,6 +57,11 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
   
   const headerImage = mappedImage || "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=1920&q=80";
 
+  const allProductsHref =
+    !universeSlug || universeSlug === "hogar" ? "/productos" : `/${universeSlug}`;
+
+  const visibleCategories = categories.filter(hasProducts);
+
   const CategorySidebar = () => (
     <div className="space-y-6">
       <div>
@@ -50,16 +69,16 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
         <ul className="space-y-3 text-sm">
           <li>
             <Link
-              href="/productos"
+              href={allProductsHref}
               className={`block hover:text-black transition-colors ${!selectedCategorySlug ? 'text-black font-bold' : 'text-gray-500'}`}
             >
               Todos los productos
             </Link>
           </li>
-          {categories.map((cat) => (
+          {visibleCategories.map((cat) => (
             <li key={cat.id}>
               <Link
-                href={`/categorias/${cat.slug}`}
+                href={categoryHref(universeSlug, cat.slug)}
                 className={`block hover:text-black transition-colors ${selectedCategorySlug === cat.slug ? 'text-black font-bold' : 'text-gray-500'}`}
               >
                 {cat.name}
@@ -92,60 +111,51 @@ export default async function ShopPage(props: { initialCategorySlug?: string; se
           </div>
         </div>
 
-        <div className="w-full flex flex-col md:flex-row gap-12">
-        {/* Mobile Filter */}
-        <div className="md:hidden flex justify-between items-center mb-6">
-          <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-          {!selectedCategorySlug && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Filter className="w-4 h-4" /> Filtros
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                <div className="py-6">
-                  <CategorySidebar />
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
-        </div>
+        <div className="w-full">
+          {/* Top bar: products count + filter button (hidden when already inside a category) */}
+          <div className="flex justify-between items-center mb-8">
+            <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
+            {!selectedCategorySlug && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Filter className="w-4 h-4" /> Filtros
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                  <div className="py-6 px-6">
+                    <CategorySidebar />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
+          </div>
 
-        {/* Desktop Sidebar */}
-        {!selectedCategorySlug && (
-          <aside className="hidden md:block w-64 flex-shrink-0">
-            <CategorySidebar />
-          </aside>
-        )}
-
-        {/* Product Grid */}
-        <div className="flex-1">
           {error ? (
             <div className="text-center text-red-500 py-12">{error}</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-24 text-gray-500">
+              <p>No se encontraron productos en esta categoría.</p>
+              <Link href={allProductsHref} className="text-black underline mt-2 block">Ver todos</Link>
+            </div>
           ) : (
-            <>
-              <div className="hidden md:flex justify-between items-center mb-8">
-                <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-              </div>
-
-              {filteredProducts.length === 0 ? (
-                <div className="text-center py-24 text-gray-500">
-                  <p>No se encontraron productos en esta categoría.</p>
-                  <Link href="/productos" className="text-black underline mt-2 block">Ver todos</Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                  {filteredProducts.map((product) => (
-                    <ProductItem key={product.id} item={product} />
-                  ))}
-                </div>
-              )}
-            </>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+              {filteredProducts.map((product) => (
+                <ProductItem key={product.id} item={product} />
+              ))}
+            </div>
           )}
-        </div>
         </div>
       </main>
     </div>
   );
+}
+
+// Route handler for /productos — scoped to hogar so the "Tienda" link in the
+// header doesn't mix products across universes. Other universes have their
+// own catalog at /:universo.
+export default async function ProductosRoute(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined };
+}) {
+  return ShopPage({ universeSlug: "hogar", searchParams: props.searchParams });
 }
