@@ -41,8 +41,8 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
                 src={selectedImage}
                 alt={item.title}
                 fill
+                sizes="(max-width: 768px) 90vw, 45vw"
                 className="object-cover"
-                unoptimized={selectedImage.startsWith("http://localhost") || selectedImage.startsWith("http://127.0.0.1") || selectedImage.includes("supabase.co")}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
@@ -60,8 +60,8 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
                   src={img.url}
                   alt="Product thumbnail"
                   fill
+                  sizes="80px"
                   className="object-cover"
-                  unoptimized={img.url.startsWith("http://localhost") || img.url.startsWith("http://127.0.0.1") || img.url.includes("supabase.co")}
                 />
               </button>
             ))}

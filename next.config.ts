@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     unoptimized: process.env.NODE_ENV === 'development',
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2678400, // 31 días: caché larga para las imágenes optimizadas
     remotePatterns: [
       {
         protocol: "https",
@@ -16,6 +18,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'rnhwvaurswbnnxyedzsx.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'rnhwvaurswbnnxyedzsx.storage.supabase.co',
         port: '',
         pathname: '/**',
       },

@@ -109,8 +109,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                             src={img.url}
                             alt={product.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover"
-                            unoptimized={img.url.startsWith("http") || img.url.includes("supabase.co")}
                           />
                         </div>
                       </CarouselItem>
@@ -151,8 +151,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   src={img.url}
                   alt={product.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
-                  unoptimized={img.url.startsWith("http") || img.url.includes("supabase.co")}
                 />
               </div>
             ))}
@@ -215,8 +215,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       src={product.images[0].url}
                       alt={product.title}
                       fill
+                      sizes="64px"
                       className="object-cover"
-                      unoptimized={product.images[0].url.startsWith("http") || product.images[0].url.includes("supabase.co")}
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">
@@ -237,8 +237,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         src={variant.images[0]}
                         alt={variant.title}
                         fill
+                        sizes="64px"
                         className="object-cover"
-                        unoptimized={variant.images[0].startsWith("http") || variant.images[0].includes("supabase.co")}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">

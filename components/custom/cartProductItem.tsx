@@ -64,12 +64,8 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
               src={item.thumbnail}
               fill
               alt={item.title}
+              sizes="50px"
               className="object-cover rounded-md"
-              unoptimized={
-                item.thumbnail.startsWith("http://localhost") ||
-                item.thumbnail.startsWith("http://127.0.0.1") ||
-                item.thumbnail.includes("supabase.co")
-              }
             />
           </Link>
         ) : (

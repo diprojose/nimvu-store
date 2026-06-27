@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ReactDOM from "react-dom";
 import { Geist, Geist_Mono, Source_Serif_4, Inter } from "next/font/google";
 import "./globals.css";
 import Header from '../components/custom/Header';
@@ -52,6 +53,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Establece conexión anticipada con los orígenes externos críticos para
+  // ahorrar el tiempo de DNS/TLS en la primera petición (mejora LCP/FCP).
+  ReactDOM.preconnect("https://rnhwvaurswbnnxyedzsx.storage.supabase.co");
+  ReactDOM.preconnect("https://connect.facebook.net");
+
   let initialUniverses: BackendUniverse[] = [];
   let initialCategories: BackendCategory[] = [];
   try {

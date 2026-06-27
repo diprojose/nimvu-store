@@ -36,24 +36,16 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
               src={item.thumbnail}
               fill
               alt={item.title}
+              sizes="(max-width: 768px) 90vw, (max-width: 1024px) 45vw, 25vw"
               className={cn("object-cover rounded-md static transition-opacity duration-300", item.images && item.images.length > 1 ? "group-hover:opacity-0" : "")}
-              unoptimized={
-                item.thumbnail.startsWith("http://localhost") ||
-                item.thumbnail.startsWith("http://127.0.0.1") ||
-                item.thumbnail.includes("supabase.co")
-              }
             />
             {item.images && item.images.length > 1 && (
               <Image
                 src={item.images[1].url}
                 fill
                 alt={`${item.title} - 2`}
+                sizes="(max-width: 768px) 90vw, (max-width: 1024px) 45vw, 25vw"
                 className="object-cover rounded-md absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                unoptimized={
-                  item.images[1].url.startsWith("http://localhost") ||
-                  item.images[1].url.startsWith("http://127.0.0.1") ||
-                  item.images[1].url.includes("supabase.co")
-                }
               />
             )}
           </Link>

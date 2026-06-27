@@ -1,4 +1,5 @@
 import Link from "next/link"
+import ReactDOM from "react-dom"
 import { collections, products as apiProducts, FrontendProduct } from "@/lib/api"
 import {
   Carousel,
@@ -13,6 +14,10 @@ import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
 
 export default async function Home() {
+  // Precarga la imagen LCP del banner (fondo CSS) para que el navegador la
+  // descubra desde el HTML inicial y la baje con prioridad alta (mejora LCP).
+  ReactDOM.preload("/banner-web-3.jpg", { as: "image", fetchPriority: "high" });
+
   let products: FrontendProduct[] = [];
   let error: string | null = null;
 

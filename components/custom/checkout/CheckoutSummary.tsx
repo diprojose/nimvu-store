@@ -62,12 +62,8 @@ export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
                     src={product.thumbnail}
                     fill
                     alt={product.title}
+                    sizes="64px"
                     className="object-cover rounded-md"
-                    unoptimized={
-                      product.thumbnail.startsWith("http://localhost") ||
-                      product.thumbnail.startsWith("http://127.0.0.1") ||
-                      product.thumbnail.includes("supabase.co")
-                    }
                   />
                   <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{product.quantity}</span>
                 </div>

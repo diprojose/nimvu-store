@@ -7,11 +7,7 @@ module.exports = {
     "./lib/**/*.{js,ts,jsx,tsx,mdx}"
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        italiana: ['var(--font-italiana)', 'serif'],
-      },
-    },
+    extend: {},
   },
   plugins: [],
 }
