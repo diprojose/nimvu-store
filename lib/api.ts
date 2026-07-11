@@ -151,6 +151,7 @@ export interface FrontendProduct {
   images: { id: string; url: string }[];
   variants: { id: string; title: string; sku: string; inventory_quantity: number; price?: number; discountPrice?: number; images?: string[] }[];
   category?: { id: string; name: string; slug: string };
+  universe?: { id: string; name: string; slug: string };
   dimensions?: { width: number; height: number; length: number };
   longDescription?: string;
   discountEndDate?: string | null;
@@ -186,6 +187,11 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
       id: product.category.id,
       name: product.category.name,
       slug: product.category.slug
+    } : undefined,
+    universe: product.universe ? {
+      id: product.universe.id,
+      name: product.universe.name,
+      slug: product.universe.slug
     } : undefined,
     dimensions: {
       width: product.width || 0,

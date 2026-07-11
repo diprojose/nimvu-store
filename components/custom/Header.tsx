@@ -30,6 +30,7 @@ import { Customer } from "@/types/customer";
 import { useUniverse, universeCssVars } from "@/lib/universe-context";
 import { BackendUniverse, BackendCategory } from "@/lib/api";
 import { getUniverseIcon } from "@/lib/universe-icons";
+import ShippingBanner from "@/components/custom/ShippingBanner";
 
 function UniverseHref(universe: BackendUniverse): string {
   // Hogar lives at root to keep existing URLs/SEO. Other universes at /:slug.
@@ -162,10 +163,12 @@ const Header: FC = (): ReactElement | null => {
   const themeStyle = universeCssVars(currentUniverse);
 
   return (
+    <>
     <header
       className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md"
       style={themeStyle}
     >
+      <ShippingBanner />
       <div className="w-full max-w-350 mx-auto px-5 md:px-16">
         <div className="flex justify-between items-center h-16">
 
@@ -234,9 +237,10 @@ const Header: FC = (): ReactElement | null => {
                   </div>
                 </SheetTrigger>
                 <SheetContent>
-                  <SheetTitle className="sr-only">
+                  <SheetTitle className="text-lg font-semibold pt-2">
                     Carrito
                   </SheetTitle>
+                  <Separator className="mt-4" />
                   <div className="cart-products py-5">
                     {items && items.length > 0 ? (
                       items.map((product: CartItem) => (
@@ -258,7 +262,7 @@ const Header: FC = (): ReactElement | null => {
                   <div className="checkout-section py-5">
                     <SheetClose asChild>
                       <Link href="/cart">
-                        <Button className='w-full cursor-pointer'>Continuar</Button>
+                        <Button className='w-full cursor-pointer'>Ir a pagar</Button>
                       </Link>
                     </SheetClose>
                   </div>
@@ -424,6 +428,10 @@ const Header: FC = (): ReactElement | null => {
         </div>
       </div>
     </header>
+    {/* Spacer del alto del banner: el header es fixed, así que compensa el
+        espacio extra que la franja añade sobre la altura de la navegación. */}
+    <div className="h-9" aria-hidden="true" />
+    </>
   );
 };
 

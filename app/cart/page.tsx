@@ -69,7 +69,7 @@ export default function CartPage() {
 
           {/* COLUMNA DERECHA: RESUMEN (33% del ancho) */}
           <div className="lg:col-span-4">
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-24">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-28">
               <h2 className="text-lg font-bold uppercase tracking-wider mb-4 font-source-serif font-semibold text-gray-900">
                 Resumen del Pedido
               </h2>

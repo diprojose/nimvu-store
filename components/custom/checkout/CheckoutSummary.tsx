@@ -46,7 +46,7 @@ export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
   discountAmount
 }): ReactElement => {
   return (
-    <div className="sticky top-24">
+    <div className="sticky top-28">
       <Card className="shadow-lg border-0 bg-white">
         <CardHeader className="bg-gray-50/50 border-b pb-4">
           <CardTitle className="text-lg">Resumen del Pedido</CardTitle>
@@ -122,7 +122,11 @@ export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
 
               <div className="flex justify-between text-gray-600">
                 <span>Envío</span>
-                <span>{formatPrice(shippingCost)}</span>
+                {shippingCost === 0 ? (
+                  <span className="font-medium text-green-600">Gratis</span>
+                ) : (
+                  <span>{formatPrice(shippingCost)}</span>
+                )}
               </div>
             </div>
           </div>

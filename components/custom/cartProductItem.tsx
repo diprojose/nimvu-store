@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore, CartState, CartItem } from '@/store/cart';
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface CartProductItemProps {
@@ -53,8 +53,12 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
   return (
     <div className="product-item flex items-center justify-between mb-5">
       <div className="remove-product mr-2 grow">
-        <button className="cursor-pointer" onClick={handleRemoveFromCart}>
-          <X />
+        <button
+          className="cursor-pointer text-gray-400 hover:text-red-600 transition-colors"
+          onClick={handleRemoveFromCart}
+          aria-label="Eliminar producto"
+        >
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
       <div className="w-full aspect-square relative overflow-hidden max-w-12.5 mr-2 grow-2">

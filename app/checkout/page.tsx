@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
 import { orders, addresses, shipping, discounts } from "@/lib/api";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
@@ -86,7 +87,12 @@ export default function CheckoutPage() {
     }
   })() : 0;
 
-  const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + shippingCost)) : 0;
+  // Envío gratis sobre el umbral (evaluado sobre el subtotal antes del cupón).
+  // El backend valida esto de forma autoritativa al crear la orden.
+  const qualifiesForFreeShipping = isMounted && subtotal >= FREE_SHIPPING_THRESHOLD;
+  const effectiveShippingCost = qualifiesForFreeShipping ? 0 : shippingCost;
+
+  const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + effectiveShippingCost)) : 0;
   const isBogota = selectedAddress?.city?.toLowerCase()?.includes('bogota') || selectedAddress?.city?.toLowerCase()?.includes('bogotá') || false;
 
   useEffect(() => {
@@ -217,7 +223,7 @@ export default function CheckoutPage() {
         })),
         paymentMethod: "WOMPI",
         shippingAddress: activeAddress,
-        shippingCost
+        shippingCost: effectiveShippingCost
       };
 
       const api = await import("@/lib/api");
@@ -320,7 +326,7 @@ export default function CheckoutPage() {
         status: "PENDING",
         paymentMethod: isCod ? "CASH_ON_DELIVERY" : "WOMPI",
         shippingAddress: activeAddress,
-        shippingCost,
+        shippingCost: effectiveShippingCost,
       };
 
       const newOrder = isGuest ? await orders.createGuest(orderData) : await orders.create(orderData);
@@ -394,7 +400,7 @@ export default function CheckoutPage() {
             <CheckoutSummary
               items={items}
               subtotal={subtotal}
-              shippingCost={shippingCost}
+              shippingCost={effectiveShippingCost}
               total={total}
               couponCode={couponCode}
               setCouponCode={setCouponCode}

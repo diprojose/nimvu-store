@@ -20,6 +20,7 @@ const mockProduct: FrontendProduct = {
   slug: "taza-3d",
   thumbnail: "/taza.jpg",
   price: 50000,
+  stock: 10,
   images: [{ id: "img-1", url: "/taza.jpg" }],
   variants: [
     { id: "var-1", title: "Blanco", sku: "BL-001", inventory_quantity: 10, price: 50000, images: ["/blanco.jpg"] },
@@ -33,7 +34,8 @@ describe('ProductDetails component', () => {
     ;(useCartStore as unknown as any).mockReturnValue(vi.fn())
 
     render(<ProductDetails product={mockProduct} />)
-    expect(screen.getByText('Taza 3D Star Wars')).toBeInTheDocument()
+    // El título aparece en el encabezado y en el breadcrumb; apuntamos al heading.
+    expect(screen.getByRole('heading', { name: 'Taza 3D Star Wars' })).toBeInTheDocument()
     expect(screen.getByText('Una taza épica')).toBeInTheDocument()
     expect(screen.getByText('Variantes:')).toBeInTheDocument()
   })

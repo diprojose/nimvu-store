@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
-import { products } from "@/lib/api";
+import { products, FrontendProduct } from "@/lib/api";
 import ProductDetails from "@/components/custom/ProductDetails";
+import RelatedProducts from "@/components/custom/RelatedProducts";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -63,5 +64,34 @@ export default async function ProductPage({ params }: PageProps) {
 
   if (!product) notFound();
 
-  return <ProductDetails product={product} />;
+  // Productos relacionados para el carrusel "Esto te puede gustar":
+  // solo productos del mismo universo, menos el actual, priorizando la misma categoría.
+  let related: FrontendProduct[] = [];
+  try {
+    const universeSlug = product.universe?.slug;
+    const all = universeSlug
+      ? await products.list({ universeSlug })
+      : await products.list();
+    related = all.filter((p) => p.id !== product.id && !p.isB2BOnly);
+
+    if (product.category) {
+      const categoryId = product.category.id;
+      related.sort((a, b) => {
+        const aMatch = a.category?.id === categoryId ? 0 : 1;
+        const bMatch = b.category?.id === categoryId ? 0 : 1;
+        return aMatch - bMatch;
+      });
+    }
+
+    related = related.slice(0, 12);
+  } catch (error) {
+    related = [];
+  }
+
+  return (
+    <>
+      <ProductDetails product={product} />
+      <RelatedProducts products={related} />
+    </>
+  );
 }

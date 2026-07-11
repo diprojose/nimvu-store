@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useCartStore } from '@/store/cart';
 import { toast } from "sonner";
@@ -37,6 +47,22 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     ? selectedVariant.inventory_quantity
     : product.stock;
   const isOutOfStock = currentStock <= 0;
+
+  const category = product.category;
+  // Las categorías de universos distintos a "hogar" viven en
+  // /{universo}/categorias/{slug}; hogar (y sin universo) en /categorias/{slug}.
+  const universeSlug = product.universe?.slug;
+  const isHogar = !universeSlug || universeSlug === "hogar";
+  const categoryHref = category
+    ? isHogar
+      ? `/categorias/${category.slug}`
+      : `/${universeSlug}/categorias/${category.slug}`
+    : null;
+
+  // Segmento intermedio del breadcrumb: en hogar es la Tienda global; en otros
+  // universos es el propio universo (para poder volver a él, no a hogar).
+  const shopHref = isHogar ? "/productos" : `/${universeSlug}`;
+  const shopLabel = isHogar ? "Tienda" : product.universe?.name ?? "Tienda";
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => {
@@ -88,7 +114,40 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-black py-16 px-4 sm:px-8 md:px-16">
+    <div className="bg-white dark:bg-black pt-20 pb-16 px-4 sm:px-8 md:px-16">
+      {/* Breadcrumb de navegación */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Inicio</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={shopHref}>{shopLabel}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {category && categoryHref && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={categoryHref}>{category.name}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="line-clamp-1">{product.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Left Side: Images */}
         <div>
@@ -165,8 +224,17 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </div>
 
         {/* Right Side: Info (Sticky) */}
-        <div className="md:sticky md:top-24 h-fit flex flex-col gap-8">
+        <div className="md:sticky md:top-28 h-fit flex flex-col gap-8">
           <div>
+            {category && categoryHref && (
+              <Link href={categoryHref} className="inline-block mb-3">
+                <Badge
+                  className="cursor-pointer bg-[#B55934] text-white hover:bg-[#9c4a2b] transition-colors uppercase tracking-wide text-xs"
+                >
+                  {category.name}
+                </Badge>
+              </Link>
+            )}
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h1 className="text-4xl font-source-serif font-semibold font-bold dark:text-white">{product.title}</h1>
               {isOutOfStock && (
