@@ -12,7 +12,7 @@ export default function ShippingBanner() {
       <div className="flex h-9 items-center justify-center gap-2 px-4 text-center text-[11px] sm:text-xs font-medium tracking-wide whitespace-nowrap">
         <Truck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
-          Envío gratis en compras superiores a{" "}
+          Envío gratis por compras superiores a{" "}
           {formatPrice(FREE_SHIPPING_THRESHOLD)}
         </span>
       </div>
