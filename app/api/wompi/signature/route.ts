@@ -1,52 +1,42 @@
 import { NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 
+/**
+ * Firma de integridad de Wompi. El secreto NUNCA sale de aqui: solo se
+ * devuelve el hash.
+ *
+ * OJO con la variable de entorno: `WOMPI_INTEGRITY_SECRET` es la correcta
+ * (solo servidor). `NEXT_PUBLIC_WOMPI_INTEGRITY_KEY` queda como respaldo
+ * unicamente para no tumbar los pagos si es la unica configurada, pero Next
+ * inyecta cualquier `NEXT_PUBLIC_*` en el bundle del navegador, asi que
+ * mientras se use el secreto es publico. Hay que migrarla y borrarla.
+ */
 export async function POST(request: Request) {
   try {
     const { reference, amountInCents, currency } = await request.json()
 
-    // USAMOS TU LLAVE DE TEST QUEMADA (Para descartar errores de lectura)
-    // INTENTAMOS LEER AMBAS VARIABLES COMUNES
-    const rawSecret = process.env.NEXT_PUBLIC_WOMPI_INTEGRITY_KEY || process.env.WOMPI_INTEGRITY_SECRET || "";
-    const integritySecret = rawSecret.trim(); // IMPORTANT: Trim whitespace
+    if (!reference || !amountInCents || !currency) {
+      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
+    }
 
-    console.log("🔹 [DEBUG] Generando firma Wompi...");
-    console.log("🔹 [DEBUG] Reference:", reference);
-    console.log("🔹 [DEBUG] Amount (Items + Shipping):", amountInCents);
-    console.log("🔹 [DEBUG] Currency:", currency);
-    console.log("🔹 [DEBUG] Secret Prefix:", integritySecret ? integritySecret.substring(0, 7) + "..." : "MISSING");
-    console.log("🔹 [DEBUG] Integrity Secret Length:", integritySecret.length);
+    const integritySecret = (
+      process.env.WOMPI_INTEGRITY_SECRET ||
+      process.env.NEXT_PUBLIC_WOMPI_INTEGRITY_KEY ||
+      ''
+    ).trim()
 
-    // Validate Integrity Secret content
     if (!integritySecret) {
-      console.error("❌ WOMPI_INTEGRITY_SECRET is missing!");
-      return NextResponse.json({ error: 'Server configuration error: Integrity Secret missing' }, { status: 500 });
+      console.error('WOMPI_INTEGRITY_SECRET no esta configurado')
+      return NextResponse.json({ error: 'Error de configuracion del servidor' }, { status: 500 })
     }
 
-    if (integritySecret.startsWith("prv_")) {
-      console.warn("⚠️ [WARNING] Your Integrity Secret starts with 'prv_'. This looks like a PRIVATE KEY. You must use the INTEGRITY SECRET (Secreto de Integridad).");
-    }
-
-    if (integritySecret !== rawSecret) {
-      console.warn("⚠️ [WARNING] The Integrity Secret had leading/trailing whitespace which was removed.");
-    }
-
-    // 1. Cadena de concatenación CON Expiración
-    // Orden estricto: Referencia + Monto + Moneda + Expiración + Secreto
     const chain = `${reference}${amountInCents}${currency}${integritySecret}`
-    const safeChainToLog = `${reference}${amountInCents}${currency}${integritySecret.substring(0, 5)}...`
+    const signature = crypto.createHash('sha256').update(chain).digest('hex')
 
-    console.log("🔹 [DEBUG] FULL CHAIN TO HASH:", safeChainToLog);
-
-    // 2. Generar Hash SHA-256
-    const signature = crypto
-      .createHash('sha256')
-      .update(chain)
-      .digest('hex')
-
-    return NextResponse.json({ signature, chain })
+    // Solo la firma. Devolver `chain` filtraba el secreto en texto plano.
+    return NextResponse.json({ signature })
   } catch (error) {
-    console.error("❌ Error generando firma:", error)
+    console.error('Error generando firma Wompi:', error)
     return NextResponse.json({ error: 'Error generando firma' }, { status: 500 })
   }
 }

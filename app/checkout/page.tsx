@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cart";
 import { orders, addresses, shipping, discounts } from "@/lib/api";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { trackCheckoutFailure } from "@/lib/analytics";
 import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
@@ -25,6 +26,59 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     WidgetCheckout: any;
   }
+}
+
+/**
+ * Traduce un fallo al iniciar el pago en algo accionable: un mensaje que le
+ * diga al cliente qué hacer, y una etiqueta corta para registrar la causa.
+ * Todos estos errores ocurren antes de crear la orden, así que este es el
+ * único lugar donde queda constancia de lo que pasó.
+ */
+function describeCheckoutError(err: unknown): { message: string; log: string } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const e = err as any;
+  const status: number | undefined = e?.response?.status;
+  const backendMessage: string | undefined =
+    e?.response?.data?.message ?? e?.response?.data?.error;
+
+  if (status === 401 || status === 403) {
+    return {
+      message: "Tu sesión expiró. Vuelve a iniciar sesión e intenta de nuevo.",
+      log: `auth_${status}`,
+    };
+  }
+
+  if (status === 400 && backendMessage) {
+    // El backend responde aquí cuando no hay stock suficiente, entre otros.
+    const isStock = /stock/i.test(backendMessage);
+    return {
+      message: isStock
+        ? "Uno de los productos se quedó sin unidades disponibles. Revisa tu carrito."
+        : backendMessage,
+      log: `400_${backendMessage.slice(0, 80)}`,
+    };
+  }
+
+  if (status && status >= 500) {
+    return {
+      message: "Nuestro servidor no respondió. Espera un momento e intenta otra vez.",
+      log: `server_${status}`,
+    };
+  }
+
+  // Sin respuesta: servidor dormido, timeout o el cliente sin conexión.
+  if (e?.code === "ECONNABORTED" || e?.message === "Network Error" || !status) {
+    return {
+      message:
+        "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo en unos segundos.",
+      log: `network_${e?.code ?? e?.message ?? "sin_respuesta"}`,
+    };
+  }
+
+  return {
+    message: "Error iniciando el pago. Intenta de nuevo.",
+    log: `desconocido_${String(e?.message ?? e).slice(0, 80)}`,
+  };
 }
 
 export default function CheckoutPage() {
@@ -223,7 +277,10 @@ export default function CheckoutPage() {
         })),
         paymentMethod: "WOMPI",
         shippingAddress: activeAddress,
-        shippingCost: effectiveShippingCost
+        shippingCost: effectiveShippingCost,
+        // El servidor revalida el cupón y calcula el total definitivo; el
+        // webhook de Wompi compara el pago contra ese valor.
+        couponCode: appliedCoupon?.code
       };
 
       const api = await import("@/lib/api");
@@ -296,8 +353,12 @@ export default function CheckoutPage() {
       document.body.appendChild(form);
       form.submit();
     } catch (err) {
-      console.error(err);
-      toast.error("Error iniciando el pago. Intenta de nuevo.");
+      // Antes esto mostraba siempre el mismo texto genérico, así que cuando un
+      // cliente decía "no puedo pagar" no quedaba ni rastro de la causa.
+      const detail = describeCheckoutError(err);
+      console.error("[checkout] fallo iniciando el pago:", detail.log, err);
+      trackCheckoutFailure(detail.log);
+      toast.error(detail.message);
       setLoading(false);
     }
   };

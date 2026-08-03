@@ -80,3 +80,18 @@ export function trackPurchase({ orderId, value, items }: PurchasePayload): void 
     },
   });
 }
+
+/**
+ * Registra un fallo al iniciar el pago. Estos errores ocurren ANTES de que
+ * exista la orden, así que no dejan rastro en la base de datos: sin esto,
+ * cuando un cliente reporta "no puedo pagar" no hay forma de saber por qué.
+ */
+export function trackCheckoutFailure(reason: string): void {
+  if (typeof window === "undefined") return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "custom_checkout_failure",
+    checkout_error: reason,
+  });
+}
