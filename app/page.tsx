@@ -13,19 +13,27 @@ import TestimonialItem from "@/components/custom/testimonialItem";
 import { TestimonialsModel } from "@/types/testimonials";
 import testimonials from "@/data/testimonials.json"
 
+const BEST_SELLERS_COLLECTION_ID = "ec6d6793-e160-4858-b231-561cb035ff9f";
+const NUEVOS_COLLECTION_SLUG = "nuevos";
+
 export default async function Home() {
   // Precarga la imagen LCP del banner (fondo CSS) para que el navegador la
   // descubra desde el HTML inicial y la baje con prioridad alta (mejora LCP).
   ReactDOM.preload("/banner-web-3.jpg", { as: "image", fetchPriority: "high" });
 
   let products: FrontendProduct[] = [];
+  let newProducts: FrontendProduct[] = [];
   let error: string | null = null;
 
-  try {
-    // Intentamos cargar la colección por ID usando fetch con caché (ISR)
-    const bestSellers = await collections.retrieve("ec6d6793-e160-4858-b231-561cb035ff9f");
-    products = bestSellers.products;
-  } catch (err) {
+  // Las dos colecciones se piden en paralelo para no encadenar dos esperas.
+  const [bestSellersResult, nuevosResult] = await Promise.allSettled([
+    collections.retrieve(BEST_SELLERS_COLLECTION_ID),
+    collections.retrieveBySlug(NUEVOS_COLLECTION_SLUG),
+  ]);
+
+  if (bestSellersResult.status === "fulfilled") {
+    products = bestSellersResult.value.products;
+  } else {
     // FALLBACK: Si no existe el ID o falla, cargamos productos genéricos
     try {
       const allProducts = await apiProducts.list();
@@ -40,6 +48,14 @@ export default async function Home() {
       }
       console.error("El fallback también falló", e);
     }
+  }
+
+  // Novedades no tiene fallback a propósito: rellenar esta sección con
+  // productos cualesquiera sería mentirle al cliente. Si falla, no se muestra.
+  if (nuevosResult.status === "fulfilled") {
+    newProducts = nuevosResult.value.products;
+  } else {
+    console.error("No se pudo cargar la colección 'nuevos'", nuevosResult.reason);
   }
 
   return (
@@ -115,6 +131,16 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {newProducts.length > 0 && (
+          <section className="new-products-section w-full pb-[100px]">
+            <h2 className="font-source-serif font-semibold text-4xl md:text-5xl tracking-tight">Nuevo en Nimvu</h2>
+            <p className="font-inter pb-[50px] mt-2 text-gray-700">Lo último que salió de nuestros talleres. Piezas diseñadas para darle un aire distinto a tu espacio.</p>
+            <div className="carousel-container">
+              <HomeProductCarousel products={newProducts} />
+            </div>
+          </section>
+        )}
 
         <section className="testimonials w-full pb-[100px]">
           <h2 className="font-source-serif font-semibold text-4xl md:text-5xl tracking-tight">Qué dicen nuestros clientes</h2>
