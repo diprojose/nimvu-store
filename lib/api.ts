@@ -250,6 +250,30 @@ export const orders = {
   }
 };
 
+export interface CheckoutLeadPayload {
+  sessionId: string;
+  email: string;
+  phone?: string;
+  name?: string;
+  shippingAddress?: unknown;
+  items: { productId: string; variantId?: string; quantity: number }[];
+}
+
+export const checkoutLeads = {
+  /**
+   * Captura de carrito abandonado. Corre en segundo plano mientras el cliente
+   * llena el checkout, así que nunca debe interrumpirlo: si falla, se traga el
+   * error y ya. Perder un lead es aceptable; romper el checkout no.
+   */
+  capture: async (data: CheckoutLeadPayload) => {
+    try {
+      await api.post("/checkout-leads", data);
+    } catch {
+      // Silencio intencional.
+    }
+  },
+};
+
 export const auth = {
   login: async (email, password) => {
     // Assuming standard NestJS auth pattern or similar

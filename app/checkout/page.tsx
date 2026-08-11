@@ -11,6 +11,7 @@ import { useCartStore } from "@/store/cart";
 import { orders, addresses, shipping, discounts } from "@/lib/api";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 import { trackCheckoutFailure } from "@/lib/analytics";
+import { useCheckoutLeadCapture } from "@/hooks/useCheckoutLeadCapture";
 import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
@@ -110,6 +111,21 @@ export default function CheckoutPage() {
     fullName: "",
     phone: "",
     idNumber: ""
+  });
+
+  // Una vez creada la orden ya no tiene sentido seguir capturando el lead.
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
+  // Guarda el contacto en segundo plano mientras el cliente llena el
+  // formulario: si se va antes de darle a pagar, queda el dato para cerrarlo
+  // por WhatsApp. No crea orden ni descuenta stock.
+  useCheckoutLeadCapture({
+    email: customer?.email || guestEmail,
+    phone: receiverData.phone || selectedAddress?.phone,
+    name: receiverData.fullName || customer?.name,
+    shippingAddress: selectedAddress,
+    items,
+    disabled: orderPlaced,
   });
 
   const subtotal = isMounted ? getCartSubtotal() : 0;
@@ -288,6 +304,8 @@ export default function CheckoutPage() {
         ? await api.orders.createGuest(orderPayload)
         : await api.orders.create(orderPayload);
 
+      setOrderPlaced(true);
+
       // Usar el ID de la orden como reference de Wompi — así el webhook lo encuentra directamente
       const reference = newOrder.id;
 
@@ -391,7 +409,8 @@ export default function CheckoutPage() {
       };
 
       const newOrder = isGuest ? await orders.createGuest(orderData) : await orders.create(orderData);
-      
+
+      setOrderPlaced(true);
       clearCart();
       sessionStorage.removeItem('pendingOrder');
 
