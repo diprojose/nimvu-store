@@ -1,20 +1,16 @@
 import React, { FC, ReactElement } from "react";
-import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/store/cart";
-import { formatPrice } from "@/lib/utils";
+import {
+  SummaryItems,
+  SummaryCoupon,
+  SummaryTotals,
+  SummaryTotalLine,
+  type DiscountCoupon,
+} from "./CheckoutSummaryParts";
 
-// Interface for actual expected API Discount
-export interface DiscountCoupon {
-  code: string;
-  type: "PERCENTAGE" | "FIXED";
-  value: number;
-  products?: { id: string }[];
-  collections?: { products?: { id: string }[] }[];
-}
+export type { DiscountCoupon };
 
 export interface CheckoutSummaryProps {
   items: CartItem[];
@@ -29,8 +25,13 @@ export interface CheckoutSummaryProps {
   onApplyCoupon: () => void;
   onRemoveCoupon: () => void;
   discountAmount: number;
+  shippingKnown: boolean;
 }
 
+/**
+ * Resumen de escritorio: columna sticky a la derecha. En móvil se usa
+ * CheckoutSummaryMobile, porque aquí abajo el cliente nunca lo veía.
+ */
 export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
   items,
   subtotal,
@@ -43,7 +44,8 @@ export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
   appliedCoupon,
   onApplyCoupon,
   onRemoveCoupon,
-  discountAmount
+  discountAmount,
+  shippingKnown,
 }): ReactElement => {
   return (
     <div className="sticky top-28">
@@ -52,92 +54,35 @@ export const CheckoutSummary: FC<CheckoutSummaryProps> = ({
           <CardTitle className="text-lg">Resumen del Pedido</CardTitle>
         </CardHeader>
         <CardContent className="pt-6 space-y-6">
-
-          {/* Lista de Items */}
-          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-            {items?.map((product: CartItem) => (
-              <div className="flex gap-4 pt-2" key={`${product.id}-${product.variantId}`}>
-                <div className="h-16 w-16 rounded-md border flex-shrink-0 relative">
-                  <Image
-                    src={product.thumbnail}
-                    fill
-                    alt={product.title}
-                    sizes="64px"
-                    className="object-cover rounded-md"
-                  />
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{product.quantity}</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm line-clamp-2">{product.title}</p>
-                  {product.variantName && <p className="text-xs text-gray-500">{product.variantName}</p>}
-                </div>
-                <div className="text-sm font-medium">{formatPrice(product.unit_price)}</div>
-              </div>
-            ))}
-          </div>
+          <SummaryItems items={items} />
 
           <Separator />
 
           <div className="space-y-4">
-            {/* Código de Descuento */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Código de descuento"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                disabled={loadingCoupon || appliedCoupon !== null}
-                className="bg-white"
-              />
-              {appliedCoupon ? (
-                <Button variant="outline" onClick={onRemoveCoupon}>
-                  Quitar
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  onClick={onApplyCoupon}
-                  disabled={loadingCoupon || !couponCode}
-                >
-                  {loadingCoupon ? "..." : "Aplicar"}
-                </Button>
-              )}
-            </div>
-            {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+            <SummaryCoupon
+              couponCode={couponCode}
+              setCouponCode={setCouponCode}
+              couponError={couponError}
+              loadingCoupon={loadingCoupon}
+              appliedCoupon={appliedCoupon}
+              onApplyCoupon={onApplyCoupon}
+              onRemoveCoupon={onRemoveCoupon}
+            />
 
             <Separator />
 
-            {/* Totales */}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-
-              {appliedCoupon && (
-                <div className="flex justify-between text-green-600 font-medium">
-                  <span>Descuento ({appliedCoupon.code})</span>
-                  <span>-{formatPrice(discountAmount)}</span>
-                </div>
-              )}
-
-              <div className="flex justify-between text-gray-600">
-                <span>Envío</span>
-                {shippingCost === 0 ? (
-                  <span className="font-medium text-green-600">Gratis</span>
-                ) : (
-                  <span>{formatPrice(shippingCost)}</span>
-                )}
-              </div>
-            </div>
+            <SummaryTotals
+              subtotal={subtotal}
+              shippingCost={shippingCost}
+              discountAmount={discountAmount}
+              appliedCoupon={appliedCoupon}
+              shippingKnown={shippingKnown}
+            />
           </div>
 
           <Separator />
 
-          <div className="flex justify-between items-center text-lg font-bold">
-            <span>Total</span>
-            <span>{formatPrice(total)}</span>
-          </div>
-
+          <SummaryTotalLine total={total} />
         </CardContent>
       </Card>
 

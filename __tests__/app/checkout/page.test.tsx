@@ -67,4 +67,28 @@ describe('CheckoutPage Integration', () => {
     const totalAmounts = screen.getAllByText(/35\.000/i)
     expect(totalAmounts.length).toBeGreaterThan(0)
   })
+
+  it('no cobra envío en el total mientras no haya dirección', () => {
+    // El bug: `shippingCost` arranca en 15.000 como respaldo y se sumaba al
+    // total aunque la fila de envío dijera "calculado al ingresar la
+    // dirección". El cliente veía subtotal 120.000 y total 135.000, sin
+    // ninguna línea que explicara los 15.000 de diferencia.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useAuthStore as any).mockReturnValue({ customer: null, syncWithBackend: vi.fn() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useCartStore as any).mockReturnValue({
+      items: [{ id: "item-1", title: "Portavasos", price: 60000, quantity: 2, unit_price: 60000, productId: "prod-1", thumbnail: "/p.png" }],
+      getCartTotal: () => 120000,
+      getCartSubtotal: () => 120000,
+      clearCart: vi.fn()
+    });
+
+    render(<CheckoutPage />)
+
+    expect(screen.getAllByText(/120\.000/).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/135\.000/)).not.toBeInTheDocument()
+    expect(
+      screen.getAllByText(/Calculado al ingresar la dirección/i).length
+    ).toBeGreaterThan(0)
+  })
 })

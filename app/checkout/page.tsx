@@ -19,6 +19,7 @@ import { CheckoutAddress } from "@/components/custom/checkout/CheckoutAddress";
 import { CheckoutReceiver, ReceiverData } from "@/components/custom/checkout/CheckoutReceiver";
 import { CheckoutPayment } from "@/components/custom/checkout/CheckoutPayment";
 import { CheckoutSummary, DiscountCoupon } from "@/components/custom/checkout/CheckoutSummary";
+import { CheckoutSummaryMobile } from "@/components/custom/checkout/CheckoutSummaryMobile";
 import { InAppBrowserNotice } from "@/components/custom/checkout/InAppBrowserNotice";
 import { AddressFormData } from "@/components/custom/AddressForm";
 
@@ -160,7 +161,13 @@ export default function CheckoutPage() {
   // Envío gratis sobre el umbral (evaluado sobre el subtotal antes del cupón).
   // El backend valida esto de forma autoritativa al crear la orden.
   const qualifiesForFreeShipping = isMounted && subtotal >= FREE_SHIPPING_THRESHOLD;
-  const effectiveShippingCost = qualifiesForFreeShipping ? 0 : shippingCost;
+
+  // El envío solo se conoce con una dirección: `shippingCost` arranca en 15000
+  // como respaldo y eso no es un precio, es una suposición. Cobrarlo en el
+  // total mientras la fila de envío dice "calculado al ingresar la dirección"
+  // deja al cliente viendo un total que no cuadra con lo que ve sumado.
+  const shippingKnown = qualifiesForFreeShipping || !!selectedAddress;
+  const effectiveShippingCost = qualifiesForFreeShipping || !selectedAddress ? 0 : shippingCost;
 
   const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + effectiveShippingCost)) : 0;
   const isBogota = selectedAddress?.city?.toLowerCase()?.includes('bogota') || selectedAddress?.city?.toLowerCase()?.includes('bogotá') || false;
@@ -436,6 +443,27 @@ export default function CheckoutPage() {
           <InAppBrowserNotice />
         </div>
 
+        {/* En móvil el resumen va arriba (patrón de Shopify): abajo quedaba
+            debajo del botón de pagar y el cliente nunca veía el costo de envío. */}
+        <div className="mb-6">
+          <CheckoutSummaryMobile
+            items={items}
+            subtotal={subtotal}
+            shippingCost={effectiveShippingCost}
+            total={total}
+            couponCode={couponCode}
+            setCouponCode={setCouponCode}
+            couponError={couponError}
+            loadingCoupon={loadingCoupon}
+            appliedCoupon={appliedCoupon}
+            onApplyCoupon={handleApplyCoupon}
+            onRemoveCoupon={() => { setAppliedCoupon(null); setCouponCode(""); }}
+            discountAmount={discountAmount}
+            shippingKnown={shippingKnown}
+            isMounted={isMounted}
+          />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* === COLUMNA IZQUIERDA (PASOS) === */}
           <div className="lg:col-span-8 space-y-6">
@@ -476,7 +504,8 @@ export default function CheckoutPage() {
           </div>
 
           {/* === COLUMNA DERECHA (RESUMEN STICKY) === */}
-          <div className="lg:col-span-4">
+          {/* Oculto en móvil: allí se muestra CheckoutSummaryMobile arriba. */}
+          <div className="hidden lg:block lg:col-span-4">
             <CheckoutSummary
               items={items}
               subtotal={subtotal}
@@ -490,6 +519,7 @@ export default function CheckoutPage() {
               onApplyCoupon={handleApplyCoupon}
               onRemoveCoupon={() => { setAppliedCoupon(null); setCouponCode(""); }}
               discountAmount={discountAmount}
+              shippingKnown={shippingKnown}
             />
           </div>
         </div>

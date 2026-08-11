@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MapPin, Plus, Edit } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export interface CheckoutAddressProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +33,11 @@ export const CheckoutAddress: FC<CheckoutAddressProps> = ({
   guestAddress
 }): ReactElement => {
   const isDisabled = !customer && !isGuest;
+  const hasSavedAddresses = customer?.addresses && customer.addresses.length > 0;
+  // El invitado todavía no ha escrito su dirección: en vez de un botón que abre
+  // un modal, se le pone el formulario directo. Un click menos en el punto del
+  // checkout donde más gente se cae.
+  const showInlineForm = isGuest && !guestAddress;
 
   return (
     <Card className={`shadow-sm border-0 ring-1 ring-gray-200 ${isDisabled ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -43,7 +48,7 @@ export const CheckoutAddress: FC<CheckoutAddressProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {customer?.addresses && customer.addresses.length > 0 ? (
+        {hasSavedAddresses ? (
           <RadioGroup
             value={selectedAddressId}
             onValueChange={onSelect}
@@ -80,35 +85,50 @@ export const CheckoutAddress: FC<CheckoutAddressProps> = ({
               </Button>
             </div>
           </div>
+        ) : showInlineForm ? (
+          <AddressForm
+            onSubmit={onSaveNew}
+            loading={loading}
+            submitLabel="Continuar"
+          />
         ) : (
           <div className="text-center py-6 bg-gray-50 rounded border border-dashed">
-            <p className="text-gray-500 mb-2">
-              {isGuest ? 'Por favor, ingresa tu dirección de envío.' : 'No tienes direcciones guardadas.'}
-            </p>
+            <p className="text-gray-500 mb-2">No tienes direcciones guardadas.</p>
           </div>
         )}
 
-        {(!isGuest || (isGuest && !guestAddress)) && (
+        {/* Solo para clientes con cuenta: el invitado ya tiene el formulario
+            en línea, o el enlace de editar sobre la dirección que ingresó. */}
+        {!isGuest && (
           <div className="pt-2">
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 border-black text-black hover:bg-gray-100" onClick={() => setIsModalOpen(true)}>
-                  <Plus className="w-4 h-4" /> {isGuest && !guestAddress ? 'Ingresar dirección' : 'Agregar otra dirección'}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader className="md:col-span-2">
-                  <DialogTitle>{isGuest && !guestAddress ? 'Dirección de envío' : 'Nueva Dirección'}</DialogTitle>
-                </DialogHeader>
-                <AddressForm
-                  initialData={guestAddress || undefined}
-                  onSubmit={onSaveNew}
-                  loading={loading}
-                  onCancel={() => setIsModalOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outline"
+              className="gap-2 border-black text-black hover:bg-gray-100"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+              {hasSavedAddresses ? 'Agregar otra dirección' : 'Agregar dirección'}
+            </Button>
           </div>
+        )}
+
+        {/* Montado siempre que haga falta editar o agregar. Antes vivía dentro
+            del bloque del botón, así que el "Editar dirección" del invitado
+            abría un modal que no existía en el árbol y no pasaba nada. */}
+        {!showInlineForm && (
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="md:col-span-2">
+                <DialogTitle>{isGuest ? 'Editar dirección de envío' : 'Nueva Dirección'}</DialogTitle>
+              </DialogHeader>
+              <AddressForm
+                initialData={guestAddress || undefined}
+                onSubmit={onSaveNew}
+                loading={loading}
+                onCancel={() => setIsModalOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         )}
       </CardContent>
     </Card>

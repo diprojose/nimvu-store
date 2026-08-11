@@ -7,6 +7,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
+/**
+ * Solo métodos que Wompi procesa de verdad en Colombia. En public/payment/ hay
+ * además PayPal, Apple Pay y Google Pay: no se muestran a propósito, porque
+ * prometerlos en el checkout y que no aparezcan en la pasarela genera reclamos.
+ *
+ * Para agregar PSE, Daviplata o Bancolombia basta con dejar el SVG en
+ * public/payment/ y sumar una línea a esta lista.
+ */
+const PAYMENT_METHODS = [
+  { src: "/payment/payment-01.svg", alt: "Visa", width: 66, height: 22 },
+  { src: "/payment/payment-03.svg", alt: "Mastercard", width: 66, height: 22 },
+  { src: "/payment/nequi-2.svg", alt: "Nequi", width: 66, height: 22 },
+];
+
 export interface CheckoutPaymentProps {
   allowInteraction: boolean;
   paymentMethod: "wompi" | "cod";
@@ -106,10 +120,27 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
           </div>
         )}
 
-        <div className="flex justify-center gap-4 mt-4 opacity-50 grayscale">
-          <Image src="/payment/payment-01.svg" alt="visa card" width={66} height={22} />
-          <Image src="/payment/payment-03.svg" alt="master card" width={66} height={22} />
-          <Image src="/payment/nequi-2.svg" alt="nequi" width={66} height={22} />
+        <div className="mt-6">
+          <p className="text-center text-xs text-gray-500 mb-3">
+            Métodos de pago aceptados
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {PAYMENT_METHODS.map((method) => (
+              <div
+                key={method.src}
+                title={method.alt}
+                className="flex items-center justify-center h-11 w-20 rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+              >
+                <Image
+                  src={method.src}
+                  alt={method.alt}
+                  width={method.width}
+                  height={method.height}
+                  className="object-contain max-h-6 w-auto"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
