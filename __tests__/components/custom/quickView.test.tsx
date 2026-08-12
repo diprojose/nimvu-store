@@ -19,6 +19,7 @@ const mockItem: FrontendProduct = {
   slug: "vaso",
   thumbnail: "/vaso.jpg",
   price: 20000,
+  stock: 10,
   images: [{ id: "img-1", url: "/vaso.jpg" }],
   variants: []
 }

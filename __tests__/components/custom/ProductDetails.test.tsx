@@ -51,16 +51,32 @@ describe('ProductDetails component', () => {
     expect(screen.getByText('Negro', { selector: 'span' })).toBeInTheDocument()
   })
 
-  it('permite agregar al carrito enviando los ids correctos', () => {
+  it('agrega el producto base cuando no se eligió variante', () => {
+    // Ninguna variante viene preseleccionada: el producto base es una opción
+    // válida y es la de por defecto, así que el id que viaja es el del
+    // producto. El test antes esperaba "var-1", de cuando la primera variante
+    // se seleccionaba sola.
     const mockAddItem = vi.fn()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(useCartStore as unknown as any).mockReturnValue(mockAddItem)
-    
+
     render(<ProductDetails product={mockProduct} />)
-    
-    const addToCartButton = screen.getByText('Agregar al Carrito', { exact: false })
-    fireEvent.click(addToCartButton)
-    
-    expect(mockAddItem).toHaveBeenCalledWith(mockProduct, "var-1", 1)
+
+    fireEvent.click(screen.getByText('Agregar al Carrito', { exact: false }))
+
+    expect(mockAddItem).toHaveBeenCalledWith(mockProduct, "prod-1", 1)
+  })
+
+  it('agrega la variante elegida cuando se selecciona una', () => {
+    const mockAddItem = vi.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(useCartStore as unknown as any).mockReturnValue(mockAddItem)
+
+    render(<ProductDetails product={mockProduct} />)
+
+    fireEvent.click(screen.getByTitle('Negro'))
+    fireEvent.click(screen.getByText('Agregar al Carrito', { exact: false }))
+
+    expect(mockAddItem).toHaveBeenCalledWith(mockProduct, "var-2", 1)
   })
 })

@@ -22,11 +22,15 @@ vi.mock('sonner', () => ({
   }
 }))
 
-// Mockeamos lucide-react (svgs) para que sea trivial buscarlos o localizarlos
-vi.mock('lucide-react', () => ({
+// Mockeamos solo los íconos que el test necesita ubicar, conservando el resto
+// del módulo. Antes se reemplazaba lucide-react entero y bastaba con que el
+// componente usara un ícono nuevo para que los 4 tests reventaran: fue justo lo
+// que pasó al cambiar la X por Trash2.
+vi.mock('lucide-react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('lucide-react')>()),
   Minus: () => <div data-testid="minus-icon" />,
   Plus: () => <div data-testid="plus-icon" />,
-  X: () => <div data-testid="x-icon" />
+  Trash2: () => <div data-testid="trash-icon" />,
 }))
 
 // Mock para Next/Image
@@ -63,10 +67,10 @@ describe('CartProductItem component', () => {
     expect(screen.getByText('2')).toBeInTheDocument()
   })
 
-  it('Debe llamar al store removeItem cuando se presiona la X', () => {
+  it('Debe llamar al store removeItem cuando se presiona el botón de eliminar', () => {
     render(<CartProductItem item={mockItem} cart={true} />)
-    
-    const removeButton = screen.getByTestId('x-icon').parentElement
+
+    const removeButton = screen.getByTestId('trash-icon').parentElement
     if (removeButton) fireEvent.click(removeButton)
     
     expect(mockRemoveItem).toHaveBeenCalledWith('item-123')

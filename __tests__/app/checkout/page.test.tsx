@@ -25,7 +25,10 @@ describe('CheckoutPage Integration', () => {
     vi.clearAllMocks()
   })
 
-  it('renderiza la vista bloqueada para usuario no autenticado', () => {
+  it('ofrece checkout como invitado cuando no hay sesión', () => {
+    // Antes este test buscaba "Para continuar, necesitas identificarte.": el
+    // checkout bloqueaba a quien no tuviera cuenta. Hoy la primera opción es
+    // comprar como invitado dejando el correo, así que ese texto ya no existe.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(useAuthStore as any).mockReturnValue({ customer: null, syncWithBackend: vi.fn() });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +37,9 @@ describe('CheckoutPage Integration', () => {
     });
 
     render(<CheckoutPage />)
-    expect(screen.getByText('Para continuar, necesitas identificarte.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Continuar como invitado')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('tu@correo.com')).toBeInTheDocument()
+    expect(screen.getByText(/O si ya tienes cuenta/i)).toBeInTheDocument()
   })
 
   it('renderiza paso 1 y 2 cuando hay sesión, sumando costos de envío por defecto', () => {

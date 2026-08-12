@@ -18,11 +18,37 @@ vi.mock('@/store/authStore', () => ({
   })
 }))
 
-// Mock API
-vi.mock('@/lib/api', () => ({
-  categories: {
-    list: vi.fn(() => Promise.resolve([{ id: '1', name: 'Zapatos', slug: 'zapatos' }]))
-  }
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+}))
+
+// El Header dejó de pedirle las categorías a `@/lib/api`: ahora salen del
+// contexto de universos, agrupadas por universo. Se mockea el contexto en vez
+// de envolver en UniverseProvider porque el provider haría su propio trabajo de
+// resolución por ruta, que no es lo que este test verifica.
+const mockUniverse = {
+  id: 'u-1',
+  name: 'Hogar',
+  slug: 'hogar',
+  // Sin isActive el Header trata al universo como deshabilitado y no pinta sus
+  // categorías: el menú solo muestra las de universos activos.
+  isActive: true,
+  comingSoon: false,
+  primaryColor: null,
+  secondaryColor: null,
+  accentColor: null,
+}
+
+vi.mock('@/lib/universe-context', () => ({
+  useUniverse: () => ({
+    universes: [mockUniverse],
+    categories: [{ id: '1', name: 'Zapatos', slug: 'zapatos' }],
+    categoriesByUniverseId: { 'u-1': [{ id: '1', name: 'Zapatos', slug: 'zapatos' }] },
+    currentUniverse: mockUniverse,
+    currentCategories: [{ id: '1', name: 'Zapatos', slug: 'zapatos' }],
+    isLoadingCategories: false,
+  }),
+  universeCssVars: () => ({}),
 }))
 
 // Sustituir next/image para el entorno vitest/jsdom
