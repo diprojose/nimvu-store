@@ -12,13 +12,20 @@ import { formatPrice } from "@/lib/utils";
  * además PayPal, Apple Pay y Google Pay: no se muestran a propósito, porque
  * prometerlos en el checkout y que no aparezcan en la pasarela genera reclamos.
  *
- * Para agregar PSE, Daviplata o Bancolombia basta con dejar el SVG en
- * public/payment/ y sumar una línea a esta lista.
+ * `cap` iguala el peso óptico: los logos de tarjeta son apaisados (3:1) y los
+ * de PSE y Daviplata casi cuadrados, así que con una misma altura máxima estos
+ * últimos se verían diminutos al lado de los otros.
+ *
+ * width/height van al tamaño de render (respetando la proporción original), no
+ * al del archivo: con los 2026px del PNG de Daviplata, Next pedía la variante
+ * de 3840px — 36 KB para un logo que se ve a 32px. Declarado así son 2.8 KB.
  */
 const PAYMENT_METHODS = [
-  { src: "/payment/payment-01.svg", alt: "Visa", width: 66, height: 22 },
-  { src: "/payment/payment-03.svg", alt: "Mastercard", width: 66, height: 22 },
-  { src: "/payment/nequi-2.svg", alt: "Nequi", width: 66, height: 22 },
+  { src: "/payment/payment-01.svg", alt: "Visa", width: 66, height: 22, cap: "max-h-5" },
+  { src: "/payment/payment-03.svg", alt: "Mastercard", width: 66, height: 22, cap: "max-h-6" },
+  { src: "/payment/nequi-2.svg", alt: "Nequi", width: 66, height: 22, cap: "max-h-5" },
+  { src: "/payment/pse.jpg", alt: "PSE", width: 64, height: 64, cap: "max-h-8" },
+  { src: "/payment/daviplata.png", alt: "Daviplata", width: 80, height: 66, cap: "max-h-8" },
 ];
 
 export interface CheckoutPaymentProps {
@@ -136,7 +143,7 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
                   alt={method.alt}
                   width={method.width}
                   height={method.height}
-                  className="object-contain max-h-6 w-auto"
+                  className={`object-contain w-auto ${method.cap}`}
                 />
               </div>
             ))}
