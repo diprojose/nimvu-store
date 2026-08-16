@@ -65,25 +65,33 @@ export const SummaryCoupon: FC<SummaryCouponProps> = ({
   onRemoveCoupon,
 }) => (
   <div>
-    <div className="flex gap-2">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (couponCode.trim() && !loadingCoupon && !appliedCoupon) {
+          onApplyCoupon();
+        }
+      }}
+      className="flex gap-2"
+    >
       <Input
         placeholder="Código de descuento"
         value={couponCode}
-        onChange={(e) => setCouponCode(e.target.value)}
+        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
         disabled={loadingCoupon || appliedCoupon !== null}
-        className="bg-white"
+        className="bg-white uppercase placeholder:normal-case font-medium"
       />
       {appliedCoupon ? (
-        <Button variant="outline" onClick={onRemoveCoupon}>
+        <Button variant="outline" type="button" onClick={onRemoveCoupon}>
           Quitar
         </Button>
       ) : (
-        <Button variant="secondary" onClick={onApplyCoupon} disabled={loadingCoupon || !couponCode}>
+        <Button variant="secondary" type="submit" disabled={loadingCoupon || !couponCode.trim()}>
           {loadingCoupon ? "..." : "Aplicar"}
         </Button>
       )}
-    </div>
-    {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+    </form>
+    {couponError && <p className="text-red-500 text-xs mt-1.5 font-medium">{couponError}</p>}
   </div>
 );
 

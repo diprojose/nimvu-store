@@ -2,13 +2,14 @@ import { render, screen, act, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import Header from '@/components/custom/Header'
 
-// Mocks simples para zustand
+let mockCartState: any = {
+  items: [],
+  getCartSubtotal: () => 0,
+  getCartTotal: () => 0
+};
+
 vi.mock('@/store/cart', () => ({
-  useCartStore: (selector: any) => selector({
-    items: [],
-    getCartSubtotal: () => 0,
-    getCartTotal: () => 0
-  })
+  useCartStore: (selector: any) => selector(mockCartState)
 }))
 
 vi.mock('@/store/authStore', () => ({
@@ -63,6 +64,11 @@ vi.mock('next/image', () => ({
 
 describe('Header component', () => {
   it('Debe renderizar el logo y los enlaces de navegación', async () => {
+    mockCartState = {
+      items: [],
+      getCartSubtotal: () => 0,
+      getCartTotal: () => 0
+    };
     render(<Header />)
     
     // Verificamos visualmente el logo
@@ -83,6 +89,11 @@ describe('Header component', () => {
   })
 
   it('Debe abrir el carrito interactivo y mostrar el Sheet vacío', async () => {
+    mockCartState = {
+      items: [],
+      getCartSubtotal: () => 0,
+      getCartTotal: () => 0
+    };
     render(<Header />)
     
     // Asegurar montado inicial del trigger (isMounted effect)
@@ -101,5 +112,38 @@ describe('Header component', () => {
     // Verificar si el Sheet está en pantalla
     expect(screen.getByText('No hay productos')).toBeInTheDocument()
     expect(screen.getByText('Subtotal:')).toBeInTheDocument()
+  })
+
+  it('Debe renderizar la barra de envío gratis y el botón de pagar cuando hay productos', async () => {
+    mockCartState = {
+      items: [
+        { id: '1', variantId: 'v-1', productId: 'p-1', title: 'Soporte Perrito', price: 25000, quantity: 1, thumbnail: '' },
+        { id: '2', variantId: 'v-2', productId: 'p-2', title: 'Organizador', price: 90000, quantity: 1, thumbnail: '' }
+      ],
+      getCartSubtotal: () => 115000,
+      getCartTotal: () => 115000
+    };
+
+    render(<Header />)
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+
+    const cartBadge = screen.getByText('2', { selector: '.bg-black.text-white' })
+    await act(async () => {
+      fireEvent.click(cartBadge)
+    })
+
+    // Debe mostrar los productos
+    expect(screen.getByText('Soporte Perrito')).toBeInTheDocument()
+    expect(screen.getByText('Organizador')).toBeInTheDocument()
+
+    // Debe mostrar la barra de progreso de envío gratis
+    expect(screen.getByText(/para/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Envío Gratis/i).length).toBeGreaterThan(0)
+
+    // Debe mostrar el botón de ir a pagar
+    expect(screen.getByRole('button', { name: /Ir a pagar/i })).toBeInTheDocument()
   })
 })

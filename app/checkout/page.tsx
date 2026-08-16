@@ -207,6 +207,20 @@ export default function CheckoutPage() {
     }
   }, [customer?.addresses, selectedAddressId]);
 
+  // Auto-completar datos de quien recibe (Paso 3) a partir de la dirección seleccionada
+  useEffect(() => {
+    if (selectedAddress) {
+      setReceiverData((prev) => {
+        const autoName = `${selectedAddress.first_name || ''} ${selectedAddress.last_name || ''}`.trim();
+        return {
+          ...prev,
+          fullName: prev.fullName || autoName || (customer ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim() : ''),
+          phone: prev.phone || selectedAddress.phone || (customer?.phone || ''),
+        };
+      });
+    }
+  }, [selectedAddress, customer]);
+
   const handleSaveAddress = async (data: AddressFormData) => {
     if (isGuest) {
       const mockAddress: Address = {

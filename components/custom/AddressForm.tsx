@@ -83,7 +83,12 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
     const main = formData.address_1.trim();
     const unit = unitDetails.trim();
     const combinedAddress = unit ? `${main}, ${unit}` : main;
-    onSubmit({ ...formData, address_1: combinedAddress });
+    const finalPostalCode = formData.postal_code.trim() || "110111";
+    onSubmit({
+      ...formData,
+      address_1: combinedAddress,
+      postal_code: finalPostalCode,
+    });
   };
 
   // Sort departments alphabetically
@@ -94,22 +99,43 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Nombre *</Label>
-          <Input required value={formData.first_name} onChange={(e) => handleChange("first_name", e.target.value)} />
+          <Input 
+            required 
+            autoComplete="given-name"
+            value={formData.first_name} 
+            onChange={(e) => handleChange("first_name", e.target.value)} 
+          />
         </div>
         <div className="space-y-2">
           <Label>Apellido *</Label>
-          <Input required value={formData.last_name} onChange={(e) => handleChange("last_name", e.target.value)} />
+          <Input 
+            required 
+            autoComplete="family-name"
+            value={formData.last_name} 
+            onChange={(e) => handleChange("last_name", e.target.value)} 
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Teléfono *</Label>
-          <Input required value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} />
+          <Input 
+            required 
+            type="tel"
+            autoComplete="tel"
+            placeholder="Ej: 300 123 4567"
+            value={formData.phone} 
+            onChange={(e) => handleChange("phone", e.target.value)} 
+          />
         </div>
         <div className="space-y-2">
           <Label>Empresa (Opcional)</Label>
-          <Input value={formData.company} onChange={(e) => handleChange("company", e.target.value)} />
+          <Input 
+            autoComplete="organization"
+            value={formData.company} 
+            onChange={(e) => handleChange("company", e.target.value)} 
+          />
         </div>
       </div>
 
@@ -118,15 +144,17 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
           <Label>Dirección *</Label>
           <Input
             required
-            placeholder="Calle 123 # 45 - 67"
+            autoComplete="address-line1"
+            placeholder="Ej: Calle 123 # 45 - 67"
             value={formData.address_1}
             onChange={(e) => handleChange("address_1", e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <Label>Apto / Casa / Local</Label>
+          <Label>Apto / Casa / Local (Opcional)</Label>
           <Input
-            placeholder="Apartamento, Casa, Local u Oficina"
+            autoComplete="address-line2"
+            placeholder="Apto, Casa, Torre, Oficina..."
             value={unitDetails}
             onChange={(e) => setUnitDetails(e.target.value)}
           />
@@ -169,8 +197,13 @@ export default function AddressForm({ initialData, onSubmit, onCancel, loading, 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Código Postal *</Label>
-          <Input required value={formData.postal_code} onChange={(e) => handleChange("postal_code", e.target.value)} />
+          <Label>Código Postal (Opcional)</Label>
+          <Input 
+            autoComplete="postal-code"
+            placeholder="Ej: 110111"
+            value={formData.postal_code} 
+            onChange={(e) => handleChange("postal_code", e.target.value)} 
+          />
         </div>
         <div className="space-y-2">
           <Label>País</Label>

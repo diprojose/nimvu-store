@@ -51,70 +51,82 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
   }
 
   return (
-    <div className="product-item flex items-center justify-between mb-5">
-      <div className="remove-product mr-2 grow">
+    <div className="product-item flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0">
+      {/* Thumbnail */}
+      <div className="relative h-16 w-16 min-w-16 rounded-md overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+        {item.thumbnail ? (
+          <Link href={`/productos/${item.productId || item.id}`}>
+            <Image
+              src={item.thumbnail}
+              fill
+              alt={item.title}
+              sizes="64px"
+              className="object-cover"
+            />
+          </Link>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+            Sin foto
+          </div>
+        )}
+      </div>
+
+      {/* Info: Title, Variant, Price */}
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <Link 
+          href={`/productos/${item.productId || item.id}`}
+          className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors line-clamp-2 leading-snug"
+        >
+          {item.title}
+        </Link>
+        {item.variantName && (
+          <span className="text-xs text-gray-500 mt-0.5">{item.variantName}</span>
+        )}
+        <div className="flex items-center gap-2 mt-1">
+          {originalPrice && originalPrice > displayPrice ? (
+            <>
+              <span className="text-gray-400 line-through text-xs">{formatPrice(originalPrice)}</span>
+              <span className="text-red-600 font-semibold text-sm">{formatPrice(displayPrice)}</span>
+            </>
+          ) : (
+            <span className="text-gray-900 font-semibold text-sm">{formatPrice(displayPrice)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Right side: Delete button & Quantity Stepper */}
+      <div className="flex flex-col items-end justify-between shrink-0 gap-2">
         <button
-          className="cursor-pointer text-gray-400 hover:text-red-600 transition-colors"
+          className="cursor-pointer text-gray-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-gray-50"
           onClick={handleRemoveFromCart}
           aria-label="Eliminar producto"
         >
           <Trash2 className="w-4 h-4" />
         </button>
-      </div>
-      <div className="w-full aspect-square relative overflow-hidden max-w-12.5 mr-2 grow-2">
-        {item.thumbnail ? (
-          <Link href={`/productos/${item.id}`}>
-            <Image
-              src={item.thumbnail}
-              fill
-              alt={item.title}
-              sizes="50px"
-              className="object-cover rounded-md"
-            />
-          </Link>
-        ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-            No Image
-          </div>
-        )}
-      </div>
-      <div className="right-side grow-4 w-full pr-1">
-        <Link href={`/productos/${item.id}`}><span className="font-medium">{item.title}</span></Link>
-        {item.variantName && <span className="text-xs text-gray-500">{item.variantName}</span>}
-        <p className="flex gap-2 font-medium items-center">
-          {originalPrice && originalPrice > displayPrice ? (
-            <>
-              <span className="text-gray-400 line-through text-sm">{formatPrice(originalPrice)}</span>
-              <span className="text-red-600 font-bold">{formatPrice(displayPrice)}</span>
-            </>
-          ) : (
-            <span className="text-black">{formatPrice(displayPrice)}</span>
-          )}
-        </p>
-      </div>
-      <div className="quantity-controls grow-3">
-        {cart ? (
-          <div className="flex items-center border border-gray-300 rounded-md w-fit">
-            <button
-              onClick={(): void => handleDecreaseQuantity()}
-              className="p-2 hover:bg-gray-50 transition-colors"
-              aria-label="Decrease quantity"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <span className="w-8 text-center font-medium">{item.quantity}</span>
-            <button
-              onClick={(): void => handleIncreaseQuantity()}
-              className="p-2 hover:bg-gray-50 transition-colors"
-              aria-label="Increase quantity"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <span className="w-8 text-center font-medium">{item.quantity}</span>
-        )}
 
+        <div className="quantity-controls">
+          {cart ? (
+            <div className="flex items-center border border-gray-200 rounded-md bg-white shadow-xs">
+              <button
+                onClick={(): void => handleDecreaseQuantity()}
+                className="p-1 hover:bg-gray-100 transition-colors text-gray-600 rounded-l"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+              <span className="w-7 text-center text-xs font-semibold text-gray-800">{item.quantity}</span>
+              <button
+                onClick={(): void => handleIncreaseQuantity()}
+                className="p-1 hover:bg-gray-100 transition-colors text-gray-600 rounded-r"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <span className="text-sm font-medium text-gray-600">{item.quantity}</span>
+          )}
+        </div>
       </div>
     </div>
   );

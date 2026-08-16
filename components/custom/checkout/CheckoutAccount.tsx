@@ -41,25 +41,38 @@ export const CheckoutAccount: FC<CheckoutAccountProps> = ({ customer, guestEmail
           <div className="space-y-6">
             {!guestEmail ? (
               <>
-                <div className="space-y-4">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (tempEmail && tempEmail.includes('@')) {
+                      handleContinueGuest();
+                    }
+                  }} 
+                  className="space-y-4"
+                >
                   <div className="space-y-2">
                     <Label htmlFor="guest-email">Continuar como invitado</Label>
                     <div className="flex gap-2">
                       <Input 
                         id="guest-email"
                         type="email" 
+                        autoComplete="email"
                         placeholder="tu@correo.com" 
                         value={tempEmail}
                         onChange={(e) => setTempEmail(e.target.value)}
                         className="flex-1"
                       />
-                      <Button onClick={handleContinueGuest} disabled={!tempEmail || !tempEmail.includes('@')} className="bg-black text-white hover:bg-gray-800">
+                      <Button 
+                        type="submit"
+                        disabled={!tempEmail || !tempEmail.includes('@')} 
+                        className="bg-black text-white hover:bg-gray-800"
+                      >
                         Continuar
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500">Recibirás la confirmación de tu pedido en este correo.</p>
                   </div>
-                </div>
+                </form>
 
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">

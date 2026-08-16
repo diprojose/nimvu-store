@@ -2,7 +2,7 @@ import React, { FC, ReactElement } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User } from "lucide-react";
+import { User, ShieldCheck } from "lucide-react";
 
 export interface ReceiverData {
   fullName: string;
@@ -26,30 +26,38 @@ export const CheckoutReceiver: FC<CheckoutReceiverProps> = ({ selectedAddressId,
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-500">Datos de contacto para la transportadora.</p>
+        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2.5 rounded-md border border-gray-100">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Datos para la guía de transporte y facturación. El nombre y teléfono se completan con tu dirección.</span>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="receiverName">Nombre Completo</Label>
+            <Label htmlFor="receiverName">Nombre Completo *</Label>
             <Input
               id="receiverName"
+              autoComplete="name"
               placeholder="Ej: José Parejo"
               value={receiverData.fullName}
               onChange={(e) => setReceiverData({ ...receiverData, fullName: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="receiverId">Cédula / NIT</Label>
+            <Label htmlFor="receiverId">Cédula de Ciudadanía / NIT *</Label>
             <Input
               id="receiverId"
-              placeholder="Para facturación electrónica"
+              inputMode="numeric"
+              placeholder="Ej: 1020304050"
               value={receiverData.idNumber}
               onChange={(e) => setReceiverData({ ...receiverData, idNumber: e.target.value })}
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="receiverPhone">Celular de contacto</Label>
+            <Label htmlFor="receiverPhone">Celular de contacto *</Label>
             <Input
               id="receiverPhone"
+              type="tel"
+              autoComplete="tel"
               placeholder="Ej: 300 123 4567"
               value={receiverData.phone}
               onChange={(e) => setReceiverData({ ...receiverData, phone: e.target.value })}

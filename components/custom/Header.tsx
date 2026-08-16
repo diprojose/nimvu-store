@@ -4,7 +4,7 @@ import React, { FC, ReactElement, useMemo, useState } from "react";
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
-import { ShoppingCart, CircleUserRound, Menu, ChevronDown } from "lucide-react";
+import { ShoppingCart, CircleUserRound, Menu, ChevronDown, Truck, ArrowRight } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
 import { useCartStore, CartState, CartItem } from '@/store/cart';
 import { useAuthStore } from '@/store/authStore';
@@ -15,6 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
   SheetTitle,
+  SheetDescription,
   SheetClose
 } from "@/components/ui/sheet"
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 import { Customer } from "@/types/customer";
 import { useUniverse, universeCssVars } from "@/lib/universe-context";
 import { BackendUniverse, BackendCategory } from "@/lib/api";
@@ -236,35 +238,103 @@ const Header: FC = (): ReactElement | null => {
                     <Badge className="bg-black text-white p-1 rounded-full min-w-3.75 max-h-3.75">{productQuantity}</Badge>
                   </div>
                 </SheetTrigger>
-                <SheetContent>
-                  <SheetTitle className="text-lg font-semibold pt-2">
-                    Carrito
-                  </SheetTitle>
-                  <Separator className="mt-4" />
-                  <div className="cart-products py-5">
+                <SheetContent className="flex flex-col h-[100dvh] max-h-[100dvh] p-0 w-full max-w-[420px] sm:max-w-md bg-white dark:bg-zinc-950">
+                  <div className="p-5 pb-3 border-b border-gray-100 dark:border-gray-800 flex flex-col shrink-0">
+                    <SheetTitle className="text-lg font-bold text-gray-900 dark:text-white">
+                      Carrito
+                    </SheetTitle>
+                    <SheetDescription className="text-xs text-gray-500 mt-0.5">
+                      {productQuantity === 1 ? "1 producto seleccionado" : `${productQuantity} productos seleccionados`}
+                    </SheetDescription>
+                  </div>
+
+                  {/* Barra de Envío Gratis */}
+                  {items && items.length > 0 && (
+                    <div className="bg-emerald-50/70 border-b border-emerald-100 px-5 py-2.5 shrink-0">
+                      <div className="flex items-center gap-2 text-xs text-emerald-800 font-medium mb-1.5">
+                        <Truck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        {totalPrice >= FREE_SHIPPING_THRESHOLD ? (
+                          <span>¡Genial! Tienes <strong>Envío Gratis</strong></span>
+                        ) : (
+                          <span>
+                            Te faltan <strong>{formatPrice(FREE_SHIPPING_THRESHOLD - totalPrice)}</strong> para <strong>Envío Gratis</strong>
+                          </span>
+                        )}
+                      </div>
+                      <div className="w-full bg-emerald-200/60 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, (totalPrice / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lista de productos scrolleable */}
+                  <div className="cart-products flex-1 min-h-0 overflow-y-auto px-5 py-2">
                     {items && items.length > 0 ? (
-                      items.map((product: CartItem) => (
-                        <CartProductItem key={product.id} item={product} cart={true} />
-                      ))
+                      <div className="divide-y divide-gray-100">
+                        {items.map((product: CartItem) => (
+                          <CartProductItem key={product.id} item={product} cart={true} />
+                        ))}
+                      </div>
                     ) : (
-                      <p>No hay productos</p>
+                      <div className="h-full flex flex-col items-center justify-center text-center py-12 px-4">
+                        <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
+                          <ShoppingCart className="w-7 h-7" />
+                        </div>
+                        <p className="font-semibold text-gray-900 mb-1">No hay productos</p>
+                        <p className="text-xs text-gray-500 mb-4 max-w-[200px]">
+                          Tu carrito está vacío. Agrega tus piezas favoritas para continuar.
+                        </p>
+                        <SheetClose asChild>
+                          <Link href="/productos">
+                            <Button variant="outline" size="sm" className="text-xs uppercase tracking-wider font-semibold border-black">
+                              Ver Tienda
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                      </div>
                     )}
                   </div>
-                  <Separator />
-                  <div className="subtotal-section py-5 flex justify-between">
-                    <p>Subtotal:</p>
-                    {totalPrice ? (
-                      <p className='font-bold'>{formatPrice(totalPrice)}</p>
+
+                  {/* Footer fijo al fondo con Subtotal y Botón de Pago */}
+                  <div className="p-5 pt-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-950 mt-auto shrink-0 space-y-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+                    <div className="subtotal-section flex justify-between items-center text-sm">
+                      <p className="text-gray-600 font-medium">Subtotal:</p>
+                      {totalPrice ? (
+                        <p className="text-base font-bold text-gray-900 dark:text-white">{formatPrice(totalPrice)}</p>
+                      ) : (
+                        <p className="text-base font-bold text-gray-900 dark:text-white">{formatPrice(0)}</p>
+                      )}
+                    </div>
+                    {items && items.length > 0 ? (
+                      <div className="checkout-section flex flex-col gap-2">
+                        <SheetClose asChild>
+                          <Link href="/checkout" className="w-full">
+                            <Button className="w-full py-6 text-xs uppercase tracking-widest font-bold bg-black hover:bg-gray-800 text-white shadow-md cursor-pointer flex items-center justify-center gap-2">
+                              <span>Ir a pagar</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/cart" className="w-full text-center">
+                            <span className="text-xs text-gray-500 hover:text-black underline transition-colors cursor-pointer py-1 block">
+                              Ver carrito detallado
+                            </span>
+                          </Link>
+                        </SheetClose>
+                      </div>
                     ) : (
-                      <p className='font-bold'>{formatPrice(0)}</p>
+                      <div className="checkout-section">
+                        <SheetClose asChild>
+                          <Link href="/cart">
+                            <Button className="w-full cursor-pointer" disabled>Ir a pagar</Button>
+                          </Link>
+                        </SheetClose>
+                      </div>
                     )}
-                  </div>
-                  <div className="checkout-section py-5">
-                    <SheetClose asChild>
-                      <Link href="/cart">
-                        <Button className='w-full cursor-pointer'>Ir a pagar</Button>
-                      </Link>
-                    </SheetClose>
                   </div>
                 </SheetContent>
               </Sheet>

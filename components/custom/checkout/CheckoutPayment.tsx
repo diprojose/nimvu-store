@@ -66,13 +66,19 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-6">
-          <p className="text-sm text-blue-800">
-            {paymentMethod === 'wompi'
-              ? "Serás redirigido a la pasarela de pagos segura de Wompi Bancolombia para completar tu transacción."
-              : "Pagarás el total de tu pedido al momento de recibirlo en tu domicilio en Bogotá."}
-          </p>
-        </div>
+        {!allowInteraction ? (
+          <div className="bg-amber-50 p-3.5 rounded-md border border-amber-200 mb-6 text-xs text-amber-800 flex items-center gap-2">
+            <span>⚠️ Completa los datos de envío y receptor arriba para habilitar el pago.</span>
+          </div>
+        ) : (
+          <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-6">
+            <p className="text-sm text-blue-800">
+              {paymentMethod === 'wompi'
+                ? "Serás redirigido a la pasarela de pagos segura de Wompi Bancolombia para completar tu transacción."
+                : "Pagarás el total de tu pedido al momento de recibirlo en tu domicilio en Bogotá."}
+            </p>
+          </div>
+        )}
 
         {isBogota && (
           <div className="mb-6 space-y-3">
