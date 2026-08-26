@@ -1,5 +1,5 @@
 import Link from "next/link"
-import ReactDOM from "react-dom"
+import Image from "next/image"
 import { collections, products as apiProducts, FrontendProduct } from "@/lib/api"
 import {
   Carousel,
@@ -17,9 +17,6 @@ const BEST_SELLERS_COLLECTION_ID = "ec6d6793-e160-4858-b231-561cb035ff9f";
 const NUEVOS_COLLECTION_SLUG = "nuevos";
 
 export default async function Home() {
-  // Precarga la imagen LCP del banner (fondo CSS) para que el navegador la
-  // descubra desde el HTML inicial y la baje con prioridad alta (mejora LCP).
-  ReactDOM.preload("/banner-web-3.jpg", { as: "image", fetchPriority: "high" });
 
   let products: FrontendProduct[] = [];
   let newProducts: FrontendProduct[] = [];
@@ -62,7 +59,16 @@ export default async function Home() {
     <div className="flex items-center justify-center font-sans dark:bg-black">
       <main className="flex sm:max-w-full md:max-w-350 w-full flex-col items-center py-16 px-5 md:px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
-          <div className="call-to-action font-inter relative bg-[url(/banner-web-3.jpg)] md:max-h-500 w-full bg-cover bg-left md:bg-center h-[600px] px-6 py-10 md:p-10 flex items-start grid-cols-1 flex-col justify-start pt-24 md:justify-center md:pt-10 rounded-md">
+          <div className="call-to-action font-inter relative overflow-hidden md:max-h-500 w-full h-[600px] rounded-md">
+            <Image
+              src="/banner-web-3.jpg"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-left md:object-center"
+            />
+            <div className="relative z-10 h-full px-6 py-10 md:p-10 flex items-start flex-col justify-start pt-24 md:justify-center md:pt-10">
             <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#B55934]">
               Bienvenido a Nimvu
             </span>
@@ -87,6 +93,7 @@ export default async function Home() {
             >
               Explorar la tienda →
             </Link>
+            </div>
           </div>
         </section>
 
@@ -109,10 +116,10 @@ export default async function Home() {
         <section className="lamparas-banner w-full pb-[100px]">
           <div className="relative w-full rounded-md overflow-hidden">
             {/* Mobile Image */}
-            <img src="/banner-lamparas-mobile.jpg" alt="Colección Iluminación Nimvu Mobile" className="block md:hidden w-full h-auto" />
+            <Image src="/banner-lamparas-mobile.jpg" alt="Colección Iluminación Nimvu" width={800} height={993} sizes="100vw" className="block md:hidden w-full h-auto" />
 
             {/* Desktop Image */}
-            <img src="/banner-lamparas.jpg" alt="Colección Iluminación Nimvu Desktop" className="hidden md:block w-full h-auto" />
+            <Image src="/banner-lamparas.jpg" alt="" aria-hidden="true" width={1400} height={434} sizes="100vw" className="hidden md:block w-full h-auto" />
 
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
@@ -169,10 +176,10 @@ export default async function Home() {
         <section className="kpop-banner w-full">
           <div className="relative w-full rounded-md overflow-hidden">
             {/* Mobile Image */}
-            <img src="/bts21-3.jpg" alt="Colección K-POP Mobile" className="block md:hidden w-full h-auto" />
+            <Image src="/bts21-3.jpg" alt="Colección K-POP Nimvu" width={825} height={1024} sizes="100vw" className="block md:hidden w-full h-auto" />
 
             {/* Desktop Image */}
-            <img src="/bts21-1.jpg" alt="Colección K-POP Desktop" className="hidden md:block w-full h-auto" />
+            <Image src="/bts21-1.jpg" alt="" aria-hidden="true" width={1024} height={318} sizes="100vw" className="hidden md:block w-full h-auto" />
 
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-16 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">

@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Inlinea el CSS en el HTML en vez de servirlo como <link> aparte. Elimina el
+  // recurso que bloqueaba la renderización y acorta la cadena crítica.
+  // Coste medido: +16.9 KB gzip en la primera carga. Ver notas del equipo.
+  experimental: {
+    inlineCss: true,
+  },
+  // Inlinea el CSS en el HTML en vez de servirlo como <link> aparte. Elimina el
+  // recurso que bloqueaba la renderización y acorta la cadena crítica (~635ms -> ~340ms).
   images: {
     unoptimized: process.env.NODE_ENV === 'development',
     formats: ['image/avif', 'image/webp'],

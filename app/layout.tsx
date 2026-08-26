@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import ReactDOM from "react-dom";
-import { Geist, Geist_Mono, Source_Serif_4, Inter } from "next/font/google";
+import { Source_Serif_4, Inter } from "next/font/google";
 import "./globals.css";
 import Header from '../components/custom/Header';
 import Footer from '../components/custom/Footer';
@@ -15,16 +15,6 @@ import {
 } from '@/lib/api';
 import { UniverseProvider } from '@/lib/universe-context';
 
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
@@ -73,7 +63,7 @@ export default async function RootLayout({
     <html lang="en" className="overflow-y-scroll">
       <GoogleTagManager gtmId="GTM-P7JXWM9B" />
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${inter.variable} antialiased`}
+        className={`${sourceSerif.variable} ${inter.variable} antialiased`}
       >
         <noscript>
           <iframe
