@@ -37,7 +37,8 @@ export interface CheckoutPaymentProps {
   isMounted: boolean;
   loading: boolean;
   showReset: boolean;
-  setShowReset: (val: boolean) => void;
+  /** Reintenta el pago ya iniciado y desbloquea el botón. */
+  onRetryPayment: () => void;
   total: number;
   onWompiPayment: () => void;
   onPlaceCodOrder: () => void;
@@ -52,7 +53,7 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
   isMounted,
   loading,
   showReset,
-  setShowReset,
+  onRetryPayment,
   total,
   onWompiPayment,
   onPlaceCodOrder
@@ -119,17 +120,20 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
         )}
 
         {loading && showReset && (
-          <div className="text-center mt-3 animate-fade-in">
+          <div className="text-center mt-4 animate-fade-in">
+            <p className="text-sm text-gray-600 mb-2">
+              ¿No se abrió la ventana de pago?
+            </p>
             <button
-              onClick={() => {
-                setShowReset(false);
-                // Parent should handle loading reset if needed, we assume it's exposed or we hack it
-              }}
-              className="text-sm text-red-500 hover:text-red-700 underline flex items-center justify-center gap-2 mx-auto cursor-pointer"
+              onClick={onRetryPayment}
+              className="text-sm font-medium text-black underline hover:text-gray-600 inline-flex items-center justify-center gap-2 cursor-pointer"
             >
-              <RefreshCw className="w-3 h-3" />
-              ¿Cerraste la ventana de pago? Da clic para reiniciar UI (no cancela el proceso Wompi subyacente)
+              <RefreshCw className="w-3.5 h-3.5" />
+              Reintentar el pago
             </button>
+            <p className="text-xs text-gray-500 mt-2">
+              No se cobra dos veces: es el mismo pedido.
+            </p>
           </div>
         )}
 

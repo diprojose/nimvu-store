@@ -28,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import CartCrossSellStrip from "@/components/custom/cart/CartCrossSellStrip";
 import { Customer } from "@/types/customer";
 import { useUniverse, universeCssVars } from "@/lib/universe-context";
 import { BackendUniverse, BackendCategory } from "@/lib/api";
@@ -273,11 +274,17 @@ const Header: FC = (): ReactElement | null => {
                   {/* Lista de productos scrolleable */}
                   <div className="cart-products flex-1 min-h-0 overflow-y-auto px-5 py-2">
                     {items && items.length > 0 ? (
-                      <div className="divide-y divide-gray-100">
-                        {items.map((product: CartItem) => (
-                          <CartProductItem key={product.id} item={product} cart={true} />
-                        ))}
-                      </div>
+                      <>
+                        <div className="divide-y divide-gray-100">
+                          {items.map((product: CartItem) => (
+                            <CartProductItem key={product.id} item={product} cart={true} />
+                          ))}
+                        </div>
+
+                        {/* El boton principal del drawer va directo al checkout, asi
+                            que esta es la ultima vez que el cliente ve lo que lleva. */}
+                        <CartCrossSellStrip />
+                      </>
                     ) : (
                       <div className="h-full flex flex-col items-center justify-center text-center py-12 px-4">
                         <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">

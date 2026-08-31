@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -117,6 +117,11 @@ export default function CheckoutPage() {
   // Una vez creada la orden ya no tiene sentido seguir capturando el lead.
   const [orderPlaced, setOrderPlaced] = useState(false);
 
+  // Campos del último pago iniciado. Se guardan para poder reintentar ESE
+  // pago (misma orden, misma firma) en vez de crear una orden duplicada.
+  const wompiFieldsRef = useRef<Record<string, string> | null>(null);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Guarda el contacto en segundo plano mientras el cliente llena el
   // formulario: si se va antes de darle a pagar, queda el dato para cerrarlo
   // por WhatsApp. No crea orden ni descuenta stock.
@@ -128,6 +133,11 @@ export default function CheckoutPage() {
     items,
     disabled: orderPlaced,
   });
+
+  // El aviso de reintento no debe seguir vivo si el cliente sale del checkout.
+  useEffect(() => () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+  }, []);
 
   const subtotal = isMounted ? getCartSubtotal() : 0;
 
@@ -285,6 +295,47 @@ export default function CheckoutPage() {
     }
   };
 
+  // Aislado en su propia función para poder reenviar el MISMO pago sin volver
+  // a crear la orden.
+  const submitWompiForm = (fields: Record<string, string>) => {
+    const form = document.createElement("form");
+    form.method = "GET";
+    form.action = "https://checkout.wompi.co/p/";
+    form.style.display = "none";
+
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  /**
+   * El cliente sigue en el checkout y la pasarela nunca se abrió. Antes este
+   * botón solo ocultaba el aviso y dejaba `loading` en true para siempre: el
+   * botón de pagar quedaba bloqueado y la única salida era recargar la página.
+   * Ahora reintenta el mismo pago —misma orden, misma firma, sin duplicar— y
+   * si no hay nada que reintentar, al menos desbloquea el botón.
+   */
+  const handleRetryPayment = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    setShowReset(false);
+
+    if (wompiFieldsRef.current) {
+      setLoading(true);
+      resetTimerRef.current = setTimeout(() => setShowReset(true), 5000);
+      submitWompiForm(wompiFieldsRef.current);
+      return;
+    }
+
+    setLoading(false);
+  };
+
   const handleWompiPayment = async () => {
     if (items.length === 0) return toast.error("Tu carrito está vacío. Agrega productos antes de pagar.");
     if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
@@ -294,10 +345,10 @@ export default function CheckoutPage() {
 
     setLoading(true);
     setShowReset(false);
-    setTimeout(() => setShowReset(true), 5000);
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => setShowReset(true), 5000);
 
     try {
-      const amountInCents = Math.floor(total * 100);
       const currency = "COP";
 
       const activeAddress = isGuest ? guestAddress : customer.addresses?.find((a: Address) => a.id === selectedAddressId);
@@ -330,6 +381,16 @@ export default function CheckoutPage() {
       // Usar el ID de la orden como reference de Wompi — así el webhook lo encuentra directamente
       const reference = newOrder.id;
 
+      // El monto a cobrar sale del total que calculó el SERVIDOR, no del que
+      // calculó el navegador. El backend revalida precios, cupón y envío, y el
+      // webhook compara el pago contra ese `order.total`: si se firmaba el total
+      // del cliente y no coincidían, el cobro entraba y la orden se quedaba
+      // PENDING para siempre (wompi.service.ts -> "MONTO INSUFICIENTE").
+      const amountInCents = Math.round(Number(newOrder.total) * 100);
+      if (!Number.isFinite(amountInCents) || amountInCents <= 0) {
+        throw new Error(`Total invalido devuelto por el servidor: ${newOrder.total}`);
+      }
+
       const response = await fetch('/api/wompi/signature', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -340,13 +401,22 @@ export default function CheckoutPage() {
       const { signature } = await response.json();
 
       const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
-      if (!publicKey) return setLoading(false);
+      if (!publicKey) {
+        // Antes: `return setLoading(false)`. La orden quedaba creada, el botón
+        // volvía a la normalidad y el cliente no veía absolutamente nada. Era el
+        // único fallo del flujo que no dejaba rastro en ninguna parte.
+        console.error("[checkout] NEXT_PUBLIC_WOMPI_PUBLIC_KEY no está configurada");
+        trackCheckoutFailure("config_public_key_ausente");
+        toast.error("No pudimos abrir la pasarela de pago. Escríbenos por WhatsApp y cerramos tu compra.");
+        setLoading(false);
+        return;
+      }
 
       // Guardar snapshot del carrito para que /order pueda disparar el evento
       // custom_purchase a Meta con los detalles correctos al volver del redirect.
       sessionStorage.setItem('purchaseItems', JSON.stringify({
         items: items,
-        total: total,
+        total: amountInCents / 100,
       }));
 
       // URL de retorno: Wompi le agregará ?id={transactionId}&env=... al final.
@@ -363,34 +433,23 @@ export default function CheckoutPage() {
       // de window.location.href directo.
       const customerEmail = isGuest ? guestEmail : customer.email;
 
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = 'https://checkout.wompi.co/p/';
-      form.style.display = 'none';
-
-      const addField = (name: string, value: string) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
+      const wompiFields: Record<string, string> = {
+        "public-key": publicKey,
+        "currency": currency,
+        "amount-in-cents": String(amountInCents),
+        "reference": reference,
+        "signature:integrity": signature,
+        "redirect-url": redirectUrl,
+        "customer-data:email": String(customerEmail ?? ""),
+        "customer-data:full-name": receiverData.fullName,
+        "customer-data:phone-number": receiverData.phone,
+        "customer-data:phone-number-prefix": "+57",
+        "customer-data:legal-id": receiverData.idNumber,
+        "customer-data:legal-id-type": "CC",
       };
 
-      addField('public-key', publicKey);
-      addField('currency', currency);
-      addField('amount-in-cents', String(amountInCents));
-      addField('reference', reference);
-      addField('signature:integrity', signature);
-      addField('redirect-url', redirectUrl);
-      addField('customer-data:email', customerEmail);
-      addField('customer-data:full-name', receiverData.fullName);
-      addField('customer-data:phone-number', receiverData.phone);
-      addField('customer-data:phone-number-prefix', '+57');
-      addField('customer-data:legal-id', receiverData.idNumber);
-      addField('customer-data:legal-id-type', 'CC');
-
-      document.body.appendChild(form);
-      form.submit();
+      wompiFieldsRef.current = wompiFields;
+      submitWompiForm(wompiFields);
     } catch (err) {
       // Antes esto mostraba siempre el mismo texto genérico, así que cuando un
       // cliente decía "no puedo pagar" no quedaba ni rastro de la causa.
@@ -510,7 +569,7 @@ export default function CheckoutPage() {
               isMounted={isMounted}
               loading={loading}
               showReset={showReset}
-              setShowReset={setShowReset}
+              onRetryPayment={handleRetryPayment}
               total={total}
               onWompiPayment={handleWompiPayment}
               onPlaceCodOrder={() => handlePlaceOrder(true)}
