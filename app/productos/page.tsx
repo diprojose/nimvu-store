@@ -5,6 +5,16 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import categoryImages from "@/data/categoryImages.json";
+import type { Metadata } from "next";
+
+// El canónico apunta siempre a /productos: los filtros por query (?category=)
+// muestran el mismo catálogo y no deben competir como URLs distintas.
+export const metadata: Metadata = {
+  title: "Productos",
+  description:
+    "Explora el catálogo Nimvu: lámparas, materas, organizadores y piezas de diseño impresas en 3D para tu hogar.",
+  alternates: { canonical: "/productos" },
+};
 
 function categoryHref(universeSlug: string | undefined, slug: string): string {
   if (!universeSlug || universeSlug === "hogar") return `/categorias/${slug}`;

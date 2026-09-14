@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Políticas de devoluciones',
+  description: 'Conoce las condiciones, plazos y el proceso para cambios y devoluciones de productos Nimvu.',
+  alternates: { canonical: '/politicas-de-devoluciones' },
+};
+
 import React, { FC, ReactElement } from "react";
 
 const ReturnPolicy: FC = (): ReactElement => {

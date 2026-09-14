@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+import { NO_INDEX } from '@/lib/seo';
+
+// Ruta placeholder heredada (la real es /categorias/[slug]); fuera del índice.
+export const metadata: Metadata = {
+  title: 'About',
+  ...NO_INDEX,
+};
+
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">

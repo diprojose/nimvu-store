@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Términos de uso',
+  description: 'Términos y condiciones que rigen el uso del sitio web y las compras en Nimvu.',
+  alternates: { canonical: '/terminos-de-uso' },
+};
+
 import React, { FC, ReactElement } from "react";
 
 const TermsOfUse: FC = (): ReactElement => {

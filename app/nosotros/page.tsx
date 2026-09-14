@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sobre Nimvu',
+  description: 'Conoce la historia de Nimvu: diseño colombiano impreso en 3D, pensado para acompañar tus momentos.',
+  alternates: { canonical: '/nosotros' },
+};
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

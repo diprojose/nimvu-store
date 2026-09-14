@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Políticas de privacidad',
+  description: 'Cómo Nimvu recolecta, usa y protege tus datos personales.',
+  alternates: { canonical: '/politicas-de-privacidad' },
+};
+
 import React, { FC, ReactElement } from "react";
 
 const PrivacyPolicy: FC = (): ReactElement => {

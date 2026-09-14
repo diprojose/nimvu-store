@@ -156,6 +156,8 @@ export interface FrontendProduct {
   longDescription?: string;
   discountEndDate?: string | null;
   isB2BOnly?: boolean;
+  /** Fecha de última modificación en backend; la usa el sitemap como lastModified. */
+  updatedAt?: string;
   // Add other fields as necessary based on usage
 }
 
@@ -201,6 +203,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     longDescription: product.longDescription || "",
     discountEndDate: product.discountEndDate || null,
     isB2BOnly: product.isB2BOnly || false,
+    updatedAt: product.updatedAt,
   };
 };
 
@@ -408,6 +411,12 @@ export const discounts = {
 };
 
 export const collections = {
+  list: async () => {
+    const data = await fetchWrapper<BackendCollection[]>(`/collections`, {
+      next: { revalidate: 300, tags: ['collections'] },
+    });
+    return data;
+  },
   retrieve: async (id: string) => {
     const data = await fetchWrapper<BackendCollection>(`/collections/${id}`, {
       next: { revalidate: 300, tags: ['collections'] },

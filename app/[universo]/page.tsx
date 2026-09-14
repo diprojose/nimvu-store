@@ -19,11 +19,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const u = await universesApi.retrieve(universo);
     return {
-      title: `${u.name} | Nimvu`,
+      title: u.name,
       description: u.description ?? `Productos del universo ${u.name} de Nimvu.`,
+      alternates: { canonical: `/${u.slug}` },
     };
   } catch {
-    return { title: "Nimvu" };
+    return { title: "Nimvu", robots: { index: false, follow: true } };
   }
 }
 

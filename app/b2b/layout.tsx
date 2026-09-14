@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import B2BHeader from '@/components/b2b/B2BHeader';
 import B2BFooter from '@/components/b2b/B2BFooter';
+import { NO_INDEX } from '@/lib/seo';
+
+// Portal mayorista tras login: no debe indexarse.
+export const metadata: Metadata = {
+  title: 'Nimvu B2B',
+  ...NO_INDEX,
+};
 
 export default function B2BLayout({
   children,

@@ -14,13 +14,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const cat = u.categories?.find((c) => c.slug === slug);
     if (cat) {
       return {
-        title: `${cat.name} · ${u.name} | Nimvu`,
+        title: `${cat.name} · ${u.name}`,
         description: cat.description ?? `Categoría ${cat.name} del universo ${u.name}.`,
+        alternates: { canonical: `/${u.slug}/categorias/${cat.slug}` },
       };
     }
-    return { title: `${u.name} | Nimvu` };
+    return { title: u.name, alternates: { canonical: `/${u.slug}` } };
   } catch {
-    return { title: "Nimvu" };
+    return { title: "Nimvu", robots: { index: false, follow: true } };
   }
 }
 

@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Preguntas frecuentes',
+  description: 'Resolvemos las dudas más comunes sobre envíos, pagos, garantías y cuidados de las piezas Nimvu.',
+  alternates: { canonical: '/faq' },
+};
+
 import React, { FC, ReactElement } from "react";
 import {
   Accordion,

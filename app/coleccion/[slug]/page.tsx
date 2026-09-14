@@ -1,6 +1,25 @@
 import { collections, FrontendProduct } from "@/lib/api"
 import ProductItem from "@/components/custom/singleProduct"
 import collectionImages from "@/data/collectionImages.json"
+import type { Metadata } from "next"
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> | { slug: string } }): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const collection = await collections.retrieveBySlug(slug);
+    return {
+      title: collection.name,
+      description: collection.description || `Descubre la colección ${collection.name} de Nimvu.`,
+      alternates: { canonical: `/coleccion/${slug}` },
+      openGraph: collection.image ? { images: [collection.image] } : undefined,
+    };
+  } catch {
+    return {
+      title: "Colección no encontrada",
+      robots: { index: false, follow: true },
+    };
+  }
+}
 
 // Define interface for the collection data we use
 interface CollectionData {
