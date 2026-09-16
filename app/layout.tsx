@@ -4,6 +4,7 @@ import { Source_Serif_4, Inter } from "next/font/google";
 import "./globals.css";
 import Header from '../components/custom/Header';
 import Footer from '../components/custom/Footer';
+import ChromeGate from '../components/custom/ChromeGate';
 import { Toaster } from "@/components/ui/sonner"
 import FloatingWhatsApp from '@/components/custom/FloatingWhatsApp';
 import { GoogleTagManager } from '@next/third-parties/google'
@@ -137,12 +138,18 @@ export default async function RootLayout({
           />
         </noscript>
         <UniverseProvider initialUniverses={initialUniverses} initialCategories={initialCategories}>
-          <Header />
+          <ChromeGate>
+            <Header />
+          </ChromeGate>
           {children}
-          <Footer />
+          <ChromeGate>
+            <Footer />
+          </ChromeGate>
         </UniverseProvider>
         <Toaster />
-        <FloatingWhatsApp />
+        <ChromeGate>
+          <FloatingWhatsApp />
+        </ChromeGate>
       </body>
     </html>
   );
