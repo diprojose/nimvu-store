@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
+import { useCartUIStore } from "@/store/cartUI";
 
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
@@ -62,6 +62,7 @@ const loadSuggestions = (ids: string): Promise<CrossSellProduct[]> => {
 export default function CartCrossSellStrip() {
   const items = useCartStore((state) => state.items);
   const addItem = useCartStore((state) => state.addItem);
+  const notifyAdded = useCartUIStore((state) => state.notifyAdded);
 
   // Se congela al abrir el drawer. Si se recalculara con cada "Agregar", la
   // tira se reordenaría bajo el dedo del cliente justo al tocarla.
@@ -97,7 +98,8 @@ export default function CartCrossSellStrip() {
     addItem(product, product.id, 1);
     // Lleva los campos que el evento usa (id, title, category, precios).
     trackAddToCart(product as unknown as FrontendProduct, 1);
-    toast.success("¡Producto agregado!", { position: "top-center" });
+    // El drawer ya esta abierto: basta con resaltar el producto en la lista.
+    notifyAdded(product.id, false);
   };
 
   return (

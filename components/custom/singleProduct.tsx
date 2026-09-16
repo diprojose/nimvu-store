@@ -6,10 +6,10 @@ import { FrontendProduct } from "@/lib/api";
 import { cn, formatPrice } from "@/lib/utils";
 import { ShoppingCart, Eye } from "lucide-react";
 import { useCartStore } from '@/store/cart';
-import { toast } from "sonner"
 import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
 import { trackAddToCart } from "@/lib/analytics";
+import { useAddedToCart } from "@/hooks/useAddedToCart";
 
 export interface ProductItemProps {
   item: FrontendProduct;
@@ -18,13 +18,14 @@ export interface ProductItemProps {
 const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactElement => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const addToCart: (product: FrontendProduct, variantId: string, quantity: number) => void = useCartStore((state: any) => state.addItem);
+  const notifyAdded = useAddedToCart();
 
   const handleAddToCart = (): void => {
     // Add logic to select variant if needed, for now default to first or product ID
     const variantId: string = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, 1);
     trackAddToCart(item, 1);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center" });
+    notifyAdded(variantId);
   };
 
   return (

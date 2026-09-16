@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useCartStore } from '@/store/cart';
-import { toast } from "sonner";
+import { useAddedToCart } from "@/hooks/useAddedToCart";
 import { FrontendProduct } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { trackAddToCart } from "@/lib/analytics";
@@ -41,6 +41,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [slideCount, setSlideCount] = useState(0);
 
   const addToCart = useCartStore((state) => state.addItem);
+  const notifyAdded = useAddedToCart();
 
   // Stock disponible según la variante seleccionada (o el producto base)
   const currentStock = selectedVariant
@@ -82,7 +83,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     const variantId = selectedVariant?.id || product.id;
     addToCart(product, variantId, quantity);
     trackAddToCart(product, quantity);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center" });
+    notifyAdded(variantId);
   };
 
   // Sync carousel dot indicators

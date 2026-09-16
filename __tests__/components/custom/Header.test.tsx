@@ -1,6 +1,7 @@
 import { render, screen, act, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Header from '@/components/custom/Header'
+import { useCartUIStore } from '@/store/cartUI'
 
 let mockCartState: any = {
   items: [],
@@ -63,6 +64,12 @@ vi.mock('next/image', () => ({
 }))
 
 describe('Header component', () => {
+  // El drawer del carrito vive en un store de modulo compartido entre tests:
+  // sin reiniciarlo, el test anterior lo deja abierto y el clic lo cierra.
+  beforeEach(() => {
+    useCartUIStore.setState({ isOpen: false, lastAddedId: null })
+  })
+
   it('Debe renderizar el logo y los enlaces de navegación', async () => {
     mockCartState = {
       items: [],

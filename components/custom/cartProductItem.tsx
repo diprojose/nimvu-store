@@ -1,9 +1,10 @@
 "use client";
-import React, { FC, ReactElement } from "react";
+import React, { FC, ReactElement, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore, CartState, CartItem } from '@/store/cart';
+import { useCartUIStore } from '@/store/cartUI';
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +18,19 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
 
   const removeItem: (itemId: string) => void = useCartStore((state: CartState) => state.removeItem);
   const updateQuantity: (itemId: string, quantity: number) => void = useCartStore((state: CartState) => state.updateQuantity);
+
+  // Resalta el producto recién agregado. Sustituye al toast: en vez de avisar
+  // aparte, se señala la fila dentro del propio carrito.
+  const justAdded: boolean = useCartUIStore((state) => state.lastAddedId === item.id);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  // Si el carrito ya trae varios productos, el recién agregado puede quedar
+  // fuera de la zona visible del panel; sin esto el cliente abriría el carrito
+  // y no vería lo que acaba de pasar.
+  useEffect(() => {
+    if (!justAdded) return;
+    rowRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [justAdded]);
 
   const handleRemoveFromCart = (): void => {
     removeItem(item.id);
@@ -51,7 +65,12 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
   }
 
   return (
-    <div className="product-item flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0">
+    <div
+      ref={rowRef}
+      className={`product-item flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0 transition-colors duration-500 ${
+        justAdded ? "bg-emerald-50/70 -mx-2 px-2 rounded-md" : ""
+      }`}
+    >
       {/* Thumbnail */}
       <div className="relative h-16 w-16 min-w-16 rounded-md overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
         {item.thumbnail ? (

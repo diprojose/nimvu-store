@@ -6,14 +6,15 @@ import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { FrontendProduct } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from '@/store/cart';
-import { toast } from "sonner";
 import { trackAddToCart } from "@/lib/analytics";
+import { useAddedToCart } from "@/hooks/useAddedToCart";
 
 const QuickView = ({ item }: { item: FrontendProduct }) => {
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
 
   const addToCart = useCartStore((state) => state.addItem);
+  const notifyAdded = useAddedToCart();
 
   useEffect(() => {
     if (item.thumbnail) setSelectedImage(item.thumbnail)
@@ -27,7 +28,7 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
     const variantId = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, quantity);
     trackAddToCart(item, quantity);
-    toast.success("¡Producto agregado al carrito!", { position: "top-center" })
+    notifyAdded(variantId);
   };
 
   return (

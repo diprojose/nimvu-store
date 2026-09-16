@@ -7,6 +7,7 @@ import Image from "next/image";
 import { ShoppingCart, CircleUserRound, Menu, ChevronDown, Truck, ArrowRight } from "lucide-react";
 import CartProductItem from "@/components/custom/cartProductItem";
 import { useCartStore, CartState, CartItem } from '@/store/cart';
+import { useCartUIStore } from '@/store/cartUI';
 import { useAuthStore } from '@/store/authStore';
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 import CartCrossSellStrip from "@/components/custom/cart/CartCrossSellStrip";
+import CartAddedBanner from "@/components/custom/cart/CartAddedBanner";
 import { Customer } from "@/types/customer";
 import { useUniverse, universeCssVars } from "@/lib/universe-context";
 import { BackendUniverse, BackendCategory } from "@/lib/api";
@@ -132,6 +134,11 @@ function UniverseColumn({
 }
 
 const Header: FC = (): ReactElement | null => {
+  // El drawer se controla desde el store para poder abrirlo al agregar un
+  // producto desde cualquier parte del sitio, no solo desde este icono.
+  const isCartOpen: boolean = useCartUIStore((state) => state.isOpen);
+  const setCartOpen: (open: boolean) => void = useCartUIStore((state) => state.setOpen);
+
   const items: CartItem[] = useCartStore((state: CartState): CartItem[] => state.items);
   const getCartSubtotal: (isB2BContext?: boolean) => number = useCartStore((state: CartState) => state.getCartSubtotal);
 
@@ -232,7 +239,7 @@ const Header: FC = (): ReactElement | null => {
           {/* Acciones: Carrito/Contacto */}
           <div className="flex items-center space-x-4">
             {isMounted ? (
-              <Sheet>
+              <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
                 <SheetTrigger>
                   <div className="flex relative">
                     <ShoppingCart className="w-7 h-7 cursor-pointer" />
@@ -248,6 +255,10 @@ const Header: FC = (): ReactElement | null => {
                       {productQuantity === 1 ? "1 producto seleccionado" : `${productQuantity} productos seleccionados`}
                     </SheetDescription>
                   </div>
+
+                  {/* Confirmación de "producto agregado": lo primero que se lee
+                      al abrirse el carrito tras agregar algo. */}
+                  <CartAddedBanner />
 
                   {/* Barra de Envío Gratis */}
                   {items && items.length > 0 && (
