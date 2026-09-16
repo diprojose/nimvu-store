@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === "production" ? "https://nimvu-be-nest.onrender.com" : "http://localhost:3001");
+// En desarrollo se usa 127.0.0.1 (IPv4) y no 'localhost': en Windows 'localhost'
+// resuelve primero a IPv6 (::1), y si otro proceso ocupa ese lado del puerto
+// 3001 —Docker Desktop lo hace— las peticiones se van a ese proceso y vuelven
+// 404 aunque el backend esté corriendo. El admin ya tenía esta misma corrección.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === "production" ? "https://nimvu-be-nest.onrender.com" : "http://127.0.0.1:3001");
 
 export const api = axios.create({
   baseURL: API_URL,
