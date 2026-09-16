@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useState } from "react";
+import React, { FC, ReactElement, useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,30 @@ export interface CheckoutAccountProps {
   setGuestEmail: (email: string) => void;
 }
 
+/**
+ * Un correo valido de verdad: algo@algo.tld con un TLD de al menos 2 letras.
+ * No basta con buscar "@" — con "jose@gmail" se avanzaba y la confirmacion
+ * del pedido nunca llegaba a ninguna parte.
+ */
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
 export const CheckoutAccount: FC<CheckoutAccountProps> = ({ customer, guestEmail, setGuestEmail }): ReactElement => {
   const [tempEmail, setTempEmail] = useState(guestEmail);
+  // Solo se marca en rojo cuando el campo ya perdio el foco: avisar mientras
+  // el cliente escribe la primera letra es ruido, no ayuda.
+  const [touched, setTouched] = useState(false);
 
-  const handleContinueGuest = () => {
-    setGuestEmail(tempEmail);
-  };
+  const trimmedEmail = tempEmail.trim();
+  const isValidEmail = EMAIL_RE.test(trimmedEmail);
+
+  // Sin boton: en cuanto el correo es valido se avanza solo. Se hace con un
+  // pequeno retraso para no dar el paso por bueno a media escritura (p. ej.
+  // "jose@gmail.co" camino a "jose@gmail.com").
+  useEffect(() => {
+    if (!isValidEmail) return;
+    const t = setTimeout(() => setGuestEmail(trimmedEmail), 700);
+    return () => clearTimeout(t);
+  }, [isValidEmail, trimmedEmail, setGuestEmail]);
 
   return (
     <Card className="shadow-sm border-0 ring-1 ring-gray-200">
@@ -41,36 +59,39 @@ export const CheckoutAccount: FC<CheckoutAccountProps> = ({ customer, guestEmail
           <div className="space-y-6">
             {!guestEmail ? (
               <>
-                <form 
+                <form
                   onSubmit={(e) => {
+                    // El Enter sigue funcionando y se salta la espera.
                     e.preventDefault();
-                    if (tempEmail && tempEmail.includes('@')) {
-                      handleContinueGuest();
-                    }
-                  }} 
+                    if (isValidEmail) setGuestEmail(trimmedEmail);
+                  }}
                   className="space-y-4"
                 >
                   <div className="space-y-2">
                     <Label htmlFor="guest-email">Continuar como invitado</Label>
-                    <div className="flex gap-2">
-                      <Input 
+                    <div className="relative">
+                      <Input
                         id="guest-email"
-                        type="email" 
+                        type="email"
                         autoComplete="email"
-                        placeholder="tu@correo.com" 
+                        placeholder="tu@correo.com"
                         value={tempEmail}
                         onChange={(e) => setTempEmail(e.target.value)}
-                        className="flex-1"
+                        onBlur={() => setTouched(true)}
+                        aria-invalid={touched && !!trimmedEmail && !isValidEmail}
+                        className={`pr-10 ${touched && trimmedEmail && !isValidEmail ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                       />
-                      <Button 
-                        type="submit"
-                        disabled={!tempEmail || !tempEmail.includes('@')} 
-                        className="bg-black text-white hover:bg-gray-800"
-                      >
-                        Continuar
-                      </Button>
+                      {isValidEmail && (
+                        <CheckCircle2 className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-600" />
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500">Recibirás la confirmación de tu pedido en este correo.</p>
+                    {touched && trimmedEmail && !isValidEmail ? (
+                      <p className="text-sm text-red-600" role="alert">
+                        Revisa el correo: parece incompleto.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">Recibirás la confirmación de tu pedido en este correo.</p>
+                    )}
                   </div>
                 </form>
 
