@@ -182,6 +182,15 @@ export default function CheckoutPage() {
   const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + effectiveShippingCost)) : 0;
   const isBogota = selectedAddress?.city?.toLowerCase()?.includes('bogota') || selectedAddress?.city?.toLowerCase()?.includes('bogotá') || false;
 
+  // Segunda barrera, independiente del formulario: una dirección guardada antes
+  // de que existiera la validación puede venir sin ciudad o departamento, y sin
+  // esos datos no se puede cotizar el envío ni despachar la guía.
+  const hasCompleteAddress = !!(
+    selectedAddress?.address_1?.trim() &&
+    selectedAddress?.city?.trim() &&
+    selectedAddress?.province?.trim()
+  );
+
   useEffect(() => {
     if (selectedAddress) {
       if (!isBogota) setPaymentMethod('wompi');
@@ -341,6 +350,7 @@ export default function CheckoutPage() {
     if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
+    if (!hasCompleteAddress) return toast.error("Tu dirección está incompleta: falta ciudad o departamento. Edítala para continuar.");
     if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
 
     setLoading(true);
@@ -466,6 +476,7 @@ export default function CheckoutPage() {
     if (!customer?.id && !isGuest) return toast.error("Debes iniciar sesión o continuar como invitado");
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
+    if (!hasCompleteAddress) return toast.error("Tu dirección está incompleta: falta ciudad o departamento. Edítala para continuar.");
     if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
 
     setLoading(true);
@@ -561,7 +572,8 @@ export default function CheckoutPage() {
             />
             
             <CheckoutPayment
-              allowInteraction={!!(receiverData.fullName && receiverData.idNumber && receiverData.phone)}
+              allowInteraction={hasCompleteAddress && !!(receiverData.fullName && receiverData.idNumber && receiverData.phone)}
+              addressIncomplete={!!selectedAddress && !hasCompleteAddress}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               isBogota={isBogota}

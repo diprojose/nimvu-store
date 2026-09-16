@@ -30,6 +30,8 @@ const PAYMENT_METHODS = [
 
 export interface CheckoutPaymentProps {
   allowInteraction: boolean;
+  /** Verdadero cuando la dirección elegida no tiene ciudad o departamento. */
+  addressIncomplete?: boolean;
   paymentMethod: "wompi" | "cod";
   setPaymentMethod: (method: "wompi" | "cod") => void;
   isBogota: boolean;
@@ -46,6 +48,7 @@ export interface CheckoutPaymentProps {
 
 export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
   allowInteraction,
+  addressIncomplete = false,
   paymentMethod,
   setPaymentMethod,
   isBogota,
@@ -69,7 +72,11 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
       <CardContent>
         {!allowInteraction ? (
           <div className="bg-amber-50 p-3.5 rounded-md border border-amber-200 mb-6 text-xs text-amber-800 flex items-center gap-2">
-            <span>⚠️ Completa los datos de envío y receptor arriba para habilitar el pago.</span>
+            <span>
+              {addressIncomplete
+                ? "⚠️ Tu dirección está incompleta: falta la ciudad o el departamento. Edítala arriba para habilitar el pago."
+                : "⚠️ Completa los datos de envío y receptor arriba para habilitar el pago."}
+            </span>
           </div>
         ) : (
           <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-6">
