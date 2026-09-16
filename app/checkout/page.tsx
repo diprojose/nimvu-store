@@ -16,7 +16,6 @@ import { Address } from "@/types/address";
 
 import { CheckoutAccount } from "@/components/custom/checkout/CheckoutAccount";
 import { CheckoutAddress } from "@/components/custom/checkout/CheckoutAddress";
-import { CheckoutReceiver, ReceiverData } from "@/components/custom/checkout/CheckoutReceiver";
 import { CheckoutPayment } from "@/components/custom/checkout/CheckoutPayment";
 import { CheckoutSummary, DiscountCoupon } from "@/components/custom/checkout/CheckoutSummary";
 import { CheckoutSummaryMobile } from "@/components/custom/checkout/CheckoutSummaryMobile";
@@ -108,12 +107,6 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   
-  const [receiverData, setReceiverData] = useState<ReceiverData>({
-    fullName: "",
-    phone: "",
-    idNumber: ""
-  });
-
   // Una vez creada la orden ya no tiene sentido seguir capturando el lead.
   const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -122,13 +115,22 @@ export default function CheckoutPage() {
   const wompiFieldsRef = useRef<Record<string, string> | null>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Quien recibe el pedido es quien figura en la dirección de envío. Antes se
+  // pedía aparte en un paso 3, pero eran los mismos datos que el cliente ya
+  // había escrito en la dirección.
+  const receiverName = [selectedAddress?.first_name, selectedAddress?.last_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const receiverPhone = selectedAddress?.phone || customer?.phone || "";
+
   // Guarda el contacto en segundo plano mientras el cliente llena el
   // formulario: si se va antes de darle a pagar, queda el dato para cerrarlo
   // por WhatsApp. No crea orden ni descuenta stock.
   useCheckoutLeadCapture({
     email: customer?.email || guestEmail,
-    phone: receiverData.phone || selectedAddress?.phone,
-    name: receiverData.fullName || customer?.name,
+    phone: selectedAddress?.phone || customer?.phone,
+    name: receiverName || customer?.name,
     shippingAddress: selectedAddress,
     items,
     disabled: orderPlaced,
@@ -225,20 +227,6 @@ export default function CheckoutPage() {
       setSelectedAddress(defaultAddr);
     }
   }, [customer?.addresses, selectedAddressId]);
-
-  // Auto-completar datos de quien recibe (Paso 3) a partir de la dirección seleccionada
-  useEffect(() => {
-    if (selectedAddress) {
-      setReceiverData((prev) => {
-        const autoName = `${selectedAddress.first_name || ''} ${selectedAddress.last_name || ''}`.trim();
-        return {
-          ...prev,
-          fullName: prev.fullName || autoName || (customer ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim() : ''),
-          phone: prev.phone || selectedAddress.phone || (customer?.phone || ''),
-        };
-      });
-    }
-  }, [selectedAddress, customer]);
 
   const handleSaveAddress = async (data: AddressFormData) => {
     if (isGuest) {
@@ -351,7 +339,6 @@ export default function CheckoutPage() {
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
     if (!hasCompleteAddress) return toast.error("Tu dirección está incompleta: falta ciudad o departamento. Edítala para continuar.");
-    if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
 
     setLoading(true);
     setShowReset(false);
@@ -451,11 +438,9 @@ export default function CheckoutPage() {
         "signature:integrity": signature,
         "redirect-url": redirectUrl,
         "customer-data:email": String(customerEmail ?? ""),
-        "customer-data:full-name": receiverData.fullName,
-        "customer-data:phone-number": receiverData.phone,
+        "customer-data:full-name": receiverName,
+        "customer-data:phone-number": receiverPhone,
         "customer-data:phone-number-prefix": "+57",
-        "customer-data:legal-id": receiverData.idNumber,
-        "customer-data:legal-id-type": "CC",
       };
 
       wompiFieldsRef.current = wompiFields;
@@ -477,7 +462,6 @@ export default function CheckoutPage() {
     const activeAddressId = isGuest ? (guestAddress ? "guest-addr" : "") : selectedAddressId;
     if (!activeAddressId) return toast.error("Selecciona una dirección de envío");
     if (!hasCompleteAddress) return toast.error("Tu dirección está incompleta: falta ciudad o departamento. Edítala para continuar.");
-    if (!receiverData.fullName || !receiverData.idNumber || !receiverData.phone) return toast.error("Completa los datos de quien recibe");
 
     setLoading(true);
     try {
@@ -565,14 +549,8 @@ export default function CheckoutPage() {
               guestAddress={guestAddress}
             />
             
-            <CheckoutReceiver 
-              selectedAddressId={selectedAddressId}
-              receiverData={receiverData}
-              setReceiverData={setReceiverData}
-            />
-            
             <CheckoutPayment
-              allowInteraction={hasCompleteAddress && !!(receiverData.fullName && receiverData.idNumber && receiverData.phone)}
+              allowInteraction={hasCompleteAddress}
               addressIncomplete={!!selectedAddress && !hasCompleteAddress}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}

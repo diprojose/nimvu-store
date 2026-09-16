@@ -66,7 +66,7 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <CreditCard className="w-5 h-5" />
-          4. Pago
+          3. Pago
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -75,7 +75,7 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
             <span>
               {addressIncomplete
                 ? "⚠️ Tu dirección está incompleta: falta la ciudad o el departamento. Edítala arriba para habilitar el pago."
-                : "⚠️ Completa los datos de envío y receptor arriba para habilitar el pago."}
+                : "⚠️ Completa los datos de envío arriba para habilitar el pago."}
             </span>
           </div>
         ) : (
