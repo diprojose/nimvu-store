@@ -130,3 +130,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Al abrir un panel (el carrito, los modales), Radix bloquea el scroll con
+ * `body[data-scroll-locked] { overflow: hidden !important }`. Eso convierte al
+ * body en contenedor de scroll y rompe `position: sticky` en toda la página:
+ * la columna de detalles de la ficha (md:sticky) se despega y salta a su
+ * posición estática, que tras hacer scroll queda fuera de la vista.
+ *
+ * `clip` recorta igual pero NO crea contenedor de scroll, así que sticky se
+ * sigue resolviendo contra el viewport. El bloqueo del scroll no depende de
+ * esto: react-remove-scroll lo hace además interceptando rueda y táctil por JS.
+ *
+ * El atributo va repetido a propósito: Radix usa el mismo selector con
+ * `!important` e inyecta su <style> en tiempo de ejecución, o sea después de
+ * esta hoja. A igual especificidad ganaría el suyo por ir último; repetir el
+ * atributo sube la especificidad y desempata.
+ */
+body[data-scroll-locked][data-scroll-locked] {
+  overflow: clip !important;
+}
