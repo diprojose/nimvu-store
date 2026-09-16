@@ -15,6 +15,8 @@ vi.mock('sonner', () => ({
 
 const mockProduct: FrontendProduct = {
   id: "prod-1",
+  ratingAverage: 0,
+  ratingCount: 0,
   title: "Taza 3D Star Wars",
   description: "Una taza épica",
   slug: "taza-3d",

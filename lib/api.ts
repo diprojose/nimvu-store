@@ -119,6 +119,9 @@ export interface BackendProduct {
   discountEndDate?: string | null;
   variants?: BackendVariant[];
   isB2BOnly?: boolean;
+  /** Agregados denormalizados de las reseñas aprobadas. */
+  ratingAverage?: number;
+  ratingCount?: number;
 }
 
 export interface BackendVariant {
@@ -162,6 +165,10 @@ export interface FrontendProduct {
   isB2BOnly?: boolean;
   /** Fecha de última modificación en backend; la usa el sitemap como lastModified. */
   updatedAt?: string;
+  /** Promedio de estrellas sobre las reseñas aprobadas (0 si no hay ninguna). */
+  ratingAverage: number;
+  /** Cuántas reseñas aprobadas tiene. Con 0 no se pintan estrellas. */
+  ratingCount: number;
   // Add other fields as necessary based on usage
 }
 
@@ -208,6 +215,8 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     discountEndDate: product.discountEndDate || null,
     isB2BOnly: product.isB2BOnly || false,
     updatedAt: product.updatedAt,
+    ratingAverage: product.ratingAverage ?? 0,
+    ratingCount: product.ratingCount ?? 0,
   };
 };
 
@@ -439,4 +448,60 @@ export const collections = {
       products: data.products.map(adaptProduct)
     };
   }
+};
+
+// ── Resenas de producto ────────────────────────────────────────────────────
+
+export interface BackendReview {
+  id: string;
+  rating: number;
+  comment: string;
+  authorName: string;
+  /** Respuesta publica de Nimvu, si la hay. */
+  adminReply?: string | null;
+  createdAt: string;
+}
+
+export interface ReviewEligibility {
+  hasPurchased: boolean;
+  alreadyReviewed: boolean;
+  /** Unico campo que decide si se muestra el formulario. */
+  canReview: boolean;
+  review: {
+    id: string;
+    rating: number;
+    comment: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    createdAt: string;
+  } | null;
+}
+
+export const reviews = {
+  /**
+   * Resenas publicadas de un producto. Va por `fetchWrapper` para que entre en
+   * la cache de Next con el mismo tag del producto: al aprobar una resena el
+   * backend invalida `product-<slug>` y esto se refresca solo.
+   */
+  listByProduct: async (productId: string, productSlug?: string) => {
+    const tags = ['reviews', `reviews-${productId}`];
+    if (productSlug) tags.push(`product-${productSlug}`);
+
+    return fetchWrapper<{ items: BackendReview[]; total: number }>(
+      `/reviews/product/${productId}`,
+      { next: { revalidate: 300, tags } },
+    );
+  },
+
+  /** Requiere sesion: va por axios, que adjunta el token. */
+  eligibility: async (productId: string) => {
+    const response = await api.get<ReviewEligibility>('/reviews/eligibility', {
+      params: { productId },
+    });
+    return response.data;
+  },
+
+  create: async (data: { productId: string; rating: number; comment: string }) => {
+    const response = await api.post<BackendReview>('/reviews', data);
+    return response.data;
+  },
 };

@@ -2,7 +2,7 @@ import React, { FC, ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { TestimonialsModel } from "@/types/testimonials";
-import StarRating from "@/components/custom/starRating";
+import StarRating from "@/components/custom/reviews/StarRating";
 
 export interface TestimonialItemProps {
   item: TestimonialsModel;
@@ -14,7 +14,7 @@ const TestimonialItem: FC<TestimonialItemProps> = ({ item }): ReactElement => {
     <div className="product-item">
       <div className="">
         <div className="review-container flex gap-2 pb-2">
-          <StarRating rating={item.stars} />
+          <StarRating value={item.stars} size="md" />
         </div>
         <p className="font-medium">{item.text}</p>
       </div>

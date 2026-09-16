@@ -14,6 +14,8 @@ vi.mock('sonner', () => ({
 
 const mockItem: FrontendProduct = {
   id: "prod-2",
+  ratingAverage: 0,
+  ratingCount: 0,
   title: "Vaso Impreso",
   description: "Vaso de prueba",
   slug: "vaso",

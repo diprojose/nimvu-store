@@ -10,6 +10,7 @@ import QuickView from "@/components/custom/quickView";
 import { Modal } from "@/components/custom/modal";
 import { trackAddToCart } from "@/lib/analytics";
 import { useAddedToCart } from "@/hooks/useAddedToCart";
+import StarRating from "@/components/custom/reviews/StarRating";
 
 export interface ProductItemProps {
   item: FrontendProduct;
@@ -76,6 +77,14 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
         <Link href={`/productos/${item.slug || item.id}`} className="block">
           <span className="font-medium line-clamp-2 min-h-[3rem] leading-tight">{item.title}</span>
         </Link>
+        {/* Solo con reseñas aprobadas detrás: unas estrellas vacías en cada
+            tarjeta leen peor que no mostrar nada. */}
+        {item.ratingCount > 0 && (
+          <span className="mt-1 flex items-center gap-1.5">
+            <StarRating value={item.ratingAverage} size="sm" />
+            <span className="text-xs text-gray-500">({item.ratingCount})</span>
+          </span>
+        )}
       </div>
       <p className="flex gap-2 font-medium items-center mt-1">
         {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price && (!item.discountEndDate || new Date(item.discountEndDate) >= new Date()) ? (

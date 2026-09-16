@@ -2,8 +2,10 @@ import { Metadata } from 'next';
 import { products, FrontendProduct } from "@/lib/api";
 import ProductDetails from "@/components/custom/ProductDetails";
 import RelatedProducts from "@/components/custom/RelatedProducts";
+import ProductReviews from "@/components/custom/reviews/ProductReviews";
 import { notFound } from "next/navigation";
-import { SITE_URL, SITE_NAME, absoluteUrl } from "@/lib/seo";
+import { SITE_NAME, absoluteUrl } from "@/lib/seo";
+import { buildProductJsonLd, buildBreadcrumbJsonLd } from "@/lib/product-jsonld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -99,81 +101,15 @@ export default async function ProductPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd(product)) }}
       />
       <ProductDetails product={product} />
+      <div className="mx-auto max-w-350 px-5 md:px-16">
+        <ProductReviews
+          productId={product.id}
+          productSlug={product.slug}
+          ratingAverage={product.ratingAverage}
+          ratingCount={product.ratingCount}
+        />
+      </div>
       <RelatedProducts products={related} />
     </>
   );
-}
-
-/**
- * Schema.org Product: es lo que permite a Google mostrar precio y disponibilidad
- * en el resultado de búsqueda. El precio efectivo replica la lógica de
- * ProductDetails (el descuento solo aplica si no ha vencido).
- */
-function buildProductJsonLd(product: FrontendProduct) {
-  const discountIsLive =
-    !!product.discountPrice &&
-    product.discountPrice > 0 &&
-    product.discountPrice < product.price &&
-    (!product.discountEndDate || new Date(product.discountEndDate) >= new Date());
-  const price = discountIsLive ? product.discountPrice! : product.price;
-  const url = absoluteUrl(`/productos/${product.slug}`);
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.title,
-    description: product.description || product.longDescription || product.title,
-    image: product.images.map((img) => img.url),
-    sku: product.variants[0]?.sku || product.id,
-    url,
-    brand: { '@type': 'Brand', name: SITE_NAME },
-    ...(product.category ? { category: product.category.name } : {}),
-    offers: {
-      '@type': 'Offer',
-      url,
-      priceCurrency: 'COP',
-      price: String(price),
-      availability:
-        product.stock > 0
-          ? 'https://schema.org/InStock'
-          : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      seller: { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: SITE_NAME },
-      ...(discountIsLive && product.discountEndDate
-        ? { priceValidUntil: product.discountEndDate.slice(0, 10) }
-        : {}),
-    },
-  };
-}
-
-/** Migas de pan: Google las usa para reemplazar la URL cruda en el resultado. */
-function buildBreadcrumbJsonLd(product: FrontendProduct) {
-  const items: Array<{ name: string; path: string }> = [
-    { name: 'Inicio', path: '/' },
-    { name: 'Productos', path: '/productos' },
-  ];
-
-  if (product.category) {
-    const universeSlug = product.universe?.slug?.toLowerCase();
-    items.push({
-      name: product.category.name,
-      path:
-        universeSlug && universeSlug !== 'hogar'
-          ? `/${universeSlug}/categorias/${product.category.slug}`
-          : `/categorias/${product.category.slug}`,
-    });
-  }
-
-  items.push({ name: product.title, path: `/productos/${product.slug}` });
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: absoluteUrl(item.path),
-    })),
-  };
 }
