@@ -121,14 +121,18 @@ export default async function RootLayout({
   return (
     <html lang="es-CO" className="overflow-y-scroll">
       <GoogleTagManager gtmId="GTM-P7JXWM9B" />
-      <script
-        type="application/ld+json"
-        // Identidad de la marca para el Knowledge Panel y los resultados enriquecidos.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-      />
       <body
         className={`${sourceSerif.variable} ${inter.variable} antialiased`}
       >
+        {/* Identidad de la marca para el Knowledge Panel y los resultados
+            enriquecidos. Va dentro de <body> a propósito: como hijo directo de
+            <html> React no puede ordenar un <script> sin async y lanza
+            "Cannot render a sync or defer <script> outside the main document".
+            JSON-LD en el body es válido y Google lo lee igual. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-P7JXWM9B"
