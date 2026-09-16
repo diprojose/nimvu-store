@@ -28,15 +28,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: description,
         url,
         siteName: SITE_NAME,
-        images: [
-          {
-            url: images[0], // Primary image
-            width: 800,
-            height: 600,
-            alt: title,
-          },
-          ...images.slice(1).map(url => ({ url, alt: title })),
-        ],
+        // La primera imagen es la principal (la misma que se usa como thumbnail
+        // en las tarjetas de catálogo). No se declaran width/height: las fotos
+        // reales son verticales o cuadradas (765x1024, 1024x1024, 1600x1600) y
+        // anunciar un tamaño fijo hace que los scrapers recorten mal la vista previa.
+        images: images.map(url => ({ url, alt: title })),
         locale: 'es_CO',
         type: 'website',
       },
