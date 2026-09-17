@@ -505,3 +505,27 @@ export const reviews = {
     return response.data;
   },
 };
+
+export interface ReviewInvite {
+  valid: boolean;
+  product?: { id: string; name: string; slug: string | null; images: string[] };
+  alreadyReviewed?: boolean;
+  authorName?: string;
+}
+
+/**
+ * Resena desde el enlace del correo post-entrega. No requiere sesion: el token
+ * firmado es la credencial. Va por `fetch` sin caché porque cada token es
+ * distinto y la respuesta depende de si ya se reseñó.
+ */
+export const reviewInvites = {
+  retrieve: async (token: string) =>
+    fetchWrapper<ReviewInvite>(`/reviews/invite?token=${encodeURIComponent(token)}`, {
+      cache: 'no-store',
+    }),
+
+  submit: async (data: { token: string; rating: number; comment: string }) => {
+    const response = await api.post('/reviews/by-token', data);
+    return response.data;
+  },
+};
