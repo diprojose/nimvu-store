@@ -118,10 +118,15 @@ export default function CheckoutPage() {
   // Quien recibe el pedido es quien figura en la dirección de envío. Antes se
   // pedía aparte en un paso 3, pero eran los mismos datos que el cliente ya
   // había escrito en la dirección.
-  const receiverName = [selectedAddress?.first_name, selectedAddress?.last_name]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  // Si la dirección no trae nombre (sesiones guardadas antes de que authStore
+  // lo copiara), se usa el de la cuenta: Wompi no debe recibirlo vacío.
+  const receiverName = (
+    [selectedAddress?.first_name, selectedAddress?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    [customer?.first_name, customer?.last_name].filter(Boolean).join(" ").trim()
+  );
   const receiverPhone = selectedAddress?.phone || customer?.phone || "";
 
   // Guarda el contacto en segundo plano mientras el cliente llena el

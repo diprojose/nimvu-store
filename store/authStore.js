@@ -2,6 +2,29 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { auth } from "../lib/api";
 
+/**
+ * Traduce las direcciones del backend (street/state/zip) al formato del
+ * checkout (address_1/province/postal_code).
+ *
+ * El modelo Address del backend no guarda nombre, así que se usa el de la
+ * cuenta. Sin nombre, el pedido llegaba sin destinatario y Wompi recibía el
+ * nombre vacío. Antes solo syncWithBackend lo ponía; login y loginB2B no.
+ */
+const mapAddresses = (user) => {
+  const [firstName = "", ...lastNames] = (user.name || "").trim().split(/s+/);
+  return user.addresses?.map(addr => ({
+    id: addr.id,
+    address_1: addr.street,
+    city: addr.city,
+    province: addr.state,
+    postal_code: addr.zip,
+    country_code: addr.country,
+    phone: addr.phone,
+    first_name: firstName,
+    last_name: lastNames.join(" "),
+  })) || [];
+};
+
 export const useAuthStore = create(
   persist(
     (set) => ({
@@ -28,15 +51,7 @@ export const useAuthStore = create(
             role: user.role,
             companyName: user.companyName,
             isB2BApproved: user.isB2BApproved,
-            addresses: user.addresses?.map(addr => ({
-              id: addr.id,
-              address_1: addr.street,
-              city: addr.city,
-              province: addr.state,
-              postal_code: addr.zip,
-              country_code: addr.country,
-              phone: addr.phone,
-            })) || [],
+            addresses: mapAddresses(user),
           };
 
           set({ customer });
@@ -70,15 +85,7 @@ export const useAuthStore = create(
             role: user.role,
             companyName: user.companyName,
             isB2BApproved: user.isB2BApproved,
-            addresses: user.addresses?.map(addr => ({
-              id: addr.id,
-              address_1: addr.street,
-              city: addr.city,
-              province: addr.state,
-              postal_code: addr.zip,
-              country_code: addr.country,
-              phone: addr.phone,
-            })) || [],
+            addresses: mapAddresses(user),
           };
 
           set({ token: tempToken, customer });
@@ -116,17 +123,7 @@ export const useAuthStore = create(
             role: user.role,
             companyName: user.companyName,
             isB2BApproved: user.isB2BApproved,
-            addresses: user.addresses?.map(addr => ({
-              id: addr.id,
-              address_1: addr.street,
-              city: addr.city,
-              province: addr.state,
-              postal_code: addr.zip,
-              country_code: addr.country,
-              phone: addr.phone,
-              first_name: user.name?.split(" ")[0], // Addresses in backend don't have names, use user's
-              last_name: user.name?.split(" ")[1],
-            })) || [],
+            addresses: mapAddresses(user),
           };
           set({ customer });
         } catch (error) {
