@@ -109,9 +109,12 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
         )}
 
         {paymentMethod === 'wompi' ? (
+          // h-auto + whitespace-normal: el Button base es de una sola línea y
+          // alto fijo, y en celular el texto con el total se cortaba por ambos
+          // lados.
           <Button
             onClick={onWompiPayment}
-            className="w-full bg-black text-white hover:bg-gray-800 py-6 text-lg mt-4"
+            className="w-full h-auto min-h-14 whitespace-normal leading-snug text-center bg-black text-white hover:bg-gray-800 py-3 text-base sm:text-lg mt-4"
             disabled={loading || !isWompiLoaded || !isMounted}
           >
             {loading ? "Procesando..." : (isMounted ? `Pagar con Wompi ${formatPrice(total)}` : "Cargando...")}
@@ -119,7 +122,7 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
         ) : (
           <Button
             onClick={onPlaceCodOrder}
-            className="w-full bg-black text-white hover:bg-gray-800 py-6 text-lg mt-4"
+            className="w-full h-auto min-h-14 whitespace-normal leading-snug text-center bg-black text-white hover:bg-gray-800 py-3 text-base sm:text-lg mt-4"
             disabled={loading || !isMounted}
           >
             {loading ? "Procesando..." : `Confirmar Pedido (Pago al recibir ${formatPrice(total)})`}
