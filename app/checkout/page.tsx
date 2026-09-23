@@ -262,8 +262,21 @@ export default function CheckoutPage() {
       toast.success("Dirección agregada", { position: "top-center" });
 
       if (newAddr && newAddr.id) {
+        // `addresses.create` devuelve la fila cruda del backend
+        // (street/state/zip). Seleccionarla tal cual dejaba `address_1`,
+        // `city` y `province` en undefined: el checkout daba la dirección por
+        // incompleta y bloqueaba el pago sin salida (una dirección guardada no
+        // se puede editar), y el envío se cotizaba sin departamento.
+        // Se toma la versión ya traducida por el store; si el sync no alcanzó,
+        // se arma con lo que el cliente acaba de escribir.
+        const saved = useAuthStore
+          .getState()
+          .customer?.addresses?.find((a: Address) => a.id === newAddr.id);
+
         setSelectedAddressId(newAddr.id);
-        setSelectedAddress(newAddr);
+        setSelectedAddress(
+          saved || ({ ...data, id: newAddr.id, country_code: "Colombia" } as unknown as Address),
+        );
       }
     } catch (error) {
       console.error(error);
