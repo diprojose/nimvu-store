@@ -101,7 +101,11 @@ export default function CheckoutPage() {
   const [guestAddress, setGuestAddress] = useState<Address | null>(null);
   const isGuest = !customer && guestEmail !== "";
   
-  const [shippingCost, setShippingCost] = useState(15000);
+  // `null` hasta que el backend cotice: un respaldo fijo aqui se mostraba como
+  // precio y la orden se creaba con la tarifa real, asi que el cliente veia un
+  // total y la pasarela le cobraba otro.
+  const [shippingCost, setShippingCost] = useState<number | null>(null);
+  const [shippingStatus, setShippingStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [couponError, setCouponError] = useState("");
@@ -179,12 +183,13 @@ export default function CheckoutPage() {
   // El backend valida esto de forma autoritativa al crear la orden.
   const qualifiesForFreeShipping = isMounted && subtotal >= FREE_SHIPPING_THRESHOLD;
 
-  // El envío solo se conoce con una dirección: `shippingCost` arranca en 15000
-  // como respaldo y eso no es un precio, es una suposición. Cobrarlo en el
-  // total mientras la fila de envío dice "calculado al ingresar la dirección"
-  // deja al cliente viendo un total que no cuadra con lo que ve sumado.
-  const shippingKnown = qualifiesForFreeShipping || !!selectedAddress;
-  const effectiveShippingCost = qualifiesForFreeShipping || !selectedAddress ? 0 : shippingCost;
+  // El envío solo se conoce cuando el backend lo cotiza. Mientras la respuesta
+  // viaja no hay precio que mostrar ni total que cobrar: el pago queda
+  // bloqueado (ver `allowInteraction` en CheckoutPayment) para que nadie pague
+  // un total que la pasarela va a corregir.
+  const shippingKnown = qualifiesForFreeShipping || shippingStatus === 'ready';
+  const effectiveShippingCost =
+    qualifiesForFreeShipping || !selectedAddress ? 0 : (shippingCost ?? 0);
 
   const total = isMounted ? Math.max(0, (getCartTotal() - discountAmount + effectiveShippingCost)) : 0;
   const isBogota = selectedAddress?.city?.toLowerCase()?.includes('bogota') || selectedAddress?.city?.toLowerCase()?.includes('bogotá') || false;
@@ -199,28 +204,41 @@ export default function CheckoutPage() {
   );
 
   useEffect(() => {
-    if (selectedAddress) {
-      if (!isBogota) setPaymentMethod('wompi');
-      
-      const calcShipping = async () => {
-        try {
-          const rate = await shipping.calculate({
-            country: 'Colombia',
-            state: selectedAddress.province,
-            city: selectedAddress.city
-          });
-          if (rate && rate.price) {
-            setShippingCost(rate.price);
-          } else {
-            setShippingCost(15000);
-          }
-        } catch (error) {
-          console.error("Shipping calc failed", error);
-          setShippingCost(15000);
+    if (!selectedAddress) return;
+
+    if (!isBogota) setPaymentMethod('wompi');
+
+    // Si el cliente cambia de dirección antes de que responda la cotización
+    // anterior, `cancelled` descarta la respuesta vieja: sin esto la tarifa de
+    // la dirección anterior podía sobreescribir la nueva.
+    let cancelled = false;
+
+    const calcShipping = async () => {
+      setShippingStatus('loading');
+      try {
+        const rate = await shipping.calculate({
+          country: 'Colombia',
+          state: selectedAddress.province,
+          city: selectedAddress.city
+        });
+        if (cancelled) return;
+        if (rate && typeof rate.price === 'number') {
+          setShippingCost(rate.price);
+          setShippingStatus('ready');
+        } else {
+          setShippingCost(null);
+          setShippingStatus('error');
         }
-      };
-      calcShipping();
-    }
+      } catch (error) {
+        if (cancelled) return;
+        console.error("Shipping calc failed", error);
+        setShippingCost(null);
+        setShippingStatus('error');
+      }
+    };
+    calcShipping();
+
+    return () => { cancelled = true; };
   }, [selectedAddress, isBogota]);
 
   useEffect(() => {
@@ -568,8 +586,9 @@ export default function CheckoutPage() {
             />
             
             <CheckoutPayment
-              allowInteraction={hasCompleteAddress}
+              allowInteraction={hasCompleteAddress && shippingKnown}
               addressIncomplete={!!selectedAddress && !hasCompleteAddress}
+              shippingStatus={shippingStatus}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               isBogota={isBogota}

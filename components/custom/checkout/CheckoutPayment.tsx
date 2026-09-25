@@ -32,6 +32,8 @@ export interface CheckoutPaymentProps {
   allowInteraction: boolean;
   /** Verdadero cuando la dirección elegida no tiene ciudad o departamento. */
   addressIncomplete?: boolean;
+  /** Estado de la cotización de envío, para explicar por qué el pago está bloqueado. */
+  shippingStatus?: 'idle' | 'loading' | 'ready' | 'error';
   paymentMethod: "wompi" | "cod";
   setPaymentMethod: (method: "wompi" | "cod") => void;
   isBogota: boolean;
@@ -49,6 +51,7 @@ export interface CheckoutPaymentProps {
 export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
   allowInteraction,
   addressIncomplete = false,
+  shippingStatus = 'idle',
   paymentMethod,
   setPaymentMethod,
   isBogota,
@@ -75,7 +78,11 @@ export const CheckoutPayment: FC<CheckoutPaymentProps> = ({
             <span>
               {addressIncomplete
                 ? "⚠️ Tu dirección está incompleta: falta la ciudad o el departamento. Edítala arriba para habilitar el pago."
-                : "⚠️ Completa los datos de envío arriba para habilitar el pago."}
+                : shippingStatus === 'loading'
+                  ? "Calculando el costo de envío para tu dirección..."
+                  : shippingStatus === 'error'
+                    ? "⚠️ No pudimos calcular el envío para esta dirección. Revísala arriba o vuelve a intentarlo en un momento."
+                    : "⚠️ Completa los datos de envío arriba para habilitar el pago."}
             </span>
           </div>
         ) : (

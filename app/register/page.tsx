@@ -1,17 +1,33 @@
 'use client';
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from '@/store/authStore';
 import { auth } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuthRedirect } from "@/lib/hooks/redirect-if-authenticated";
 
-export default function AuthPage() {
+/**
+ * Solo se acepta una ruta interna: el `redirect` viene de la URL, y con un
+ * destino externo esta pantalla se convertiria en un salto de confianza para
+ * phishing (el cliente entra desde nimvu y termina en otro dominio).
+ */
+function safeInternalPath(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith("/") || value.startsWith("//")) return null;
+  return value;
+}
+
+function AuthPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Quien llega desde el checkout tiene que volver al checkout: mandarlo a su
+  // perfil lo saca del embudo con el carrito lleno.
+  const redirectTo = safeInternalPath(searchParams.get("redirect")) ?? "/perfil";
   const [loading, setLoading] = useState(false)
 
   const [firstName, setFirstName] = useState("")
@@ -28,7 +44,7 @@ export default function AuthPage() {
   const login = useAuthStore((state) => state.login);
 
   const { isChecking } = useAuthRedirect({
-    redirectTo: "/perfil",
+    redirectTo,
     condition: "ifAuthenticated",
   });
 
@@ -55,7 +71,7 @@ export default function AuthPage() {
 
       // Auto-login after registration
       await login(email, password);
-      router.push("/perfil");
+      router.push(redirectTo);
 
     } catch (error: any) {
       console.error(error);
@@ -82,7 +98,7 @@ export default function AuthPage() {
     try {
       await login(loginEmail, loginPassword);
       router.refresh();
-      router.push("/perfil");
+      router.push(redirectTo);
     } catch (error: any) {
       console.error(error);
       const errorMessage = error.response?.data?.message || "Ocurrió un error al iniciar sesión.";
@@ -255,5 +271,14 @@ export default function AuthPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function AuthPage() {
+  // `useSearchParams` obliga a un limite de Suspense en el App Router.
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Cargando...</div>}>
+      <AuthPageContent />
+    </Suspense>
   );
 }
