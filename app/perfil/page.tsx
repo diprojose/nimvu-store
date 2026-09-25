@@ -465,20 +465,50 @@ function ProfileContent() {
                 </div>
               </div>
 
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(selectedOrder.total)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Envío</span>
-                  <span>{formatCurrency(12000)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>Total</span>
-                  <span>{formatCurrency(selectedOrder.total + 12000)}</span>
-                </div>
-              </div>
+              {/* `order.total` ya trae el envío y el cupón: es lo que se le
+                  cobró al cliente. Antes esta caja lo mostraba como "Subtotal"
+                  y le sumaba $12.000 fijos de envío, así que el pedido parecía
+                  cobrar el envío dos veces (una clienta lo reportó el
+                  2026-09-25). El desglose sale del snapshot de la orden. */}
+              {(() => {
+                const productos = (selectedOrder.items || []).reduce(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (acc: number, item: any) => acc + item.price * item.quantity,
+                  0,
+                );
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const snapshot: any = selectedOrder.shippingAddress || {};
+                const descuento = Number(snapshot.discount) || 0;
+                // Las órdenes viejas no guardaron el costo de envío: se deduce
+                // de lo que ya está cobrado en el total.
+                const envio =
+                  snapshot.shippingCost != null
+                    ? Number(snapshot.shippingCost)
+                    : Math.max(0, selectedOrder.total - productos + descuento);
+
+                return (
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(productos)}</span>
+                    </div>
+                    {descuento > 0 && (
+                      <div className="flex justify-between text-sm text-emerald-700">
+                        <span>Descuento{snapshot.couponCode ? ` (${snapshot.couponCode})` : ""}</span>
+                        <span>-{formatCurrency(descuento)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span>Envío</span>
+                      <span>{envio > 0 ? formatCurrency(envio) : "Gratis"}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      <span>Total</span>
+                      <span>{formatCurrency(selectedOrder.total)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </DialogContent>
