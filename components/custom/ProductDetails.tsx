@@ -110,6 +110,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     let clean = htmlContent.replace(/style="[^"]*"/gi, "");
     clean = clean.replace(/width="[^"]*"/gi, "").replace(/height="[^"]*"/gi, "");
     clean = clean.replace(/&nbsp;/g, " ");
+    // Algunas descripciones listan con "- " en párrafos sueltos: se vuelven una
+    // lista de verdad, y se quitan los párrafos vacíos que dejaban huecos.
+    clean = clean.replace(/<p>\s*<\/p>/g, "");
+    // Se marcan para envolver solo estos ítems: las listas que ya vienen como
+    // <ul> del editor quedan intactas.
+    clean = clean.replace(/<p>\s*[-–•]\s+([\s\S]*?)<\/p>/g, "<li data-dash>$1</li>");
+    clean = clean.replace(/(?:<li data-dash>[\s\S]*?<\/li>)+/g, (items) =>
+      `<ul>${items.replace(/<li data-dash>/g, "<li>")}</ul>`
+    );
     return clean;
   };
 
@@ -150,11 +159,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </Breadcrumb>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 lg:gap-12">
         {/* Left Side: Images */}
-        <div>
+        <div className="lg:col-span-7">
           {/* ── Mobile: Carrusel ──────────────────────────────────────── */}
-          <div className="block md:hidden">
+          <div className="block lg:hidden">
             {currentImages && currentImages.length > 0 ? (
               <>
                 <Carousel
@@ -170,7 +179,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                             src={img.url}
                             alt={product.title}
                             fill
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            sizes="(max-width: 1024px) 100vw, 50vw"
                             className="object-cover"
                           />
                         </div>
@@ -205,14 +214,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           </div>
 
           {/* ── Desktop: Stack vertical ────────────────────────────────── */}
-          <div className="hidden md:flex flex-col gap-8">
+          <div className="hidden lg:flex flex-col gap-8">
             {currentImages?.map((img: { id: string; url: string }) => (
               <div key={img.id} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <Image
                   src={img.url}
                   alt={product.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="58vw"
                   className="object-cover"
                 />
               </div>
@@ -228,7 +237,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         {/* Right Side: Info (Sticky) */}
         {/* Orden pensado para el celular: lo que se necesita para comprar
             (nombre, precio, variante, botón) va antes que la descripción. */}
-        <div className="md:sticky md:top-28 h-fit flex flex-col gap-5 md:gap-8">
+        <div className="lg:col-span-5 lg:sticky lg:top-28 h-fit flex flex-col gap-5 md:gap-8 reveal-stagger">
           <div>
             <div className="flex items-center gap-3 mb-2 md:mb-4 flex-wrap">
               <h1 className="text-[1.75rem] leading-tight md:text-4xl font-source-serif font-semibold dark:text-white">{product.title}</h1>
@@ -273,7 +282,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 {/* Main Product Option */}
                 <button
                   onClick={() => setSelectedVariant(null)}
-                  className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${!selectedVariant ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
+                  className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${!selectedVariant ? 'border-black' : 'border-gray-200 hover:border-gray-400'
                     }`}
                   title="Original"
                   aria-label="Variante Original"
@@ -297,7 +306,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   <button
                     key={variant.id}
                     onClick={() => setSelectedVariant(variant)}
-                    className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${selectedVariant?.id === variant.id ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
+                    className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${selectedVariant?.id === variant.id ? 'border-black' : 'border-gray-200 hover:border-gray-400'
                       }`}
                     title={variant.title}
                     aria-label={`Variante ${variant.title}`}
@@ -347,7 +356,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <Button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
-                className="flex-1 h-12 text-base bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+                className="flex-1 h-12 text-base shadow-none bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
               >
                 <ShoppingCart className="mr-2 w-5 h-5" />
                 {isOutOfStock ? 'Agotado' : 'Agregar al Carrito'}
@@ -366,42 +375,26 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </p>
           )}
 
-          {/* Data Table (Dimensions) */}
+          {/* Medidas en una línea: no hace falta una tabla con caja para tres datos */}
           {product.dimensions && (product.dimensions.width > 0 || product.dimensions.height > 0 || product.dimensions.length > 0) && (
-            <div className="mt-4 border rounded-lg overflow-hidden dark:border-gray-700">
-              <div className="bg-gray-50 px-4 py-2 border-b font-medium text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">Dimensiones</div>
-              <table className="w-full text-sm text-left dark:text-white">
-                <tbody>
-                  {product.dimensions.width > 0 && (
-                    <tr className="border-b last:border-0 dark:border-gray-700">
-                      <td className="px-4 py-2 text-gray-500 dark:text-gray-400 w-1/3">Ancho</td>
-                      <td className="px-4 py-2">{product.dimensions.width} cm</td>
-                    </tr>
-                  )}
-                  {product.dimensions.height > 0 && (
-                    <tr className="border-b last:border-0 dark:border-gray-700">
-                      <td className="px-4 py-2 text-gray-500 dark:text-gray-400 w-1/3">Alto</td>
-                      <td className="px-4 py-2">{product.dimensions.height} cm</td>
-                    </tr>
-                  )}
-                  {product.dimensions.length > 0 && (
-                    <tr className="border-b last:border-0 dark:border-gray-700">
-                      <td className="px-4 py-2 text-gray-500 dark:text-gray-400 w-1/3">Largo</td>
-                      <td className="px-4 py-2">{product.dimensions.length} cm</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <p className="text-base text-gray-800 dark:text-gray-200">
+              <span className="font-medium text-gray-900 dark:text-white">Medidas: </span>
+              {[
+                // Espacio duro entre número y unidad: "9 cm" nunca se parte en dos líneas
+                product.dimensions.height > 0 && `Alto ${product.dimensions.height} cm`,
+                product.dimensions.width > 0 && `Ancho ${product.dimensions.width} cm`,
+                product.dimensions.length > 0 && `Largo ${product.dimensions.length} cm`,
+              ].filter(Boolean).join(" · ")}
+            </p>
           )}
 
           {/* Long Description (HTML) */}
           {product.longDescription && (
-            <div className="mt-4 pt-6 border-t w-full dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4 font-source-serif font-semibold dark:text-white">Detalles del Producto</h3>
+            <div className="mt-6 w-full reveal-on-scroll">
+              <h2 className="text-2xl mb-4 font-source-serif font-semibold dark:text-white">Detalles del producto</h2>
               <div
                 className="prose prose-sm sm:prose-base dark:prose-invert max-w-none
-                  prose-p:mb-4 prose-p:leading-relaxed prose-p:text-gray-600 dark:prose-p:text-gray-300
+                  prose-p:mb-4 prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-li:text-gray-700
                   prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
                   prose-ul:list-disc prose-ul:pl-5 prose-li:mb-1
                   prose-ol:list-decimal prose-ol:pl-5

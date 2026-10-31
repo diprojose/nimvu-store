@@ -155,3 +155,33 @@ body[data-scroll-locked][data-scroll-locked] {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+
+/*
+ * Entradas sutiles. Solo con movimiento permitido: con "reducir movimiento" el
+ * contenido está visible desde el principio. `reveal-on-scroll` usa
+ * scroll-driven animations donde existen; donde no, el contenido se ve quieto.
+ */
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-soft {
+  from { opacity: 0.4; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-in,
+  .reveal-stagger > * { animation: reveal-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .reveal-stagger > :nth-child(2) { animation-delay: 60ms; }
+  .reveal-stagger > :nth-child(3) { animation-delay: 120ms; }
+  .reveal-stagger > :nth-child(4) { animation-delay: 180ms; }
+  .reveal-stagger > :nth-child(n + 5) { animation-delay: 240ms; }
+  @supports (animation-timeline: view()) {
+    /* Parte de 40% de opacidad, no de 0: nunca queda un tramo en blanco. */
+    .reveal-on-scroll {
+      animation: reveal-soft linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}

@@ -70,7 +70,7 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
       </div>
       <div className="mt-3">
         {item.category && (
-          <Link href={`/categorias/${item.category.slug}`} className="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mb-1 block hover:text-black transition-colors">
+          <Link href={`/categorias/${item.category.slug}`} className="text-[13px] text-gray-600 mb-1 block hover:text-black transition-colors">
             {item.category.name}
           </Link>
         )}
@@ -82,7 +82,7 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
         {item.ratingCount > 0 && (
           <span className="mt-1 flex items-center gap-1.5">
             <StarRating value={item.ratingAverage} size="sm" />
-            <span className="text-xs text-gray-500">({item.ratingCount})</span>
+            <span className="text-[13px] text-gray-600">({item.ratingCount})</span>
           </span>
         )}
       </div>
@@ -98,7 +98,7 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
       </p>
       <button 
         onClick={handleAddToCart}
-        className="w-full mt-4 bg-black text-white text-xs md:text-sm font-medium py-2.5 rounded hover:bg-gray-800 transition-colors uppercase tracking-wider"
+        className="w-full mt-4 bg-black text-white text-sm font-medium py-2.5 rounded hover:bg-gray-800 transition-colors"
       >
         Agregar al carrito
       </button>

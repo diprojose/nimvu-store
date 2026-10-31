@@ -23,8 +23,8 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
 
   return (
     <section className="bg-white dark:bg-black pb-20 px-4 sm:px-8 md:px-16">
-      <div className="max-w-7xl mx-auto border-t border-gray-100 dark:border-gray-800 pt-12">
-        <h2 className="text-2xl md:text-3xl font-source-serif font-semibold font-bold mb-8 dark:text-white">
+      <div className="max-w-7xl mx-auto pt-16 md:pt-24">
+        <h2 className="reveal-on-scroll text-2xl md:text-3xl font-source-serif font-semibold mb-8 dark:text-white">
           Esto te puede gustar
         </h2>
 
@@ -39,8 +39,9 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
+          {/* Flechas dentro del carrusel: afuera descentraban la página */}
+          <CarouselPrevious className="hidden md:flex left-3 bg-white" />
+          <CarouselNext className="hidden md:flex right-3 bg-white" />
         </Carousel>
       </div>
     </section>

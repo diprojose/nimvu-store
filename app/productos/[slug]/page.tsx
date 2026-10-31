@@ -100,16 +100,19 @@ export default async function ProductPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd(product)) }}
       />
-      <ProductDetails product={product} />
-      <div className="mx-auto max-w-350 px-5 md:px-16">
-        <ProductReviews
-          productId={product.id}
-          productSlug={product.slug}
-          ratingAverage={product.ratingAverage}
-          ratingCount={product.ratingCount}
-        />
+      {/* Inter como en el resto del sitio: el body usa la fuente del sistema */}
+      <div className="font-inter">
+        <ProductDetails product={product} />
+        <div className="mx-auto max-w-350 px-5 md:px-16">
+          <ProductReviews
+            productId={product.id}
+            productSlug={product.slug}
+            ratingAverage={product.ratingAverage}
+            ratingCount={product.ratingCount}
+          />
+        </div>
+        <RelatedProducts products={related} />
       </div>
-      <RelatedProducts products={related} />
     </>
   );
 }
