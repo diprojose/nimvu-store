@@ -39,7 +39,8 @@ describe('ProductDetails component', () => {
     // El título aparece en el encabezado y en el breadcrumb; apuntamos al heading.
     expect(screen.getByRole('heading', { name: 'Taza 3D Star Wars' })).toBeInTheDocument()
     expect(screen.getByText('Una taza épica')).toBeInTheDocument()
-    expect(screen.getByText('Variantes:')).toBeInTheDocument()
+    // Sin elegir nada, la etiqueta nombra la versión original.
+    expect(screen.getByText('Original', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('permite cambiar visualmente la variante haciendo click', () => {

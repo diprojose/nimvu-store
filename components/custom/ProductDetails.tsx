@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -117,7 +116,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   return (
     <div className="bg-white dark:bg-black pt-20 pb-16 px-4 sm:px-8 md:px-16">
       {/* Breadcrumb de navegación */}
-      <div className="max-w-7xl mx-auto mb-8">
+      <div className="max-w-7xl mx-auto mb-4 md:mb-8">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -141,15 +140,17 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 </BreadcrumbItem>
               </>
             )}
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
+            {/* En celular el nombre ya está en el título justo debajo: se omite
+                para que la ruta quepa en una línea y la foto suba. */}
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem className="hidden md:inline-flex">
               <BreadcrumbPage className="line-clamp-1">{product.title}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         {/* Left Side: Images */}
         <div>
           {/* ── Mobile: Carrusel ──────────────────────────────────────── */}
@@ -225,29 +226,19 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </div>
 
         {/* Right Side: Info (Sticky) */}
-        <div className="md:sticky md:top-28 h-fit flex flex-col gap-8">
+        {/* Orden pensado para el celular: lo que se necesita para comprar
+            (nombre, precio, variante, botón) va antes que la descripción. */}
+        <div className="md:sticky md:top-28 h-fit flex flex-col gap-5 md:gap-8">
           <div>
-            {category && categoryHref && (
-              <Link href={categoryHref} className="inline-block mb-3">
-                <Badge
-                  className="cursor-pointer bg-[#B55934] text-white hover:bg-[#9c4a2b] transition-colors uppercase tracking-wide text-xs"
-                >
-                  {category.name}
-                </Badge>
-              </Link>
-            )}
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-source-serif font-semibold font-bold dark:text-white">{product.title}</h1>
+            <div className="flex items-center gap-3 mb-2 md:mb-4 flex-wrap">
+              <h1 className="text-[1.75rem] leading-tight md:text-4xl font-source-serif font-semibold dark:text-white">{product.title}</h1>
               {isOutOfStock && (
-                <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700 rounded">
+                <span className="text-sm font-semibold px-3 py-1 bg-red-100 text-red-700 rounded">
                   Agotado
                 </span>
               )}
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              {product.description || "No description available."}
-            </p>
-            <div className="mt-4">
+            <div>
               {(() => {
                 const basePrice = selectedVariant?.price || product.price;
                 const discount = selectedVariant ? selectedVariant.discountPrice : product.discountPrice;
@@ -270,14 +261,23 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           {/* Variants Selector */}
           {product.variants && product.variants.length > 0 && (
             <div className="space-y-3">
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Variantes:</span>
-              <div className="flex flex-wrap gap-3">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Variante:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {selectedVariant ? selectedVariant.title : "Original"}
+                </span>
+              </p>
+              {/* En celular, una sola fila con scroll horizontal en vez de dos
+                  filas de miniaturas que empujan el botón hacia abajo. */}
+              <div className="flex gap-3 overflow-x-auto snap-x scroll-px-4 -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
                 {/* Main Product Option */}
                 <button
                   onClick={() => setSelectedVariant(null)}
-                  className={`relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${!selectedVariant ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
+                  className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${!selectedVariant ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
                     }`}
-                  title={product.title}
+                  title="Original"
+                  aria-label="Variante Original"
+                  aria-pressed={!selectedVariant}
                 >
                   {product.images && product.images.length > 0 ? (
                     <Image
@@ -297,9 +297,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   <button
                     key={variant.id}
                     onClick={() => setSelectedVariant(variant)}
-                    className={`relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${selectedVariant?.id === variant.id ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
+                    className={`relative shrink-0 snap-start w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 transition-all ${selectedVariant?.id === variant.id ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'
                       }`}
                     title={variant.title}
+                    aria-label={`Variante ${variant.title}`}
+                    aria-pressed={selectedVariant?.id === variant.id}
                   >
                     {variant.images && variant.images.length > 0 ? (
                       <Image
@@ -317,21 +319,18 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   </button>
                 ))}
               </div>
-              {selectedVariant && (
-                <p className="text-sm text-gray-500">Seleccionado: <span className="font-medium text-black dark:text-white">{selectedVariant.title}</span></p>
-              )}
             </div>
           )}
 
-          {/* Quantity and Add to Cart */}
-          <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-            <div className="flex flex-col sm:flex-row gap-4">
+          {/* Quantity and Add to Cart: siempre en una fila, también en celular */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-3 sm:gap-4">
               <div className={`flex items-center border border-gray-300 rounded-md w-fit bg-white text-black ${isOutOfStock ? 'opacity-50' : ''}`}>
                 <button
                   onClick={() => handleQuantityChange(-1)}
                   disabled={isOutOfStock}
                   className="p-3 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
-                  aria-label="Decrease quantity"
+                  aria-label="Disminuir cantidad"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -340,7 +339,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   onClick={() => handleQuantityChange(1)}
                   disabled={isOutOfStock || quantity >= currentStock}
                   className="p-3 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
-                  aria-label="Increase quantity"
+                  aria-label="Aumentar cantidad"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -348,18 +347,24 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <Button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
-                className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white shadow-lg dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+                className="flex-1 h-12 text-base bg-black hover:bg-gray-800 text-white dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
               >
                 <ShoppingCart className="mr-2 w-5 h-5" />
                 {isOutOfStock ? 'Agotado' : 'Agregar al Carrito'}
               </Button>
             </div>
             {!isOutOfStock && currentStock <= 5 && (
-              <p className="text-xs text-orange-600 font-medium">
+              <p className="text-sm text-orange-700 font-medium">
                 Solo quedan {currentStock} {currentStock === 1 ? 'unidad' : 'unidades'} disponibles
               </p>
             )}
           </div>
+
+          {product.description && (
+            <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              {product.description}
+            </p>
+          )}
 
           {/* Data Table (Dimensions) */}
           {product.dimensions && (product.dimensions.width > 0 || product.dimensions.height > 0 || product.dimensions.length > 0) && (
