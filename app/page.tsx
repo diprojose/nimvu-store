@@ -1,17 +1,8 @@
-import Link from "next/link"
-import Image from "next/image"
-import { collections, products as apiProducts, FrontendProduct } from "@/lib/api"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { collections, products as apiProducts, reviews, FrontendProduct, FeaturedReview } from "@/lib/api"
 import HomeProductCarousel from "@/components/custom/HomeProductCarousel";
-import TestimonialItem from "@/components/custom/testimonialItem";
-import { TestimonialsModel } from "@/types/testimonials";
-import testimonials from "@/data/testimonials.json"
+import HomeReviews from "@/components/custom/HomeReviews";
+import HomeHero from "@/components/custom/HomeHero";
+import HomeStatement from "@/components/custom/HomeStatement";
 
 const BEST_SELLERS_COLLECTION_ID = "ec6d6793-e160-4858-b231-561cb035ff9f";
 const NUEVOS_COLLECTION_SLUG = "nuevos";
@@ -23,10 +14,15 @@ export default async function Home() {
   let error: string | null = null;
 
   // Las dos colecciones se piden en paralelo para no encadenar dos esperas.
-  const [bestSellersResult, nuevosResult] = await Promise.allSettled([
+  const [bestSellersResult, nuevosResult, reviewsResult] = await Promise.allSettled([
     collections.retrieve(BEST_SELLERS_COLLECTION_ID),
     collections.retrieveBySlug(NUEVOS_COLLECTION_SLUG),
+    reviews.featured(),
   ]);
+
+  // Sin reseñas (o si falla la consulta) la sección simplemente no aparece.
+  const featuredReviews: FeaturedReview[] =
+    reviewsResult.status === "fulfilled" ? reviewsResult.value : [];
 
   if (bestSellersResult.status === "fulfilled") {
     products = bestSellersResult.value.products;
@@ -59,42 +55,7 @@ export default async function Home() {
     <div className="flex items-center justify-center font-sans dark:bg-black">
       <main className="flex sm:max-w-full md:max-w-350 w-full flex-col items-center py-16 px-5 md:px-16 bg-white dark:bg-black sm:items-start">
         <section className="banner-section w-full pb-[100px]">
-          <div className="call-to-action font-inter relative overflow-hidden md:max-h-500 w-full h-[600px] rounded-md">
-            <Image
-              src="/banner-web-3.jpg"
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-left md:object-center"
-            />
-            <div className="relative z-10 h-full px-6 py-10 md:p-10 flex items-start flex-col justify-start pt-24 md:justify-center md:pt-10">
-            <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#B55934]">
-              Bienvenido a Nimvu
-            </span>
-
-            <h1 className="font-source-serif font-semibold text-[2.5rem] md:text-6xl leading-[1.05] tracking-tight max-w-[85%] md:max-w-xl text-gray-900">
-              Piezas únicas para espacios que cuentan historias
-            </h1>
-
-            <span
-              className="block my-5 md:my-6 bg-[#B55934]"
-              style={{ width: '60px', height: '2px' }}
-              aria-hidden="true"
-            />
-
-            <p className="font-inter text-sm md:text-base mb-6 max-w-[80%] md:max-w-md text-gray-700 dark:text-gray-200">
-              Diseño moderno y funcional, hecho para durar.
-            </p>
-
-            <Link
-              href="/productos"
-              className="font-inter font-medium text-white bg-[#B55934] hover:bg-[#9A4929] py-3 px-6 text-sm tracking-wide transition-colors w-fit self-start inline-block"
-            >
-              Explorar la tienda →
-            </Link>
-            </div>
-          </div>
+          <HomeHero />
         </section>
 
         <section className="top-products-section w-full pb-[100px]">
@@ -113,31 +74,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="lamparas-banner w-full pb-[100px]">
-          <div className="relative w-full rounded-md overflow-hidden">
-            {/* Mobile Image */}
-            <Image src="/banner-lamparas-mobile.jpg" alt="Colección Iluminación Nimvu" width={800} height={993} sizes="100vw" className="block md:hidden w-full h-auto" />
-
-            {/* Desktop Image */}
-            <Image src="/banner-lamparas.jpg" alt="" aria-hidden="true" width={1400} height={434} sizes="100vw" className="hidden md:block w-full h-auto" />
-
-            {/* Content Overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
-              <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] uppercase mb-3 text-[#1A1A1A]">
-                Iluminación
-              </span>
-              <h2 className="font-source-serif font-semibold text-3xl md:text-6xl mb-3 text-black leading-[1.05] tracking-tight">
-                Aura. Duna. Cala.
-              </h2>
-              <p className="font-inter text-xs md:text-lg mb-6 md:max-w-md text-black/80 font-medium">
-                Tres formas. Una sola luz cálida para tu hogar.
-              </p>
-              <a href="/coleccion/lamparas-decorativas" className="font-inter bg-[#1F4D3F] hover:bg-[#163A2F] text-white py-3 px-8 rounded-none font-bold text-xs tracking-widest transition-colors uppercase">
-                Ver colección
-              </a>
-            </div>
-          </div>
-        </section>
+        <HomeReviews items={featuredReviews} />
 
         {newProducts.length > 0 && (
           <section className="new-products-section w-full pb-[100px]">
@@ -149,55 +86,7 @@ export default async function Home() {
           </section>
         )}
 
-        <section className="testimonials w-full pb-[100px]">
-          <h2 className="font-source-serif font-semibold text-4xl md:text-5xl tracking-tight">Qué dicen nuestros clientes</h2>
-          <p className="font-inter pb-[50px] mt-2 text-gray-700">La experiencia de quienes ya transformaron sus mesas y espacios con Nimvu.</p>
-          <div className="carousel-container">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {testimonials.map((user: TestimonialsModel) => (
-                  <CarouselItem key={user.id} className="md:basis-1/2 lg:basis-1/4 p-5">
-                    <TestimonialItem item={user} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
-          </div>
-        </section>
-
-        <section className="kpop-banner w-full">
-          <div className="relative w-full rounded-md overflow-hidden">
-            {/* Mobile Image */}
-            <Image src="/bts21-3.jpg" alt="Colección K-POP Nimvu" width={825} height={1024} sizes="100vw" className="block md:hidden w-full h-auto" />
-
-            {/* Desktop Image */}
-            <Image src="/bts21-1.jpg" alt="" aria-hidden="true" width={1024} height={318} sizes="100vw" className="hidden md:block w-full h-auto" />
-
-            {/* Content Overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-start pt-16 md:justify-center md:items-start md:pl-24 md:pt-0 text-center md:text-left">
-              <span className="font-inter text-[10px] md:text-xs font-semibold tracking-[0.25em] mb-3 text-purple-900 uppercase">
-                Colección K-POP
-              </span>
-              <h2 className="font-source-serif font-semibold text-4xl md:text-6xl mb-4 text-purple-950 leading-[1.05] tracking-tight">
-                Organiza <br className="md:hidden" /> tu Pasión
-              </h2>
-              <p className="font-inter text-sm md:text-lg mb-8 max-w-[280px] md:max-w-md text-gray-700 font-medium">
-                Soportes de diseño para tu Army Bomb y figuras coleccionables.
-              </p>
-              <a href="/coleccion/bts" className="font-inter bg-white hover:bg-gray-50 text-[#7B5BA8] py-3 px-8 rounded-none font-bold text-xs tracking-widest transition-colors uppercase shadow-sm">
-                Ver Modelos
-              </a>
-            </div>
-          </div>
-        </section>
+        <HomeStatement />
       </main>
     </div>
   );

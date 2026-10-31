@@ -462,6 +462,10 @@ export interface BackendReview {
   createdAt: string;
 }
 
+export interface FeaturedReview extends BackendReview {
+  product: { name: string; slug: string | null; images: string[] };
+}
+
 export interface ReviewEligibility {
   hasPurchased: boolean;
   alreadyReviewed: boolean;
@@ -491,6 +495,15 @@ export const reviews = {
       { next: { revalidate: 300, tags } },
     );
   },
+
+  /**
+   * Reseñas recientes de toda la tienda, para el home. Lleva el tag
+   * `products` porque es el que el backend invalida al moderar.
+   */
+  featured: async (take = 6) =>
+    fetchWrapper<FeaturedReview[]>(`/reviews/featured?take=${take}`, {
+      next: { revalidate: 300, tags: ['reviews', 'products'] },
+    }),
 
   /** Requiere sesion: va por axios, que adjunta el token. */
   eligibility: async (productId: string) => {

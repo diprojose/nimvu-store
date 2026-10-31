@@ -150,3 +150,8 @@
 body[data-scroll-locked][data-scroll-locked] {
   overflow: clip !important;
 }
+
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
