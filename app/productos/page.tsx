@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Productos",
   description:
-    "Explora el catálogo Nimvu: lámparas, materas, organizadores y piezas de diseño impresas en 3D para tu hogar.",
+    "Explora el catálogo Nimvu: lámparas, materas, organizadores y piezas de diseño para tu hogar.",
   alternates: { canonical: "/productos" },
 };
 

@@ -5,7 +5,7 @@
 export const SITE_URL = 'https://www.somosnimvu.com';
 export const SITE_NAME = 'Nimvu';
 export const SITE_DESCRIPTION =
-  'Diseño que acompaña tus momentos. Piezas de diseño impresas en 3D para tu hogar: lámparas, materas, organizadores y más.';
+  'Diseño que acompaña tus momentos. Piezas de diseño para tu hogar: lámparas, materas, organizadores y más.';
 
 /** Construye una URL absoluta a partir de una ruta interna ("/productos/x"). */
 export const absoluteUrl = (path = '/') =>

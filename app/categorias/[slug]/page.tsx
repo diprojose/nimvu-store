@@ -12,7 +12,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
       return {
         title: cat.name,
         description:
-          cat.description ?? `Descubre las piezas de ${cat.name} diseñadas e impresas en 3D por Nimvu.`,
+          cat.description ?? `Descubre las piezas de ${cat.name} diseñadas por Nimvu.`,
         alternates: { canonical: `/categorias/${slug}` },
       };
     }
