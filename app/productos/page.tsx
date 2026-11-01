@@ -6,15 +6,30 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import categoryImages from "@/data/categoryImages.json";
 import type { Metadata } from "next";
+import { searchProducts, toSearchItem } from "@/lib/search";
+
+type SearchParams = { [key: string]: string | string[] | undefined };
+
+function searchTerm(params: SearchParams): string {
+  const q = params.q;
+  return (Array.isArray(q) ? q[0] : q)?.trim().slice(0, 80) ?? "";
+}
 
 // El canónico apunta siempre a /productos: los filtros por query (?category=)
-// muestran el mismo catálogo y no deben competir como URLs distintas.
-export const metadata: Metadata = {
-  title: "Productos",
-  description:
-    "Explora el catálogo Nimvu: lámparas, materas, organizadores y piezas de diseño para tu hogar.",
-  alternates: { canonical: "/productos" },
-};
+// muestran el mismo catálogo y no deben competir como URLs distintas. Los
+// resultados de búsqueda (?q=) además no se indexan.
+export async function generateMetadata(props: {
+  searchParams?: Promise<SearchParams>;
+}): Promise<Metadata> {
+  const q = searchTerm((await props.searchParams) ?? {});
+  return {
+    title: q ? `Resultados para "${q}"` : "Productos",
+    description:
+      "Explora el catálogo Nimvu: lámparas, materas, organizadores y piezas de diseño para tu hogar.",
+    alternates: { canonical: "/productos" },
+    ...(q && { robots: { index: false, follow: true } }),
+  };
+}
 
 function categoryHref(universeSlug: string | undefined, slug: string): string {
   if (!universeSlug || universeSlug === "hogar") return `/categorias/${slug}`;
@@ -34,6 +49,10 @@ export async function ShopPage(props: {
   // Await searchParams and combine logic gracefully
   const resolvedSearchParams = props.searchParams ? await props.searchParams : {};
   const queryCategory = resolvedSearchParams.category as string | undefined;
+  // Búsqueda del header ("Ver todos los resultados"). Abarca todo el catálogo
+  // público, no solo el universo de la página: quien busca "BTS" desde Hogar
+  // igual quiere encontrarlo.
+  const query = props.initialCategorySlug ? "" : searchTerm(resolvedSearchParams);
 
   const selectedCategorySlug = props.initialCategorySlug || queryCategory;
   const universeSlug = props.universeSlug;
@@ -44,10 +63,15 @@ export async function ShopPage(props: {
 
   try {
     const [productList, categoryList] = await Promise.all([
-      apiProducts.list({ universeSlug, categorySlug: selectedCategorySlug }),
+      query
+        ? apiProducts.list()
+        : apiProducts.list({ universeSlug, categorySlug: selectedCategorySlug }),
       apiCategories.list({ universeSlug }),
     ]);
-    products = productList;
+    products = query
+      ? searchProducts(productList.filter((p) => !p.isB2BOnly).map(toSearchItem), query)
+          .map((r) => productList.find((p) => p.id === r.item.id)!)
+      : productList;
     categories = categoryList;
   } catch (err) {
     console.error(err);
@@ -104,7 +128,16 @@ export async function ShopPage(props: {
     <div className="flex justify-center bg-white font-sans min-h-screen dark:bg-black">
       <main className="w-full max-w-7xl flex flex-col px-5 md:px-16 py-16 sm:max-w-full md:max-w-350">
         
-        {/* Boxed Banner */}
+        {query ? (
+          // Con búsqueda el banner de foto sobra: lo que importa son los resultados.
+          <div className="mb-10 pt-6 md:pt-10 font-inter">
+            <p className="text-sm text-gray-600">Resultados de búsqueda</p>
+            <h1 className="mt-1 text-3xl md:text-4xl font-source-serif font-semibold text-gray-900">
+              &ldquo;{query}&rdquo;
+            </h1>
+          </div>
+        ) : (
+        /* Boxed Banner */
         <div className="w-full relative h-[300px] flex flex-col items-center justify-center text-center text-white overflow-hidden rounded-md mb-12">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
@@ -120,12 +153,15 @@ export async function ShopPage(props: {
              </p>
           </div>
         </div>
+        )}
 
         <div className="w-full">
           {/* Top bar: products count + filter button (hidden when already inside a category) */}
           <div className="flex justify-between items-center mb-8">
-            <span className="text-sm text-gray-500">{filteredProducts.length} Productos</span>
-            {!selectedCategorySlug && (
+            <span className="text-sm text-gray-500">
+              {filteredProducts.length} {filteredProducts.length === 1 ? "Producto" : "Productos"}
+            </span>
+            {!selectedCategorySlug && !query && (
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -145,8 +181,14 @@ export async function ShopPage(props: {
             <div className="text-center text-red-500 py-12">{error}</div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-24 text-gray-500">
-              <p>No se encontraron productos en esta categoría.</p>
-              <Link href={allProductsHref} className="text-black underline mt-2 block">Ver todos</Link>
+              <p>
+                {query
+                  ? `No encontramos productos para "${query}". Prueba con otra palabra.`
+                  : "No se encontraron productos en esta categoría."}
+              </p>
+              <Link href={allProductsHref} className="text-black underline mt-2 block">
+                {query ? "Ver toda la tienda" : "Ver todos"}
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">

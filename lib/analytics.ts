@@ -95,3 +95,19 @@ export function trackCheckoutFailure(reason: string): void {
     checkout_error: reason,
   });
 }
+
+/**
+ * Registra una búsqueda del header con el evento estándar `search` de GA4.
+ * `search_results_count` en 0 marca lo que la gente busca y no encuentra:
+ * productos que piden y la tienda no tiene (o que existen con otro nombre).
+ */
+export function trackSearch(term: string, resultsCount: number): void {
+  if (typeof window === "undefined") return;
+
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "search",
+    search_term: term,
+    search_results_count: resultsCount,
+  });
+}

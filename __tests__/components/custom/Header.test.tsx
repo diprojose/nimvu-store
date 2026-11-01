@@ -22,6 +22,7 @@ vi.mock('@/store/authStore', () => ({
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
+  useRouter: () => ({ push: vi.fn() }),
 }))
 
 // El Header dejó de pedirle las categorías a `@/lib/api`: ahora salen del

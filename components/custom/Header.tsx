@@ -36,6 +36,7 @@ import { useUniverse, universeCssVars } from "@/lib/universe-context";
 import { BackendUniverse, BackendCategory } from "@/lib/api";
 import { getUniverseIcon } from "@/lib/universe-icons";
 import ShippingBanner from "@/components/custom/ShippingBanner";
+import HeaderSearch from "@/components/custom/HeaderSearch";
 
 function UniverseHref(universe: BackendUniverse): string {
   // Hogar lives at root to keep existing URLs/SEO. Other universes at /:slug.
@@ -238,6 +239,7 @@ const Header: FC = (): ReactElement | null => {
 
           {/* Acciones: Carrito/Contacto */}
           <div className="flex items-center space-x-4">
+            <HeaderSearch />
             {isMounted ? (
               <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
                 <SheetTrigger>

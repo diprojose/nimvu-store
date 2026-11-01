@@ -15,6 +15,7 @@ vi.mock("sonner", () => ({
 let rutaActual = "/productos";
 vi.mock("next/navigation", () => ({
   usePathname: () => rutaActual,
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock("@/lib/analytics", () => ({ trackAddToCart: vi.fn() }));
