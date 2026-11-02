@@ -78,13 +78,16 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
           <span className="font-medium line-clamp-2 min-h-[3rem] leading-tight">{item.title}</span>
         </Link>
         {/* Solo con reseñas aprobadas detrás: unas estrellas vacías en cada
-            tarjeta leen peor que no mostrar nada. */}
-        {item.ratingCount > 0 && (
-          <span className="mt-1 flex items-center gap-1.5">
-            <StarRating value={item.ratingAverage} size="sm" />
-            <span className="text-[13px] text-gray-600">({item.ratingCount})</span>
-          </span>
-        )}
+            tarjeta leen peor que no mostrar nada. La fila ocupa su alto igual,
+            para que precio y botón queden alineados con las tarjetas vecinas. */}
+        <span className="mt-1 flex h-5 items-center gap-1.5">
+          {item.ratingCount > 0 && (
+            <>
+              <StarRating value={item.ratingAverage} size="sm" />
+              <span className="text-[13px] text-gray-600">({item.ratingCount})</span>
+            </>
+          )}
+        </span>
       </div>
       <p className="flex gap-2 font-medium items-center mt-1">
         {item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price && (!item.discountEndDate || new Date(item.discountEndDate) >= new Date()) ? (
