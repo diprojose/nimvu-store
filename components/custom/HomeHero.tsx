@@ -24,6 +24,15 @@ type Slide = {
 // los precios, hay que actualizarlos aquí.
 const SLIDES: Slide[] = [
   {
+    tab: "Totes",
+    title: ["Dilo sin", "decir nada"],
+    text: "Frases con sarcasmo y arte botánico, en totes para cargar con todo lo del día.",
+    cta: { label: "Ver tote bags", href: "/categorias/tote-bags" },
+    shots: [{ src: "/home/hero-totes.jpg", alt: "Seis tote bags Nimvu colgadas en un tablero de madera" }],
+    dot: ["Desde", "$55.000"],
+    card: "#F3E2D7",
+  },
+  {
     tab: "Portavasos",
     title: ["Se guarda", "en maceta"],
     text: "Monstera, anturio, otoño y cactus: plantas de mesa cuyas hojas son portavasos. Después del café vuelven a su maceta.",
@@ -189,7 +198,7 @@ export default function HomeHero() {
 
           {/* Navegación: los nombres de las colecciones, con el progreso del avance automático */}
           <div className="order-first lg:order-none mb-5 lg:mb-0 lg:mt-8" role="tablist" aria-label="Elegir colección">
-            <div className="flex gap-6">
+            <div className="flex gap-4 sm:gap-6">
               {SLIDES.map((s, i) => (
                 <button
                   key={s.tab}
@@ -197,7 +206,7 @@ export default function HomeHero() {
                   role="tab"
                   aria-selected={i === cur}
                   onClick={() => go(i)}
-                  className={`relative pb-2 text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 ${
+                  className={`relative pb-2 whitespace-nowrap text-sm sm:text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 ${
                     i === cur ? "text-gray-900" : "text-gray-900/60 hover:text-gray-900"
                   }`}
                 >
