@@ -256,6 +256,13 @@ export const orders = {
     const response = await api.post("/orders/guest", data);
     return response.data;
   },
+  /** Estado del pago tras volver de Wompi. Público: sirve también a invitados. */
+  paymentStatus: async (id: string) => {
+    const response = await api.get<{ status: "approved" | "pending" | "declined"; total: number }>(
+      `/orders/${id}/payment-status`,
+    );
+    return response.data;
+  },
   list: async () => {
     const response = await api.get("/orders");
     return response.data;
