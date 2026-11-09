@@ -7,6 +7,7 @@ import Footer from '../components/custom/Footer';
 import ChromeGate from '../components/custom/ChromeGate';
 import { Toaster } from "@/components/ui/sonner"
 import FloatingWhatsApp from '@/components/custom/FloatingWhatsApp';
+import CouponFromUrl from '@/components/custom/CouponFromUrl';
 import { GoogleTagManager } from '@next/third-parties/google'
 import {
   universes as universesApi,
@@ -151,6 +152,7 @@ export default async function RootLayout({
           </ChromeGate>
         </UniverseProvider>
         <Toaster />
+        <CouponFromUrl />
         <ChromeGate>
           <FloatingWhatsApp />
         </ChromeGate>

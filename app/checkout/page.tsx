@@ -84,7 +84,14 @@ function describeCheckoutError(err: unknown): { message: string; log: string } {
 
 export default function CheckoutPage() {
   const { customer, syncWithBackend } = useAuthStore();
-  const { items, getCartTotal, getCartSubtotal, clearCart } = useCartStore();
+  const {
+    items,
+    getCartTotal,
+    getCartSubtotal,
+    clearCart,
+    couponCode: savedCouponCode,
+    setCouponCode: setSavedCouponCode,
+  } = useCartStore();
   const router = useRouter();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
@@ -310,23 +317,45 @@ export default function CheckoutPage() {
     if (selected) setSelectedAddress(selected);
   };
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode) return;
+  const handleApplyCoupon = async (code: string = couponCode, { auto = false } = {}) => {
+    if (!code) return;
     setLoadingCoupon(true);
     setCouponError("");
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const coupon: any = await discounts.validate(couponCode.toUpperCase());
+      const coupon: any = await discounts.validate(code.toUpperCase());
       setAppliedCoupon(coupon as DiscountCoupon);
-      toast.success("Cupón aplicado correctamente");
+      setSavedCouponCode(coupon?.code || code);
+      // El cupón que llega del enlace ya se anunció al entrar a la tienda.
+      if (!auto) toast.success("Cupón aplicado correctamente");
     } catch (error: unknown) {
       setAppliedCoupon(null);
+      // Un cupón guardado que ya no sirve (expiró, se agotó) no debe volver a
+      // intentarse en cada visita al checkout.
+      setSavedCouponCode(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setCouponError((error as any)?.response?.data?.message || "Cupón inválido o expirado");
     } finally {
       setLoadingCoupon(false);
     }
   };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setSavedCouponCode(null);
+  };
+
+  // Aplica solo el cupón que el cliente trae de un enlace (?codigo=) o de una
+  // visita anterior. Depende de `savedCouponCode` porque, si el enlace apunta
+  // directo a /checkout, el código se guarda después de montar esta página.
+  useEffect(() => {
+    if (!isMounted || !savedCouponCode) return;
+    if (appliedCoupon?.code?.toUpperCase() === savedCouponCode) return;
+    setCouponCode(savedCouponCode);
+    handleApplyCoupon(savedCouponCode, { auto: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted, savedCouponCode]);
 
   // Aislado en su propia función para poder reenviar el MISMO pago sin volver
   // a crear la orden.
@@ -560,8 +589,8 @@ export default function CheckoutPage() {
             couponError={couponError}
             loadingCoupon={loadingCoupon}
             appliedCoupon={appliedCoupon}
-            onApplyCoupon={handleApplyCoupon}
-            onRemoveCoupon={() => { setAppliedCoupon(null); setCouponCode(""); }}
+            onApplyCoupon={() => handleApplyCoupon()}
+            onRemoveCoupon={handleRemoveCoupon}
             discountAmount={discountAmount}
             shippingKnown={shippingKnown}
             isMounted={isMounted}
@@ -616,8 +645,8 @@ export default function CheckoutPage() {
               couponError={couponError}
               loadingCoupon={loadingCoupon}
               appliedCoupon={appliedCoupon}
-              onApplyCoupon={handleApplyCoupon}
-              onRemoveCoupon={() => { setAppliedCoupon(null); setCouponCode(""); }}
+              onApplyCoupon={() => handleApplyCoupon()}
+              onRemoveCoupon={handleRemoveCoupon}
               discountAmount={discountAmount}
               shippingKnown={shippingKnown}
             />

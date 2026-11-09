@@ -17,6 +17,14 @@ export interface CartItem {
 
 export interface CartState {
   items: CartItem[];
+  /**
+   * Cupón que el cliente trae de un enlace (?codigo=NBC15) o que ya aplicó en
+   * el checkout. Persiste con el carrito para que el checkout lo aplique solo,
+   * aunque el cliente llegue a pagar días después, y se borra con `clearCart`
+   * cuando la compra se completa.
+   */
+  couponCode: string | null;
+  setCouponCode: (code: string | null) => void;
   addItem: (product: any, variantId: string, quantity: number) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -29,6 +37,11 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      couponCode: null,
+
+      setCouponCode: (code: string | null) => {
+        set({ couponCode: code ? code.trim().toUpperCase() : null });
+      },
 
       addItem: (product: any, variantId: string, quantity: number) => {
         const { items } = get();
@@ -95,7 +108,7 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => {
-        set({ items: [] });
+        set({ items: [], couponCode: null });
       },
 
       getCartTotal: (isB2BContext?: boolean) => {
