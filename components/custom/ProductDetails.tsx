@@ -141,9 +141,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   }, [carouselApi, onSelect]);
 
   // Determine images to show
-  const currentImages = (selectedVariant?.images && selectedVariant.images.length > 0)
+  const baseImages = (selectedVariant?.images && selectedVariant.images.length > 0)
     ? selectedVariant.images.map((url: string, index: number) => ({ id: `var-img-${index}`, url }))
     : product.images;
+  // En un personalizable la primera foto es la portada del catálogo (el bolso
+  // sin frase), y aquí ya la reemplaza la vista previa en vivo: mostrarla
+  // debajo sería el mismo bolso dos veces. Las demás fotos sí se muestran.
+  const currentImages = isCustomizable ? (baseImages ?? []).slice(1) : baseImages;
+  // La vista previa cuenta como imagen: un personalizable nunca queda "sin fotos".
+  const hasGallery = isCustomizable || (currentImages && currentImages.length > 0);
 
   // Helper to clean up HTML content styles
   const formatHtmlContent = (htmlContent: string) => {
@@ -205,7 +211,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <div className="lg:col-span-7">
           {/* ── Mobile: Carrusel ──────────────────────────────────────── */}
           <div className="block lg:hidden">
-            {currentImages && currentImages.length > 0 ? (
+            {hasGallery ? (
               <>
                 <Carousel
                   setApi={setCarouselApi}
@@ -280,7 +286,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 />
               </div>
             ))}
-            {(!currentImages || currentImages.length === 0) && (
+            {!hasGallery && (
               <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-gray-400">
                 No Images
               </div>
