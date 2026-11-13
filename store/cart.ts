@@ -7,6 +7,8 @@ export interface CartItem {
   productId: string;
   title: string;
   variantName?: string;
+  /** Frase del cliente en un producto personalizable, ya normalizada. */
+  customText?: string;
   thumbnail: string;
   price: number;
   originalPrice?: number;
@@ -25,13 +27,21 @@ export interface CartState {
    */
   couponCode: string | null;
   setCouponCode: (code: string | null) => void;
-  addItem: (product: any, variantId: string, quantity: number) => void;
+  addItem: (product: any, variantId: string, quantity: number, customText?: string) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: (isB2BContext?: boolean) => number;
   getCartSubtotal: (isB2BContext?: boolean) => number;
 }
+
+/**
+ * Id de una línea del carrito. Dos bolsos con frases distintas son productos
+ * distintos para el cliente, así que la frase forma parte del id: cada una
+ * tiene su línea y su cantidad.
+ */
+export const cartItemId = (variantId: string, customText?: string) =>
+  customText ? `${variantId}::${customText}` : variantId;
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -43,9 +53,10 @@ export const useCartStore = create<CartState>()(
         set({ couponCode: code ? code.trim().toUpperCase() : null });
       },
 
-      addItem: (product: any, variantId: string, quantity: number) => {
+      addItem: (product: any, variantId: string, quantity: number, customText?: string) => {
         const { items } = get();
-        const existingItemIndex = items.findIndex((item) => item.variantId === variantId);
+        const id = cartItemId(variantId, customText);
+        const existingItemIndex = items.findIndex((item) => item.id === id);
 
         // Find the variant details
         const variant = product.variants?.find((v: any) => v.id === variantId);
@@ -77,8 +88,9 @@ export const useCartStore = create<CartState>()(
             items: [
               ...items,
               {
-                id: variantId, // Using variantId as ID for simplicity
+                id,
                 variantId,
+                customText,
                 productId: product.id,
                 title: product.title,
                 variantName: variant?.title || variant?.name,

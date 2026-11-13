@@ -101,6 +101,9 @@ const CartProductItem: FC<CartProductItemProps> = ({ item, cart, isB2BContext }:
         {item.variantName && (
           <span className="text-xs text-gray-500 mt-0.5">{item.variantName}</span>
         )}
+        {item.customText && (
+          <span className="text-xs text-gray-500 mt-0.5 whitespace-pre-line">Frase: “{item.customText}.”</span>
+        )}
         <div className="flex items-center gap-2 mt-1">
           {originalPrice && originalPrice > displayPrice ? (
             <>

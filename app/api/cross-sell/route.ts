@@ -71,7 +71,8 @@ export async function GET(request: Request) {
     const disponibles = all
       // Se filtra por el stock del producto base porque es contra ese que se
       // agrega desde la tira: sin variante, el backend descuenta `product.stock`.
-      .filter((p) => !p.isB2BOnly && p.stock > 0 && !enCarrito.has(p.id))
+      // Los personalizables quedan fuera: no se pueden agregar sin escribir la frase.
+      .filter((p) => !p.isB2BOnly && !p.isCustomizable && p.stock > 0 && !enCarrito.has(p.id))
       // De menor a mayor precio: sumar una pieza más debe sentirse una decisión
       // pequeña, no una segunda compra.
       .sort((a, b) => effectivePrice(a) - effectivePrice(b));

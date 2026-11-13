@@ -119,6 +119,7 @@ export interface BackendProduct {
   discountEndDate?: string | null;
   variants?: BackendVariant[];
   isB2BOnly?: boolean;
+  isCustomizable?: boolean;
   /** Agregados denormalizados de las reseñas aprobadas. */
   ratingAverage?: number;
   ratingCount?: number;
@@ -163,6 +164,8 @@ export interface FrontendProduct {
   longDescription?: string;
   discountEndDate?: string | null;
   isB2BOnly?: boolean;
+  /** El cliente escribe su propia frase (tote personalizable): no admite compra rápida. */
+  isCustomizable?: boolean;
   /** Fecha de última modificación en backend; la usa el sitemap como lastModified. */
   updatedAt?: string;
   /** Promedio de estrellas sobre las reseñas aprobadas (0 si no hay ninguna). */
@@ -214,6 +217,7 @@ const adaptProduct = (product: BackendProduct): FrontendProduct => {
     longDescription: product.longDescription || "",
     discountEndDate: product.discountEndDate || null,
     isB2BOnly: product.isB2BOnly || false,
+    isCustomizable: product.isCustomizable || false,
     updatedAt: product.updatedAt,
     ratingAverage: product.ratingAverage ?? 0,
     ratingCount: product.ratingCount ?? 0,

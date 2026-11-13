@@ -422,6 +422,7 @@ export default function CheckoutPage() {
         items: items.map(item => ({
           productId: item.productId,
           variantId: item.variantId === item.productId ? undefined : item.variantId,
+          customText: item.customText,
           quantity: item.quantity,
           price: item.price
         })),
@@ -538,6 +539,7 @@ export default function CheckoutPage() {
         items: items.map(item => ({
           productId: item.productId,
           variantId: item.variantId === item.productId ? undefined : item.variantId,
+          customText: item.customText,
           quantity: item.quantity,
           price: item.price
         })),

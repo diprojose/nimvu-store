@@ -38,6 +38,9 @@ export const SummaryItems: FC<{ items: CartItem[] }> = ({ items }) => (
         <div className="flex-1">
           <p className="font-medium text-sm line-clamp-2">{product.title}</p>
           {product.variantName && <p className="text-xs text-gray-500">{product.variantName}</p>}
+          {product.customText && (
+            <p className="text-xs text-gray-500 whitespace-pre-line">Frase: “{product.customText}.”</p>
+          )}
         </div>
         <div className="text-sm font-medium">{formatPrice(product.unit_price)}</div>
       </div>

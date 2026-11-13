@@ -13,7 +13,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { useCartStore } from '@/store/cart';
+import dynamic from "next/dynamic";
+import { useCartStore, cartItemId } from '@/store/cart';
+import { CUSTOM_TEXT_MAX_LENGTH, customTextError, normalizeCustomText } from "@/lib/tote-art";
 import { useAddedToCart } from "@/hooks/useAddedToCart";
 import { FrontendProduct } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
@@ -24,7 +26,14 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
+
+// Solo lo descargan los productos personalizables: trae su propia tipografía
+// y no tiene por qué pesar en la ficha de una maceta.
+const TotePreview = dynamic(() => import("@/components/custom/tote/TotePreview"), {
+  ssr: false,
+  loading: () => <div className="w-full aspect-square bg-gray-100 rounded-lg animate-pulse" />,
+});
 
 export interface ProductDetailsProps {
   product: FrontendProduct;
@@ -38,6 +47,22 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideCount, setSlideCount] = useState(0);
+
+  // Personalizable: la frase que el cliente escribe y si cabe en el recuadro.
+  const isCustomizable = !!product.isCustomizable;
+  const [customText, setCustomText] = useState("");
+  // Renglones tal como los ve el cliente en el bolso; `null` = no cabe.
+  const [toteLines, setToteLines] = useState<string[] | null>([]);
+  const textFits = toteLines !== null;
+  const [triedToAdd, setTriedToAdd] = useState(false);
+  const customTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const normalizedText = normalizeCustomText(customText);
+  const customError = !isCustomizable
+    ? null
+    : customTextError(customText) ??
+      (textFits ? null : "Esa frase no cabe en el bolso. Prueba con palabras más cortas.");
+  // El campo vacío no se marca en rojo hasta que intenten comprar.
+  const showCustomError = !!customError && (normalizedText.length > 0 || triedToAdd);
 
   const addToCart = useCartStore((state) => state.addItem);
   const notifyAdded = useAddedToCart();
@@ -80,6 +105,22 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     const variantId = selectedVariant?.id || product.id;
+
+    if (isCustomizable) {
+      if (customError) {
+        setTriedToAdd(true);
+        customTextRef.current?.focus();
+        return;
+      }
+      // Se guarda la frase con los saltos de renglón que el cliente vio, para
+      // que el arte de impresión salga partido exactamente igual.
+      const finalText = toteLines?.length ? toteLines.join("\n") : normalizedText;
+      addToCart(product, variantId, quantity, finalText);
+      trackAddToCart(product, quantity);
+      notifyAdded(cartItemId(variantId, finalText));
+      return;
+    }
+
     addToCart(product, variantId, quantity);
     trackAddToCart(product, quantity);
     notifyAdded(variantId);
@@ -172,6 +213,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   className="w-full"
                 >
                   <CarouselContent>
+                    {isCustomizable && (
+                      <CarouselItem key="tote-preview">
+                        <TotePreview
+                          text={customText}
+                          onLinesChange={setToteLines}
+                          priority
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                        />
+                      </CarouselItem>
+                    )}
                     {currentImages.map((img: { id: string; url: string }) => (
                       <CarouselItem key={img.id}>
                         <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -215,6 +266,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
           {/* ── Desktop: Stack vertical ────────────────────────────────── */}
           <div className="hidden lg:flex flex-col gap-8">
+            {isCustomizable && (
+              <TotePreview text={customText} onLinesChange={setToteLines} priority sizes="58vw" />
+            )}
             {currentImages?.map((img: { id: string; url: string }) => (
               <div key={img.id} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <Image
@@ -331,6 +385,49 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
           )}
 
+          {/* Personalizador: la frase se dibuja en vivo sobre la primera foto */}
+          {isCustomizable && (
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <label htmlFor="custom-text" className="text-sm font-medium text-gray-900 dark:text-white">
+                  Tu frase
+                </label>
+                <span
+                  className={`text-xs tabular-nums ${
+                    normalizedText.length > CUSTOM_TEXT_MAX_LENGTH ? "text-red-600 font-medium" : "text-gray-500"
+                  }`}
+                >
+                  {normalizedText.length}/{CUSTOM_TEXT_MAX_LENGTH}
+                </span>
+              </div>
+              <textarea
+                id="custom-text"
+                ref={customTextRef}
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                // En celular la vista previa es la primera foto del carrusel:
+                // se vuelve a ella para que el cliente vea lo que escribe.
+                onFocus={() => carouselApi?.scrollTo(0)}
+                rows={2}
+                maxLength={CUSTOM_TEXT_MAX_LENGTH + 20}
+                placeholder="nadie me cae bien"
+                aria-invalid={showCustomError}
+                aria-describedby="custom-text-help"
+                className={`w-full resize-none rounded-md border bg-white px-3 py-2.5 text-base text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/70 ${
+                  showCustomError ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              <p
+                id="custom-text-help"
+                className={`text-sm ${showCustomError ? "text-red-600 font-medium" : "text-gray-600 dark:text-gray-400"}`}
+              >
+                {showCustomError
+                  ? customError
+                  : "Mírala en el bolso mientras escribes. El punto final lo ponemos nosotros."}
+              </p>
+            </div>
+          )}
+
           {/* Quantity and Add to Cart: siempre en una fila, también en celular */}
           <div className="flex flex-col gap-2">
             <div className="flex flex-row gap-3 sm:gap-4">
@@ -362,6 +459,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 {isOutOfStock ? 'Agotado' : 'Agregar al Carrito'}
               </Button>
             </div>
+            {isCustomizable && (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Lo estampamos solo para ti, así que no tiene cambio ni devolución.{" "}
+                <Link href="/politicas-de-devoluciones" className="underline underline-offset-2">
+                  Ver política
+                </Link>
+              </p>
+            )}
             {!isOutOfStock && currentStock <= 5 && (
               <p className="text-sm text-orange-700 font-medium">
                 Solo quedan {currentStock} {currentStock === 1 ? 'unidad' : 'unidades'} disponibles

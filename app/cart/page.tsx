@@ -20,7 +20,7 @@ export default async function CartPage() {
         : p.price;
 
     crossSellProducts = all
-      .filter((p) => !p.isB2BOnly && p.stock > 0)
+      .filter((p) => !p.isB2BOnly && !p.isCustomizable && p.stock > 0)
       // De menor a mayor precio: se busca que sumar una pieza más sea una
       // decisión pequeña. Se piden 12 y no 10 porque el cliente descarta
       // después las que ya tenga en el carrito.

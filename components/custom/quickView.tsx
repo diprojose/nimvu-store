@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { FrontendProduct } from "@/lib/api";
@@ -24,7 +25,14 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
     setQuantity(prev => Math.max(1, prev + delta))
   }
 
+  const router = useRouter();
+
   const handleAddToCart = () => {
+    // Un personalizable se compra desde su ficha, donde se escribe la frase.
+    if (item.isCustomizable) {
+      router.push(`/productos/${item.slug || item.id}`);
+      return;
+    }
     const variantId = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, quantity);
     trackAddToCart(item, quantity);
@@ -105,7 +113,7 @@ const QuickView = ({ item }: { item: FrontendProduct }) => {
               className="flex-1 py-6 text-lg bg-black hover:bg-gray-800 text-white"
             >
               <ShoppingCart className="mr-2 w-5 h-5" />
-              Agregar al carrito
+              {item.isCustomizable ? "Personalizar" : "Agregar al carrito"}
             </Button>
           </div>
         </div>

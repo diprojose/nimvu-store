@@ -2,6 +2,7 @@
 import React, { FC, ReactElement, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FrontendProduct } from "@/lib/api";
 import { cn, formatPrice } from "@/lib/utils";
 import { ShoppingCart, Eye } from "lucide-react";
@@ -21,7 +22,15 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
   const addToCart: (product: FrontendProduct, variantId: string, quantity: number) => void = useCartStore((state: any) => state.addItem);
   const notifyAdded = useAddedToCart();
 
+  const router = useRouter();
+
   const handleAddToCart = (): void => {
+    // Un personalizable no se puede agregar sin frase: se lleva al cliente a
+    // la ficha, que es donde la escribe y la ve en el bolso.
+    if (item.isCustomizable) {
+      router.push(`/productos/${item.slug || item.id}`);
+      return;
+    }
     // Add logic to select variant if needed, for now default to first or product ID
     const variantId: string = item.variants?.[0]?.id || item.id;
     addToCart(item, variantId, 1);
@@ -103,7 +112,7 @@ const ProductItem: FC<ProductItemProps> = ({ item }: ProductItemProps): ReactEle
         onClick={handleAddToCart}
         className="w-full mt-4 bg-black text-white text-sm font-medium py-2.5 rounded hover:bg-gray-800 transition-colors"
       >
-        Agregar al carrito
+        {item.isCustomizable ? "Personalizar" : "Agregar al carrito"}
       </button>
       <Modal
         isOpen={isModalOpen}
